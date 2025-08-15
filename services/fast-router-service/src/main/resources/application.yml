@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: fast-router-service
+  profiles:
+    active: local
+  
+  # Enable Virtual Threads for Java 21
+  threads:
+    virtual:
+      enabled: true
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+    consumer:
+      group-id: ${spring.application.name}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.anz.fastpayment.*"
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Application Configuration
+app:
+  name: Fast Router Service
+  version: 21.0.0-apeafast-SNAPSHOT
+  
+  # Message processing configuration
+  router:
+    timeout-ms: ${MESSAGE_TIMEOUT_MS:4500}
+    duplicate-cache-ttl-minutes: ${DUPLICATE_CACHE_TTL_MINUTES:60}
+    max-retry-attempts: 3
+    
+  # External service endpoints
+  external:
+    cpg-endpoint: ${CPG_ENDPOINT:http://localhost:8444/cpg}
+    g3-host-endpoint: ${G3_HOST_ENDPOINT:http://localhost:8443/g3host}
+    
+  # Kafka topics
+  kafka:
+    topics:
+      payment-events: payment-events
+      payment-messages: payment-messages
+      bank-availability: bank-availability
+      exception-queue: exception-queue
+
+logging:
+  level:
+    com.anz.fastpayment: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    gcp:
+      spanner:
+        instance-id: ${SPANNER_INSTANCE:payment-gateway-local}
+        database: ${SPANNER_DATABASE:router-db}
+        emulator:
+          enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: gcp
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID:anz-fastpayment-sg}
+      spanner:
+        instance-id: ${SPANNER_INSTANCE:payment-gateway}
+        database: ${SPANNER_DATABASE:router-db}

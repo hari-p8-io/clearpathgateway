@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: fast-inward-clearing-processor
+  profiles:
+    active: local
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+    consumer:
+      group-id: ${spring.application.name}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.anz.fastpayment.*"
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Application Configuration
+app:
+  name: Fast Inward Clearing Processor
+  version: 21.0.0-apeafast-SNAPSHOT
+  
+  # SLA Configuration
+  sla:
+    timeout-seconds: ${SLA_TIMEOUT_SECONDS:4.5}
+    warning-threshold-seconds: 3.0
+    
+  # External service endpoints
+  external:
+    vam-endpoint: ${VAM_ENDPOINT:http://localhost:8445/vam}
+    midanz-endpoint: ${MIDANZ_ENDPOINT:http://localhost:8446/midanz}
+    liquidity-service-url: ${LIQUIDITY_SERVICE_URL:http://fast-liquidity-service:8080}
+    sender-service-url: ${SENDER_SERVICE_URL:http://fast-sender-service:8080}
+    
+  # Circuit breaker configuration
+  circuit-breaker:
+    failure-rate-threshold: 50
+    wait-duration-in-open-state: 30s
+    sliding-window-size: 10
+
+logging:
+  level:
+    com.anz.fastpayment: DEBUG
+    org.springframework.statemachine: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] - %msg%n"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    gcp:
+      spanner:
+        instance-id: ${SPANNER_INSTANCE:payment-gateway-local}
+        database: ${SPANNER_DATABASE:inward-processor-db}
+        emulator:
+          enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: gcp
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID:anz-fastpayment-sg}
+      spanner:
+        instance-id: ${SPANNER_INSTANCE:payment-gateway}
+        database: ${SPANNER_DATABASE:inward-processor-db}
