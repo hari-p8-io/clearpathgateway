@@ -1,0 +1,779 @@
+openapi: 3.0.3
+info:
+  title: Fast Liquidity Management API
+  version: 21.0.0-apeafast-SNAPSHOT
+  description: |
+    Multi-region liquidity management service for APEAFAST-SG ClearPath Gateway.
+    Supports Singapore G3 and Hong Kong FPS payment schemes with real-time 
+    balance management, authorization checks, and transaction processing.
+    
+    Core Features:
+    - Real-time liquidity balance checking and authorization
+    - Multi-country payment scheme support (SG=G3, HK=FPS)
+    - ISO 20022 message processing (PACS/CAMT)
+    - Net debit cap monitoring and enforcement
+    - Transaction history and audit trails
+  contact:
+    name: APEAFAST-SG Team
+    email: apeafast-sg@anz.com
+  license:
+    name: Proprietary
+    url: https://anz.com
+
+servers:
+  - url: https://api-liquidity.anz.com/v1
+    description: Production Environment
+  - url: https://api-liquidity-staging.anz.com/v1
+    description: Staging Environment
+  - url: http://localhost:8084
+    description: Local Development
+
+paths:
+  /liquidity/balance/check:
+    post:
+      summary: Check liquidity balance and authorization
+      description: |
+        Check current liquidity balance and determine if a proposed transaction amount 
+        would be authorized or rejected. Returns current balance and authorization status
+        for the requested amount without actually updating the balance.
+        
+        Country code automatically determines the payment scheme:
+        - SG: Singapore G3 (MAS regulated)
+        - HK: Hong Kong FPS
+        
+        This endpoint supports both debit and credit authorization checks with
+        real-time net debit cap compliance verification.
+      operationId: checkLiquidityBalance
+      tags:
+        - Liquidity Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceCheckRequest'
+            examples:
+              singapore_debit_check:
+                summary: Check Singapore G3 liquidity for outbound payment
+                value:
+                  countryCode: "SG"
+                  participantId: "ANZBSGSG"
+                  currency: "SGD"
+                  amount: "-50000.00"
+                  transactionType: "DEBIT"
+                  reference: "TXN-CHECK-001"
+              hong_kong_credit_check:
+                summary: Check Hong Kong FPS liquidity for inbound payment
+                value:
+                  countryCode: "HK"
+                  participantId: "ANZBHKHH"
+                  currency: "HKD"
+                  amount: "75000.00"
+                  transactionType: "CREDIT"
+                  reference: "TXN-CHECK-002"
+              large_transaction_check:
+                summary: Check large transaction authorization
+                value:
+                  countryCode: "SG"
+                  participantId: "ANZBSGSG"
+                  currency: "SGD"
+                  amount: "-5000000.00"
+                  transactionType: "DEBIT"
+                  reference: "TXN-CHECK-LARGE-001"
+      responses:
+        '200':
+          description: Balance check completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceCheckResponse'
+              examples:
+                authorized_transaction:
+                  summary: Transaction authorized
+                  value:
+                    status: "SUCCESS"
+                    authorized: true
+                    currentBalance: "1500000.00"
+                    projectedBalance: "1450000.00"
+                    currency: "SGD"
+                    minimumBalance: "0.00"
+                    availableAmount: "1500000.00"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    requestId: "CHK-20250115-103000-001"
+                    warnings: []
+                rejected_transaction:
+                  summary: Transaction rejected - insufficient funds
+                  value:
+                    status: "SUCCESS"
+                    authorized: false
+                    currentBalance: "25000.00"
+                    projectedBalance: "-25000.00"
+                    currency: "SGD"
+                    minimumBalance: "0.00"
+                    availableAmount: "25000.00"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    requestId: "CHK-20250115-103000-002"
+                    rejectionReason: "Insufficient funds for transaction"
+                    warnings: ["Balance below warning threshold"]
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_amount:
+                  summary: Invalid amount format
+                  value:
+                    status: "ERROR"
+                    errorCode: "VALIDATION_ERROR"
+                    message: "Invalid amount format. Must be numeric with up to 5 decimal places"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    requestId: "CHK-20250115-103000-003"
+        '404':
+          description: Currency or country not supported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unsupported_country:
+                  summary: Unsupported country code
+                  value:
+                    status: "ERROR"
+                    errorCode: "SCHEME_NOT_SUPPORTED"
+                    message: "Country code 'MY' is not supported. Supported codes: SG, HK"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    requestId: "CHK-20250115-103000-004"
+
+  /liquidity/balance/update:
+    post:
+      summary: Update liquidity balances
+      description: |
+        Process payment messages (PACS.008, PACS.002, CAMT.054, etc.) and update 
+        participant balances accordingly. Country code automatically determines 
+        the payment scheme (SG=G3, HK=FPS). 
+        
+        Supports various transaction types:
+        - DEBIT: Outbound payments (reduce balance)
+        - CREDIT: Inbound payments (increase balance)
+        - RESERVE: Hold funds for pending transactions
+        - RELEASE: Release previously reserved funds
+        
+        All updates are atomic and include comprehensive audit trails.
+      operationId: updateLiquidityBalance
+      tags:
+        - Liquidity Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceUpdateRequest'
+            examples:
+              outbound_payment:
+                summary: Process outbound payment (Singapore G3)
+                value:
+                  countryCode: "SG"
+                  participantId: "ANZBSGSG"
+                  currency: "SGD"
+                  amount: "-50000.00"
+                  transactionType: "DEBIT"
+                  messageType: "pacs.008.001.08"
+                  messageId: "MSG20250115103000001"
+                  reference: "TXN-OUT-001"
+                  timestamp: "2025-01-15T10:30:00.123Z"
+                  counterpartyId: "DBSSSGSG"
+                  additionalData:
+                    settlementMethod: "GROSS"
+                    priority: "HIGH"
+              inbound_payment:
+                summary: Process inbound payment (Hong Kong FPS)
+                value:
+                  countryCode: "HK"
+                  participantId: "ANZBHKHH"
+                  currency: "HKD"
+                  amount: "75000.00"
+                  transactionType: "CREDIT"
+                  messageType: "pacs.002.001.10"
+                  messageId: "MSG20250115103000002"
+                  reference: "TXN-IN-001"
+                  timestamp: "2025-01-15T10:30:15.456Z"
+                  counterpartyId: "HSBCHKHH"
+              reserve_funds:
+                summary: Reserve funds for pending transaction
+                value:
+                  countryCode: "SG"
+                  participantId: "ANZBSGSG"
+                  currency: "SGD"
+                  amount: "-100000.00"
+                  transactionType: "RESERVE"
+                  messageType: "pacs.008.001.08"
+                  messageId: "MSG20250115103000003"
+                  reference: "TXN-RESERVE-001"
+                  timestamp: "2025-01-15T10:30:30.789Z"
+      responses:
+        '200':
+          description: Balance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceUpdateResponse'
+              examples:
+                successful_debit:
+                  summary: Successful debit transaction
+                  value:
+                    status: "SUCCESS"
+                    transactionId: "TXN-20250115-103000-001"
+                    participantId: "ANZBSGSG"
+                    currency: "SGD"
+                    balanceBefore: "1550000.00"
+                    balanceAfter: "1500000.00"
+                    amountProcessed: "-50000.00"
+                    processedAt: "2025-01-15T10:30:00.456Z"
+                    requestId: "REQ-20250115-103000-001"
+                    warnings: []
+                successful_credit:
+                  summary: Successful credit transaction
+                  value:
+                    status: "SUCCESS"
+                    transactionId: "TXN-20250115-103000-002"
+                    participantId: "ANZBHKHH"
+                    currency: "HKD"
+                    balanceBefore: "2000000.00"
+                    balanceAfter: "2075000.00"
+                    amountProcessed: "75000.00"
+                    processedAt: "2025-01-15T10:30:15.789Z"
+                    requestId: "REQ-20250115-103000-002"
+                    warnings: ["Balance above recommended maximum"]
+        '400':
+          description: Invalid transaction data or insufficient funds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficient_funds:
+                  summary: Insufficient funds for debit
+                  value:
+                    status: "ERROR"
+                    errorCode: "INSUFFICIENT_FUNDS"
+                    message: "Insufficient funds for transaction. Available: 25000.00, Required: 50000.00"
+                    details:
+                      availableBalance: "25000.00"
+                      requestedAmount: "-50000.00"
+                      minimumBalance: "0.00"
+                    timestamp: "2025-01-15T10:30:00.789Z"
+                    requestId: "REQ-20250115-103000-003"
+        '409':
+          description: Duplicate transaction or balance conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicate_transaction:
+                  summary: Duplicate message ID
+                  value:
+                    status: "ERROR"
+                    errorCode: "DUPLICATE_TRANSACTION"
+                    message: "Transaction with messageId 'MSG20250115103000001' has already been processed"
+                    details:
+                      originalTransactionId: "TXN-20250115-102500-001"
+                      originalProcessedAt: "2025-01-15T10:25:00.123Z"
+                    timestamp: "2025-01-15T10:30:00.789Z"
+                    requestId: "REQ-20250115-103000-004"
+
+  /liquidity/balance/{participantId}:
+    get:
+      summary: Get current balance for participant
+      description: |
+        Retrieve the current liquidity balance for a specific participant.
+        Includes available balance, reserved amounts, and balance history.
+      operationId: getParticipantBalance
+      tags:
+        - Liquidity Management
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          description: Participant identifier (e.g., ANZBSGSG, DBSSSGSG)
+          schema:
+            type: string
+            pattern: '^[A-Z]{8}$'
+            example: "ANZBSGSG"
+        - name: currency
+          in: query
+          required: true
+          description: Currency code
+          schema:
+            type: string
+            pattern: '^[A-Z]{3}$'
+            example: "SGD"
+        - name: countryCode
+          in: query
+          required: true
+          description: Country code to determine payment scheme
+          schema:
+            type: string
+            enum: [SG, HK]
+            example: "SG"
+      responses:
+        '200':
+          description: Current balance information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantBalanceResponse'
+
+  /health:
+    get:
+      summary: Service health check
+      description: |
+        Health check endpoint for monitoring service availability and dependencies.
+        Returns status of database connections, message queues, and overall service health.
+      operationId: getHealthStatus
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy_service:
+                  summary: All systems operational
+                  value:
+                    status: "UP"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    services:
+                      database: "UP"
+                      messageQueue: "UP"
+                      redis: "UP"
+                      spanner: "UP"
+                    version: "21.0.0-apeafast-SNAPSHOT"
+                    uptime: "72h 35m 42s"
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                degraded_service:
+                  summary: Database connection issues
+                  value:
+                    status: "DEGRADED"
+                    timestamp: "2025-01-15T10:30:00.123Z"
+                    services:
+                      database: "DOWN"
+                      messageQueue: "UP"
+                      redis: "UP"
+                      spanner: "DOWN"
+                    version: "21.0.0-apeafast-SNAPSHOT"
+                    uptime: "72h 35m 42s"
+                    errors:
+                      - "Database connection timeout"
+                      - "Spanner instance unavailable"
+
+components:
+  schemas:
+    BalanceCheckRequest:
+      type: object
+      required:
+        - countryCode
+        - currency
+        - amount
+        - transactionType
+      properties:
+        countryCode:
+          type: string
+          enum: [SG, HK]
+          example: "SG"
+          description: ISO country code (SG maps to G3, HK maps to FPS)
+        participantId:
+          type: string
+          pattern: '^[A-Z]{8}$'
+          example: "ANZBSGSG"
+          description: Participant identifier (optional for in-house service)
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "SGD"
+          description: ISO 4217 currency code
+        amount:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "-50000.00"
+          description: Amount to check (negative for debits, positive for credits)
+        transactionType:
+          type: string
+          enum: [DEBIT, CREDIT]
+          example: "DEBIT"
+          description: Type of transaction being checked
+        reference:
+          type: string
+          maxLength: 35
+          example: "TXN-CHECK-001"
+          description: Optional reference for tracking the check request
+
+    BalanceCheckResponse:
+      type: object
+      required:
+        - status
+        - authorized
+        - currentBalance
+        - projectedBalance
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS]
+          example: "SUCCESS"
+        authorized:
+          type: boolean
+          example: true
+          description: Whether the transaction would be authorized
+        currentBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1500000.00"
+          description: Current available balance
+        projectedBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1450000.00"
+          description: What the balance would be after the transaction
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "SGD"
+        minimumBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "0.00"
+          description: Minimum balance threshold
+        availableAmount:
+          type: string
+          pattern: '^[0-9]+(\.[0-9]{1,5})?$'
+          example: "1500000.00"
+          description: Maximum amount available for debits
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.123Z"
+        requestId:
+          type: string
+          example: "CHK-20250115-103000-001"
+        rejectionReason:
+          type: string
+          example: "Insufficient funds"
+          description: Reason for rejection if authorized=false
+        warnings:
+          type: array
+          items:
+            type: string
+          example: ["Transaction would bring balance below warning threshold"]
+          description: Any warnings about the proposed transaction
+
+    BalanceUpdateRequest:
+      type: object
+      required:
+        - countryCode
+        - participantId
+        - currency
+        - amount
+        - transactionType
+        - messageType
+        - messageId
+        - timestamp
+      properties:
+        countryCode:
+          type: string
+          enum: [SG, HK]
+          example: "SG"
+          description: ISO country code (SG maps to G3, HK maps to FPS)
+        participantId:
+          type: string
+          pattern: '^[A-Z]{8}$'
+          example: "ANZBSGSG"
+          description: Participant whose balance is being updated
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "SGD"
+          description: ISO 4217 currency code
+        amount:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "-50000.00"
+          description: Amount to add/subtract (negative for debits, positive for credits)
+        transactionType:
+          type: string
+          enum: [DEBIT, CREDIT, RESERVE, RELEASE]
+          example: "DEBIT"
+          description: Type of balance operation
+        messageType:
+          type: string
+          enum: [pacs.008.001.08, pacs.002.001.10, pacs.003.001.07, camt.054.001.08, camt.052.001.08, camt.053.001.08, camt.056.001.08]
+          example: "pacs.008.001.08"
+          description: ISO 20022 message type that triggered this update
+        messageId:
+          type: string
+          maxLength: 35
+          example: "MSG20250115103000001"
+          description: Unique message identifier from the payment system
+        reference:
+          type: string
+          maxLength: 35
+          example: "TXN-OUT-001"
+          description: Business reference or transaction reference
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.123Z"
+          description: Transaction timestamp from the original message
+        counterpartyId:
+          type: string
+          pattern: '^[A-Z]{8}$'
+          example: "DBSSSGSG"
+          description: Counterparty participant (optional)
+        additionalData:
+          type: object
+          description: Any additional country/scheme specific data
+          properties:
+            settlementMethod:
+              type: string
+              enum: [GROSS, NET]
+              example: "GROSS"
+            priority:
+              type: string
+              enum: [HIGH, NORMAL, LOW]
+              example: "HIGH"
+            batchId:
+              type: string
+              example: "BATCH-001"
+            netDebitCapImpact:
+              type: string
+              pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+              description: Impact on net debit cap
+
+    BalanceUpdateResponse:
+      type: object
+      required:
+        - status
+        - transactionId
+        - balanceAfter
+        - processedAt
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, REJECTED]
+          example: "SUCCESS"
+        transactionId:
+          type: string
+          example: "TXN-20250115-103000-001"
+          description: Internal transaction ID for this balance update
+        participantId:
+          type: string
+          pattern: '^[A-Z]{8}$'
+          example: "ANZBSGSG"
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "SGD"
+        balanceBefore:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1550000.00"
+          description: Balance before the update
+        balanceAfter:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1500000.00"
+          description: Balance after the update
+        amountProcessed:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "-50000.00"
+          description: Actual amount that was processed
+        processedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.456Z"
+        requestId:
+          type: string
+          example: "REQ-20250115-103000-002"
+        warnings:
+          type: array
+          items:
+            type: string
+          example: ["Balance approaching minimum threshold"]
+          description: Any warnings generated during processing
+
+    ParticipantBalanceResponse:
+      type: object
+      required:
+        - participantId
+        - currency
+        - currentBalance
+        - availableBalance
+        - timestamp
+      properties:
+        participantId:
+          type: string
+          pattern: '^[A-Z]{8}$'
+          example: "ANZBSGSG"
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "SGD"
+        currentBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1500000.00"
+        availableBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "1400000.00"
+          description: Available balance after reserved amounts
+        reservedAmount:
+          type: string
+          pattern: '^[0-9]+(\.[0-9]{1,5})?$'
+          example: "100000.00"
+          description: Amount currently reserved for pending transactions
+        netDebitCapLimit:
+          type: string
+          pattern: '^[0-9]+(\.[0-9]{1,5})?$'
+          example: "5000000.00"
+          description: Maximum net debit cap for this participant
+        netDebitCapUtilization:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.3
+          description: Current utilization of net debit cap (0.0 to 1.0)
+        minimumBalance:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,5})?$'
+          example: "0.00"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.123Z"
+        lastTransactionAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:25:30.456Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - errorCode
+        - message
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ERROR]
+          example: "ERROR"
+        errorCode:
+          type: string
+          example: "INSUFFICIENT_FUNDS"
+          enum:
+            - INVALID_PARTICIPANT
+            - INVALID_CURRENCY
+            - INSUFFICIENT_FUNDS
+            - DUPLICATE_TRANSACTION
+            - INVALID_AMOUNT
+            - SCHEME_NOT_SUPPORTED
+            - PARTICIPANT_SUSPENDED
+            - VALIDATION_ERROR
+            - SYSTEM_ERROR
+            - NET_DEBIT_CAP_EXCEEDED
+            - UNAUTHORIZED_TRANSACTION
+            - SERVICE_UNAVAILABLE
+        message:
+          type: string
+          example: "Insufficient funds for transaction. Available: 1000.00, Required: 50000.00"
+        details:
+          type: object
+          description: Additional error context
+          example:
+            availableBalance: "1000.00"
+            requestedAmount: "-50000.00"
+            minimumBalance: "0.00"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.789Z"
+        requestId:
+          type: string
+          example: "REQ-20250115-103000-003"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, DEGRADED]
+          example: "UP"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00.123Z"
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [UP, DOWN]
+            messageQueue:
+              type: string
+              enum: [UP, DOWN]
+            redis:
+              type: string
+              enum: [UP, DOWN]
+            spanner:
+              type: string
+              enum: [UP, DOWN]
+        version:
+          type: string
+          example: "21.0.0-apeafast-SNAPSHOT"
+        uptime:
+          type: string
+          example: "72h 35m 42s"
+        errors:
+          type: array
+          items:
+            type: string
+          example: ["Database connection timeout"]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for service-to-service authentication
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for external client authentication
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+tags:
+  - name: Liquidity Management
+    description: Core liquidity management operations for balance checking and updates
+  - name: Health
+    description: Service health and monitoring endpoints

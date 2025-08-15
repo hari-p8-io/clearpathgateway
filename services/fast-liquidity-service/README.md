@@ -1,275 +1,285 @@
 # Fast Liquidity Service
 
+Multi-region liquidity management service for APEAFAST-SG ClearPath Gateway. Provides real-time balance management, authorization checks, and transaction processing for Singapore G3 and Hong Kong FPS payment schemes.
+
 ## Overview
 
-The Fast Liquidity Service is the core liquidity management component that handles real-time liquidity tracking, net debit cap monitoring, and authorization decisions for both outward payments and direct debit transactions. It ensures compliance with regulatory requirements and optimizes liquidity utilization.
-
-## Responsibilities
-
-### Core Functions
-- **Real-time Liquidity Tracking**: Continuous balance calculation and monitoring
-- **Net Debit Cap Management**: Monitor and enforce regulatory net debit limits
-- **Authorization Engine**: Pre-transaction liquidity authorization decisions
-- **DDI Impact Tracking**: Track how direct debits affect available liquidity
-- **Settlement Integration**: Twice-daily settlement cycle support
-- **Hold and Release**: Manage liquidity reservations for pending payments
-- **Threshold Management**: Configurable warning levels and alerts
-- **Cross-border Optimization**: Multi-currency liquidity management
-
-### Key Concepts
-- **Net Debit Cap**: Maximum negative position allowed with central bank
-- **Available Liquidity**: Current available funds for outward payments
-- **Reserved Liquidity**: Funds held for pending transactions
-- **DDI Credit**: Liquidity gained from customer direct debit collections
+The Fast Liquidity Service is a critical component of the APEAFAST-SG payment gateway, responsible for:
+- Real-time liquidity balance checking and authorization
+- Multi-country payment scheme support (SG=G3, HK=FPS)
+- ISO 20022 message processing (PACS/CAMT)
+- Net debit cap monitoring and enforcement
+- Transaction history and audit trails
 
 ## Architecture
 
-### Input Sources
-- fast-outward-clearing-processor (authorization requests)
-- fast-inward-clearing-processor (DDI and CTI updates)
-- Settlement systems (twice-daily settlements)
-- Core banking systems (account updates)
+### Tech Stack
+- **Java 21** with Virtual Threads (Project Loom)
+- **Spring Boot 3.2.1** with WebFlux
+- **Google Cloud Spanner** for transactional data
+- **Redis** for caching and session management
+- **Apache Kafka** for event streaming
+- **Docker** for containerization
 
-### Output Targets
-- Authorization responses to payment processors
-- Liquidity alerts and notifications
-- Regulatory reporting systems
-- Operational dashboards
+### Key Features
+- **High Performance**: Virtual Threads for improved concurrency
+- **Multi-Region**: Supports Singapore G3 and Hong Kong FPS
+- **Real-time**: Sub-second balance checks and updates
+- **Resilient**: Circuit breakers and retry mechanisms
+- **Observable**: Comprehensive monitoring and tracing
 
-### Technology Stack
-- **Framework**: Spring Boot 3.x with WebFlux (reactive)
-- **Database**: Cloud Spanner (ACID transactions for liquidity)
-- **Cache**: Redis (real-time balance cache)
-- **Messaging**: Kafka (liquidity events)
-- **Analytics**: BigQuery (liquidity reporting)
+## API Documentation
 
-## Key Features
+The service exposes RESTful APIs documented with OpenAPI 3.0.3 specification:
 
-### Performance Requirements
-- **Response Time**: <200ms for authorization decisions
-- **Throughput**: 50+ TPS authorization requests
-- **Availability**: 99.99% uptime (critical for payment flow)
-- **Consistency**: ACID compliance for all liquidity operations
+### Core Endpoints
 
-### Liquidity Calculation Model
-```
-Available Liquidity = Opening Balance 
-                    + Inward Payments (CTI)
-                    + Direct Debit Collections (DDI)
-                    + Settlement Credits
-                    - Outward Payments (CTO)
-                    - Reserved for Pending Payments
-                    - Regulatory Buffer
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/liquidity/balance/check` | POST | Check balance authorization |
+| `/liquidity/balance/update` | POST | Update participant balance |
+| `/liquidity/balance/{participantId}` | GET | Get participant balance |
+| `/health` | GET | Service health check |
 
-### Authorization Flow
-1. **Receive Request**: Authorization request from payment processor
-2. **Calculate Impact**: Determine liquidity impact of transaction
-3. **Check Availability**: Verify sufficient liquidity exists
-4. **Regulatory Check**: Ensure net debit cap compliance
-5. **Reserve Funds**: Hold liquidity for approved transactions
-6. **Respond**: Return authorization decision
-7. **Track State**: Update liquidity position
+### API Documentation
+- **Swagger UI**: `http://localhost:8084/swagger-ui.html`
+- **OpenAPI Spec**: `http://localhost:8084/api-docs`
+- **Spec File**: [openapi.yaml](api/openapi.yaml)
 
-### DDI Special Handling
-- **Customer Debit**: DDI increases bank's available liquidity
-- **Pre-authorization**: Check customer account balance before DDI
-- **Real-time Impact**: Immediate liquidity position update
-- **Settlement Timing**: Consider settlement cycle effects
+## Quick Start
+
+### Prerequisites
+- Java 21
+- Maven 3.9+
+- Docker & Docker Compose
+- Redis (for caching)
+- Kafka (for messaging)
+- Google Cloud Spanner (or emulator)
+
+### Local Development
+
+1. **Start Infrastructure**:
+   ```bash
+   cd ../../
+   docker-compose up -d redis kafka spanner-emulator
+   ```
+
+2. **Run the Service**:
+   ```bash
+   mvn spring-boot:run
+   ```
+
+3. **Test the API**:
+   ```bash
+   curl -X POST http://localhost:8084/liquidity/balance/check \
+     -H "Content-Type: application/json" \
+     -d '{
+       "countryCode": "SG",
+       "currency": "SGD",
+       "amount": "-50000.00",
+       "transactionType": "DEBIT"
+     }'
+   ```
+
+### Docker
+
+1. **Build Image**:
+   ```bash
+   docker build -t fast-liquidity-service .
+   ```
+
+2. **Run Container**:
+   ```bash
+   docker run -p 8084:8084 \
+     -e SPRING_PROFILES_ACTIVE=docker \
+     fast-liquidity-service
+   ```
 
 ## Configuration
 
-### Environment Variables
-```bash
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-SPANNER_INSTANCE=payment-gateway
-SPANNER_DATABASE=liquidity
-REDIS_HOST=localhost
-REDIS_PORT=6379
-NET_DEBIT_CAP_SGD=500000000.00
-REGULATORY_BUFFER_SGD=50000000.00
-SETTLEMENT_TIMES=["09:00", "16:00"]
-WARNING_THRESHOLD=0.8
-CRITICAL_THRESHOLD=0.9
-```
+### Application Profiles
+- **local**: Local development with emulators
+- **docker**: Docker environment
+- **production**: Production environment
 
-### Net Debit Cap Configuration
+### Key Configuration Properties
 ```yaml
-net_debit_cap:
-  SGD: 500000000.00  # 500M SGD limit
-  USD: 100000000.00  # 100M USD limit
-  
-thresholds:
-  warning: 0.8       # 80% utilization warning
-  critical: 0.9      # 90% utilization critical alert
-  emergency: 0.95    # 95% emergency procedures
-  
-buffers:
-  regulatory: 50000000.00  # Required regulatory buffer
-  operational: 25000000.00 # Operational safety buffer
+server:
+  port: 8084
+
+liquidity:
+  supported-schemes:
+    SG: G3
+    HK: FPS
+  thresholds:
+    warning-percentage: 0.8
+    critical-percentage: 0.95
+  net-debit-cap:
+    default-limit: 5000000.00
+    monitoring-enabled: true
 ```
 
-## APIs
+## Payment Schemes
 
-### Health Check
-```http
-GET /health
-Response: 200 OK
-{
-  "status": "UP",
-  "components": {
-    "spanner": "UP",
-    "redis": "UP",
-    "kafka": "UP"
-  }
-}
-```
+### Singapore G3
+- **Regulator**: Monetary Authority of Singapore (MAS)
+- **Operating Hours**: 24/7
+- **Currency**: SGD
+- **Settlement**: Real-time gross settlement (RTGS)
 
-### Authorize Payment
-```http
-POST /api/v1/liquidity/authorize
-Content-Type: application/json
+### Hong Kong FPS
+- **Regulator**: Hong Kong Monetary Authority (HKMA)
+- **Operating Hours**: 24/7
+- **Currency**: HKD
+- **Settlement**: Real-time gross settlement (RTGS)
 
-{
-  "paymentId": "PAY123456",
-  "amount": "1000000.00",
-  "currency": "SGD",
-  "type": "CTO",
-  "debtorAccount": "12345678",
-  "priority": "NORMAL"
-}
+## Net Debit Cap Management
 
-Response: 200 OK
-{
-  "authorizationId": "AUTH789012",
-  "decision": "AUTHORIZED",
-  "availableLiquidity": "495000000.00",
-  "utilizationRatio": 0.75,
-  "expiresAt": "2024-01-15T10:15:00Z"
-}
-```
+The service enforces net debit caps to manage liquidity risk:
 
-### Current Liquidity Position
-```http
-GET /api/v1/liquidity/position
-Response: 200 OK
-{
-  "currency": "SGD",
-  "availableLiquidity": "495000000.00",
-  "netDebitCap": "500000000.00",
-  "utilizationRatio": 0.75,
-  "reservedAmount": "25000000.00",
-  "pendingPayments": 45,
-  "lastUpdated": "2024-01-15T10:00:00Z"
-}
-```
+- **Real-time Monitoring**: Continuous tracking of participant positions
+- **Threshold Alerts**: Configurable warning and critical thresholds
+- **Automatic Rejection**: Transactions exceeding limits are automatically rejected
+- **Compliance Reporting**: Audit trails for regulatory compliance
 
-### Release Authorization
-```http
-POST /api/v1/liquidity/release/{authorizationId}
-Response: 200 OK
-{
-  "authorizationId": "AUTH789012",
-  "status": "RELEASED",
-  "releasedAmount": "1000000.00"
-}
-```
+## Message Types Supported
 
-## Monitoring
+| Message Type | Description | Flow |
+|--------------|-------------|------|
+| pacs.008.001.08 | Customer Credit Transfer | Outbound |
+| pacs.002.001.10 | Payment Status Report | Inbound |
+| pacs.003.001.07 | Customer Direct Debit | Outbound |
+| camt.054.001.08 | Bank to Customer Debit/Credit Notification | Inbound |
+| camt.052.001.08 | Bank to Customer Account Report | Inbound |
+| camt.053.001.08 | Bank to Customer Statement | Inbound |
 
-### Key Metrics
-- `liquidity.available.amount` - Current available liquidity
-- `liquidity.utilization.ratio` - Net debit cap utilization
-- `liquidity.authorizations.total` - Total authorization requests
-- `liquidity.authorizations.approved.total` - Approved authorizations
-- `liquidity.authorizations.rejected.total` - Rejected authorizations
-- `liquidity.response.duration.seconds` - Authorization response time
-- `liquidity.reserved.amount` - Currently reserved liquidity
+## Monitoring & Observability
 
-### Business Metrics
-- Peak liquidity utilization
-- Daily authorization volume
-- Rejection rate by reason
-- Settlement impact analysis
-- DDI vs CTO liquidity flow
+### Health Checks
+- **Application Health**: `/health`
+- **Dependency Status**: Database, Kafka, Redis, Spanner
+- **Custom Metrics**: Balance thresholds, transaction rates
 
-### Critical Alerts
-- Net debit cap utilization > 80%
-- Available liquidity below operational threshold
-- Authorization service response time > 200ms
-- High rejection rate (>5%)
-- Settlement processing delays
-- Redis cache connectivity issues
+### Metrics
+- **Prometheus**: `http://localhost:8084/actuator/prometheus`
+- **Custom Metrics**: 
+  - `liquidity.balance.checks.total`
+  - `liquidity.balance.updates.total`
+  - `liquidity.netdebitcap.utilization`
 
-## Liquidity Management
+### Logging
+- **Structured Logging**: JSON format with correlation IDs
+- **Log Levels**: Configurable per package
+- **Audit Trail**: Complete transaction history
 
-### Real-time Updates
-- **CTI Receipt**: Increase available liquidity immediately
-- **DDI Processing**: Increase available liquidity (customer pays bank)
-- **CTO Authorization**: Reserve liquidity for pending payment
-- **CTO Confirmation**: Deduct from available liquidity
-- **Payment Failure**: Release reserved liquidity
+## Security
 
-### Settlement Integration
-```yaml
-settlement:
-  morning:
-    time: "09:00"
-    type: "bilateral"
-    currencies: ["SGD"]
-    
-  afternoon:
-    time: "16:00" 
-    type: "multilateral"
-    currencies: ["SGD", "USD"]
-```
+### Authentication
+- **JWT Tokens**: Service-to-service authentication
+- **API Keys**: External client authentication
+- **Mutual TLS**: Transport layer security (infrastructure level)
 
-### Hold and Retry Support
-- **Insufficient Funds**: Return rejection with retry recommendation
-- **Temporary Hold**: Reserve partial liquidity for high-priority payments
-- **Queue Management**: Priority-based authorization for held payments
-- **Liquidity Recovery**: Automatic retry when liquidity improves
+### Authorization
+- **Role-based Access**: Different access levels
+- **Participant Isolation**: Cross-participant access prevention
+- **Audit Logging**: All access logged and monitored
 
-## Risk Management
+## Error Handling
 
-### Regulatory Compliance
-- **MAS Requirements**: Singapore central bank regulations
-- **Net Debit Cap**: Real-time monitoring and enforcement
-- **Reporting**: Automated regulatory report generation
-- **Audit Trail**: Complete liquidity movement tracking
+### Error Codes
+| Code | Description |
+|------|-------------|
+| `INSUFFICIENT_FUNDS` | Not enough liquidity |
+| `NET_DEBIT_CAP_EXCEEDED` | Exceeds net debit cap |
+| `DUPLICATE_TRANSACTION` | Transaction already processed |
+| `INVALID_PARTICIPANT` | Unknown participant |
+| `SCHEME_NOT_SUPPORTED` | Unsupported payment scheme |
 
-### Risk Controls
-- **Concentration Limits**: Per-counterparty exposure limits
-- **Velocity Checks**: Unusual liquidity movement detection
-- **Circuit Breakers**: Automatic stops for anomalous activity
-- **Manual Overrides**: Authorized operator interventions
+### Retry Logic
+- **Exponential Backoff**: For transient failures
+- **Circuit Breakers**: Fail-fast for degraded services
+- **Dead Letter Queues**: For failed messages
 
 ## Development
 
-### Local Setup
+### Project Structure
+```
+src/
+├── main/java/com/anz/fastpayment/liquidity/
+│   ├── controller/          # REST API controllers
+│   ├── service/            # Business logic interfaces
+│   ├── service/impl/       # Business logic implementations
+│   ├── model/              # Request/Response models
+│   ├── repository/         # Data access layer
+│   └── config/             # Configuration classes
+├── main/resources/
+│   ├── application.yml     # Application configuration
+│   └── db/migration/       # Database migrations
+└── test/java/              # Unit and integration tests
+```
+
+### Building
 ```bash
-cd services/fast-liquidity-service
-./mvnw spring-boot:run -Dspring.profiles.active=local
+# Clean build
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Package
+mvn package
+
+# Build Docker image
+mvn jib:dockerBuild
 ```
 
 ### Testing
 ```bash
 # Unit tests
-./mvnw test
+mvn test
 
-# Integration tests with Spanner
-./mvnw integration-test
+# Integration tests
+mvn verify
 
-# Liquidity simulation tests
-./mvnw test -Dtest=LiquiditySimulationTest
-
-# Performance tests
-./scripts/performance-test.sh --concurrent=50 --duration=300s
+# Test with Testcontainers
+mvn test -Dspring.profiles.active=test
 ```
 
-### Liquidity Simulation
-```bash
-# Simulate payment flows
-./scripts/simulate-liquidity.sh --scenario=peak-load
-./scripts/simulate-liquidity.sh --scenario=settlement-cycle
-```
+## Deployment
+
+### Environment Variables
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SPRING_PROFILES_ACTIVE` | Active profile | `local` |
+| `SPANNER_INSTANCE_ID` | Spanner instance | - |
+| `SPANNER_DATABASE` | Spanner database | - |
+| `KAFKA_BOOTSTRAP_SERVERS` | Kafka brokers | `localhost:9092` |
+| `REDIS_HOST` | Redis host | `localhost` |
+| `JWT_SECRET` | JWT signing key | - |
+
+### Health Checks
+- **Readiness**: Service is ready to accept traffic
+- **Liveness**: Service is running and healthy
+- **Startup**: Service has completed initialization
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes with tests
+4. Submit a pull request
+
+### Code Standards
+- **Java 21** language features
+- **Spring Boot** best practices
+- **OpenAPI 3.0** for API documentation
+- **JUnit 5** for testing
+- **SLF4J** for logging
+
+## License
+
+Proprietary - ANZ Banking Group Limited
+
+---
+
+For more information, contact the APEAFAST-SG team at [apeafast-sg@anz.com](mailto:apeafast-sg@anz.com)

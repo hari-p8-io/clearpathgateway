@@ -1,0 +1,223 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: fast-liquidity-service
+  
+  # Enable Virtual Threads (Project Loom)
+  threads:
+    virtual:
+      enabled: true
+  
+  # Profile management
+  profiles:
+    active: local
+  
+  # JSON serialization
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  
+  # JPA/Database
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: fast-liquidity-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.anz.fastpayment.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+# Management/Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,liquidity
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    kafka:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    com.anz.fastpayment: INFO
+    org.springframework.kafka: WARN
+    org.springframework.transaction: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+
+# Application-specific configuration
+liquidity:
+  # Supported countries and schemes
+  supported-schemes:
+    SG: G3
+    HK: FPS
+  
+  # Balance thresholds
+  thresholds:
+    warning-percentage: 0.8  # 80% of limit
+    critical-percentage: 0.95  # 95% of limit
+  
+  # Net debit cap settings
+  net-debit-cap:
+    default-limit: 5000000.00  # 5 million
+    monitoring-enabled: true
+    alert-threshold: 0.9  # 90% utilization
+  
+  # Cache settings
+  cache:
+    balance-ttl: PT30S  # 30 seconds
+    participant-ttl: PT5M  # 5 minutes
+
+# Resilience4j configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      spanner:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 60s
+      kafka:
+        failure-rate-threshold: 30
+        minimum-number-of-calls: 5
+        sliding-window-size: 10
+        wait-duration-in-open-state: 30s
+  
+  retry:
+    instances:
+      spanner:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+      kafka:
+        max-attempts: 2
+        wait-duration: 500ms
+
+# OpenAPI Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  show-actuator: true
+
+---
+# Local development profile
+spring:
+  config:
+    activate:
+      on-profile: local
+  
+  # Google Cloud Spanner (local emulator)
+  cloud:
+    gcp:
+      spanner:
+        instance-id: test-instance
+        database: liquidity-db
+        emulator:
+          enabled: true
+          host: localhost
+          port: 9010
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  
+  data:
+    redis:
+      host: redis
+  
+  kafka:
+    bootstrap-servers: kafka:9092
+  
+  cloud:
+    gcp:
+      spanner:
+        instance-id: apeafast-spanner
+        database: liquidity-db
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  cloud:
+    gcp:
+      spanner:
+        instance-id: ${SPANNER_INSTANCE_ID}
+        database: ${SPANNER_DATABASE}
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    security:
+      protocol: SASL_SSL
+      sasl:
+        mechanism: PLAIN
+        jaas:
+          config: ${KAFKA_SASL_CONFIG}
+  
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl: true
+
+# Security
+security:
+  jwt:
+    secret: ${JWT_SECRET:default-secret-key-change-in-production}
+    expiration: 3600000  # 1 hour
