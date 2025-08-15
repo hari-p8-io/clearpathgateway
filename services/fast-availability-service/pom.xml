@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.1</version>
-        <relativePath/>
+        <groupId>com.anz.fastpayment</groupId>
+        <artifactId>fast-cpg-bom</artifactId>
+        <version>21.0.0-apeafast-SNAPSHOT</version>
+        <relativePath>../../fast-cpg-bom</relativePath>
     </parent>
 
     <groupId>com.anz.fastpayment</groupId>
@@ -17,14 +17,7 @@
     <name>Fast Availability Service</name>
     <description>Bank participant availability tracking and status management</description>
 
-    <properties>
-        <java.version>21</java.version>
-        <spring-cloud.version>2023.0.0</spring-cloud.version>
-        <spring-cloud-gcp.version>4.9.0</spring-cloud-gcp.version>
-        <kafka.version>3.6.1</kafka.version>
-        <testcontainers.version>1.19.3</testcontainers.version>
-        <micrometer.version>1.12.1</micrometer.version>
-    </properties>
+    <!-- Properties are managed by fast-cpg-bom parent -->
 
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -55,7 +48,6 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter-data-spanner</artifactId>
-            <version>${spring-cloud-gcp.version}</version>
         </dependency>
 
         <!-- Monitoring -->
@@ -96,22 +88,6 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.4.0</version>
-                <configuration>
-                    <to>
-                        <image>gcr.io/anz-fastpayment/${project.artifactId}:${project.version}</image>
-                    </to>
-                    <container>
-                        <jvmFlags>
-                            <jvmFlag>--enable-preview</jvmFlag>
-                            <jvmFlag>-XX:+UseZGC</jvmFlag>
-                            <jvmFlag>-XX:+UseVirtualThreads</jvmFlag>
-                        </jvmFlags>
-                        <ports>
-                            <port>8080</port>
-                        </ports>
-                    </container>
-                </configuration>
             </plugin>
         </plugins>
     </build>
