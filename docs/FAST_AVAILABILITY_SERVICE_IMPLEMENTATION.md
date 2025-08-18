@@ -20,8 +20,9 @@ The Fast Availability Service manages **real-time bank participant status** and 
 - **Status Broadcasting**: Notify other services of availability changes
 
 ### Performance Requirements
-- **Status Checks**: < 100ms for availability verification
-- **Status Updates**: < 50ms for availability state changes
+- **Status Checks**: < 25ms for gRPC availability verification
+- **Status Updates**: < 50ms for gRPC availability state changes
+- **Streaming Updates**: < 5ms for real-time status change notifications
 - **Health Monitoring**: 30-second interval health checks
 - **Availability**: 99.99% uptime (< 53 minutes downtime/year)
 - **Consistency**: 100% accurate status across all services
@@ -63,9 +64,11 @@ graph TB
 
 ### Technology Foundation
 - **Platform**: Java 21 with Virtual Threads for concurrent health monitoring
+- **API Protocol**: gRPC with Protocol Buffers for high-performance communication
 - **Database**: Cloud Spanner for consistent status data
 - **Caching**: Redis for ultra-fast status lookups
 - **Messaging**: Kafka for real-time status notifications
+- **Streaming**: gRPC server streaming for real-time status subscriptions
 - **Monitoring**: Comprehensive health check framework
 
 ## Participant Management
@@ -101,14 +104,24 @@ graph TB
 
 ## API Design & Integration
 
-### Core API Endpoints
-| Endpoint | Purpose | SLA | Usage |
-|----------|---------|-----|--------|
-| `GET /availability/{participantId}` | Get participant status | < 50ms | Pre-transaction check |
-| `POST /availability/{participantId}/status` | Update participant status | < 100ms | Status management |
-| `GET /availability/all` | Get all participant statuses | < 100ms | System overview |
-| `POST /availability/maintenance` | Schedule maintenance | < 200ms | Planned maintenance |
-| `GET /health` | Service health check | < 10ms | Monitoring |
+### gRPC Service Definition
+The Fast Availability Service exposes a high-performance gRPC API for ultra-low latency participant status operations:
+
+| gRPC Method | Purpose | SLA | Usage |
+|-------------|---------|-----|--------|
+| `GetParticipantStatus` | Get participant availability status | < 25ms | Pre-transaction check |
+| `UpdateParticipantStatus` | Update participant status | < 50ms | Status management |
+| `GetAllParticipantStatuses` | Get all participant statuses | < 75ms | System overview |
+| `ScheduleMaintenance` | Schedule maintenance window | < 100ms | Planned maintenance |
+| `SubscribeStatusUpdates` | Real-time status change stream | < 5ms | Live status monitoring |
+| `GetServiceHealth` | Service health check | < 5ms | Health monitoring |
+
+### gRPC Service Benefits
+- **Ultra-Low Latency**: Binary protocol with HTTP/2 multiplexing
+- **Streaming Support**: Real-time status updates via server streaming
+- **Type Safety**: Protocol Buffer definitions ensure contract compliance
+- **Load Balancing**: Built-in client-side load balancing and failover
+- **Bidirectional Communication**: Support for complex interaction patterns
 
 ### Event Publishing
 - **Status Change Events**: Real-time status update notifications
@@ -141,10 +154,11 @@ graph TB
 - **Maintenance Calendar**: Upcoming and current maintenance windows
 
 ### Performance Monitoring
-- **Response Time Tracking**: API and health check performance metrics
+- **gRPC Response Time Tracking**: Method-level performance metrics with P99 latency monitoring
+- **Streaming Connection Health**: Active stream count and connection durability tracking
 - **Availability Metrics**: Uptime tracking for all participants
-- **Error Rate Monitoring**: Failed health checks and status inconsistencies
-- **Capacity Planning**: Usage patterns and scaling requirements
+- **Error Rate Monitoring**: Failed health checks, gRPC errors, and status inconsistencies
+- **Capacity Planning**: Usage patterns and scaling requirements based on gRPC connection load
 
 ## Risk Management & Compliance
 
@@ -165,7 +179,8 @@ graph TB
 ### Business Success Metrics
 | Metric | Target | Business Impact |
 |--------|--------|-----------------|
-| **Status Check Time** | < 100ms | Enables fast payment routing decisions |
+| **gRPC Status Check Time** | < 25ms | Enables ultra-fast payment routing decisions |
+| **Streaming Update Latency** | < 5ms | Real-time status propagation across services |
 | **Status Accuracy** | 99.99% | Prevents failed transaction attempts |
 | **Health Check Coverage** | 100% | Complete participant monitoring |
 | **Alert Response Time** | < 2 minutes | Rapid incident response |
@@ -202,11 +217,11 @@ graph TB
 
 ## Integration Strategy
 
-### Service Dependencies
-- **Payment Router**: Status checks before message routing
-- **Liquidity Service**: Availability validation for balance checks
-- **Sender Service**: Participant availability for message transmission
-- **Operations Dashboard**: Real-time status visualization
+### gRPC Service Dependencies
+- **Payment Router**: High-frequency status checks via `GetParticipantStatus` gRPC calls
+- **Liquidity Service**: Availability validation using gRPC client with connection pooling
+- **Sender Service**: Real-time participant availability via `SubscribeStatusUpdates` streaming
+- **Operations Dashboard**: Live status visualization through gRPC streaming connections
 
 ### Event Consumers
 - **Router Service**: Route around unavailable participants
@@ -218,8 +233,10 @@ graph TB
 
 ### Performance Optimization
 - **Cache-First Strategy**: Redis for sub-millisecond status lookups
-- **Batch Updates**: Efficient bulk status updates
-- **Connection Pooling**: Optimized database and cache connections
+- **gRPC Connection Pooling**: Optimized client-side connection management
+- **HTTP/2 Multiplexing**: Multiple concurrent requests over single connections
+- **Protocol Buffer Efficiency**: Binary serialization for minimal network overhead
+- **Batch Updates**: Efficient bulk status updates via gRPC streaming
 - **Async Processing**: Non-blocking health checks and updates
 
 ### Scalability Design
