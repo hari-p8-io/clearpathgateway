@@ -1,20 +1,21 @@
-# ISO 20022 to Unified JSON Mapping - Delivery Summary
+# ISO 20022 to Unified JSON Mapping - Ultra Lean Schema
 
 ## Project Overview
 
-Successfully created a comprehensive unified JSON representation and mapping system for ISO 20022 PACS and CAMT payment messages used in the APEAFAST-SG ClearPath Gateway microservices architecture.
+Successfully created an ultra lean, flattened unified JSON representation and mapping system for ISO 20022 PACS and CAMT payment messages used in the APEAFAST-SG ClearPath Gateway microservices architecture. **Optimized for minimal nesting and reduced JSON bloat.**
 
 ## Deliverables Created
 
-### 1. Unified JSON Schema (`schemas/unified-payment-message-schema.json`)
-- **Size**: Comprehensive schema with 120+ definitions
+### 1. Ultra Lean Unified JSON Schema (`schemas/unified-payment-message-schema.json`)
+- **Size**: Streamlined schema with minimal definitions (v3.0.0)
 - **Coverage**: Supports ALL 6 ISO 20022 message types
 - **Features**:
-  - Message-type-specific validation using conditional schemas
-  - Comprehensive data type validation with patterns
-  - Support for all common payment message elements
-  - Complete coverage for both inward and response messages
-  - Extensible structure for future message types
+  - **Flattened structure** - minimal nesting to reduce JSON bloat
+  - **Essential fields only** - focused on core payment processing needs
+  - **Simple data types** - uses strings and numbers instead of complex objects
+  - **Direct field mapping** - party information flattened to simple name/BIC/account fields
+  - **Lean transactions** - simplified transaction structure with essential identifiers
+  - **Efficient serialization** - optimized for high-throughput microservice communication
 
 **Key Message Types Supported**:
 - `PACS_008` - FI To FI Customer Credit Transfer (pacs.008.001.13)
@@ -68,48 +69,84 @@ Successfully created a comprehensive unified JSON representation and mapping sys
 
 ## Technical Architecture
 
-### Unified JSON Schema Structure
+### Ultra Lean JSON Schema Structure
 ```json
 {
   "messageType": "PACS_008|PACS_003|PACS_007|CAMT_056|PACS_002|CAMT_029",
   "messageVersion": "version number",
-  "groupHeader": { /* common header structure */ },
-  "transactionInformation": [ /* transaction details */ ],
-  "originalGroupInformation": { /* for reversals/cancellations */ },
-  "caseInformation": { /* for cancellations */ },
-  "caseAssignment": { /* for investigation resolution */ },
-  "investigationStatus": { /* for investigation status */ },
-  "transactionInformationAndStatus": [ /* for status reports */ ],
-  "controlData": { /* validation data */ },
-  "supplementaryData": [ /* extensible data */ ]
+  
+  // Flattened header fields (no nested groupHeader object)
+  "messageId": "MSG-001",
+  "creationDateTime": "2024-01-15T10:30:00Z",
+  "numberOfTransactions": "1",
+  "controlSum": 1000.00,
+  "instructingAgentBIC": "ABCDSGSG",
+  "instructedAgentBIC": "EFGHSGSG",
+  
+  // Simplified transaction array with flattened party info
+  "transactions": [
+    {
+      "endToEndId": "E2E-001",
+      "amount": 1000.00,
+      "currency": "SGD",
+      "debtorName": "John Doe",           // Flattened - no nested objects
+      "debtorAccountId": "123456789",     // Direct account reference
+      "debtorBIC": "ABCDSGSG",           // Direct BIC reference
+      "creditorName": "Jane Smith",       // Flattened - no nested objects
+      "creditorAccountId": "987654321",   // Direct account reference
+      "creditorBIC": "EFGHSGSG",         // Direct BIC reference
+      "chargeBearer": "SHAR",
+      "remittanceInformation": "Invoice 123"  // Simple string, no structure
+    }
+  ],
+  
+  // Flat case management fields (no nested objects)
+  "caseId": "CASE-001",
+  "caseCreator": "BANK_A",
+  "investigationStatus": "CONF",
+  
+  // Simplified status reports (PACS.002 only)
+  "statusReports": [
+    {
+      "originalInstructionId": "INS-001",
+      "transactionStatus": "ACCP",
+      "statusReason": "Accepted",
+      "acceptanceDateTime": "2024-01-15T10:31:00Z"
+    }
+  ],
+  
+  // Supplementary data as simple key-value map
+  "supplementaryData": {
+    "processingCode": "SWIFT_MT103",
+    "regulatoryCode": "SG_FAST"
+  }
 }
 ```
 
 ### Key Design Principles
 
-1. **Unification**: Single schema supports all 6 message types
-2. **Validation**: Comprehensive JSON Schema validation rules
-3. **Extensibility**: Structure allows for future message types
-4. **Compliance**: Maintains ISO 20022 semantic meaning
-5. **Performance**: Optimized for microservices architecture
+1. **Minimal Nesting**: Flattened structure to reduce JSON bloat and parsing overhead
+2. **Essential Fields Only**: Focus on core payment processing requirements
+3. **Simple Data Types**: Use strings/numbers instead of complex nested objects
+4. **Direct Field Access**: Party information accessible without deep object traversal
+5. **High Performance**: Optimized for ultra-high throughput microservices (50K+ TPS)
+6. **Memory Efficient**: Reduced object creation and garbage collection overhead
 
 ## Mapping Approach
 
 ### Data Structure Consolidation
 
-**Before (Multiple XML Schemas)**:
-- pacs.008: Different structure for credit transfers
-- pacs.003: Different structure for direct debits  
-- pacs.007: Different structure for reversals
-- camt.056: Different structure for cancellations
-- pacs.002: Different structure for status reports
-- camt.029: Different structure for investigation resolution
+**Before (Complex Nested XML)**:
+- Deep object hierarchies with 5+ levels of nesting
+- Complex party structures with identification, address, contact details
+- Nested financial institution data with branch information
+- Multiple amount objects with currency and type information
 
-**After (Unified JSON)**:
-- Single consistent structure with message-type-specific fields
-- Common elements mapped to identical JSON paths
-- Type-specific elements clearly identified
-- Conditional validation based on message type
+**After (Ultra Lean Flattened JSON)**:
+- Maximum 2 levels of nesting (message → transactions/statusReports)
+- Direct field access: `debtorName`, `debtorBIC`, `debtorAccountId`
+- Simple numeric amounts with separate currency field
+- Consolidated essential information only
 
 ### Field Mapping Examples
 

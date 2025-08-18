@@ -1,10 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://anz.com/schemas/unified-payment-message/v1.0.0",
-  "title": "Unified Payment Message Schema",
-  "description": "Unified JSON schema for all ISO 20022 PACS and CAMT payment messages (pacs.008, pacs.003, pacs.007, camt.056, pacs.002, camt.029)",
+  "$id": "https://anz.com/schemas/unified-payment-message/v3.0.0",
+  "title": "Unified Payment Message Schema - Ultra Lean Version",
+  "description": "Flattened JSON schema for all ISO 20022 PACS and CAMT payment messages with minimal nesting",
   "type": "object",
-  "required": ["messageType", "groupHeader"],
+  "required": ["messageType", "messageId", "creationDateTime"],
   "properties": {
     "messageType": {
       "type": "string",
@@ -16,2395 +16,279 @@
       "description": "Version of the message schema",
       "pattern": "^\\d{2}$"
     },
-    "groupHeader": {
-      "$ref": "#/definitions/GroupHeader"
+    
+    "_comment": "=== FLATTENED GROUP HEADER FIELDS ===",
+    "messageId": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Unique identification for the message"
     },
-    "transactionInformation": {
+    "creationDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time at which the message was created"
+    },
+    "numberOfTransactions": {
+      "type": "string",
+      "pattern": "^[0-9]{1,15}$",
+      "description": "Number of individual transactions contained in the message"
+    },
+    "controlSum": {
+      "type": "number",
+      "description": "Total of all individual amounts included in the message"
+    },
+    "batchBooking": {
+      "type": "boolean",
+      "description": "Identifies whether the financial institution is to book the transaction on a batch or individual basis"
+    },
+    "settlementMethod": {
+      "type": "string",
+      "enum": ["INDA", "INGA", "COVE", "CLRG"],
+      "description": "Method used to settle the payment"
+    },
+    "interbankSettlementDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date on which the amount of money ceases to be available"
+    },
+    "instructingAgentBIC": {
+      "type": "string",
+      "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+      "description": "Instructing agent BIC"
+    },
+    "instructedAgentBIC": {
+      "type": "string", 
+      "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+      "description": "Instructed agent BIC"
+    },
+    
+    "_comment2": "=== FLATTENED TRANSACTION INFORMATION ===",
+    "transactions": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/TransactionInformation"
+        "$ref": "#/definitions/LeanTransaction"
       },
       "minItems": 1,
-      "description": "Array of transaction information"
+      "description": "Array of transaction information - flattened structure"
     },
-    "originalGroupInformation": {
-      "$ref": "#/definitions/OriginalGroupInformation",
-      "description": "Original group information for cancellation/reversal messages"
+    
+    "_comment3": "=== CANCELLATION/REVERSAL FIELDS ===",
+    "originalMessageId": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Original message ID for cancellation/reversal"
     },
-    "caseInformation": {
-      "$ref": "#/definitions/CaseInformation",
-      "description": "Case information for cancellation messages"
+    "originalMessageType": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Original message type for cancellation/reversal"
     },
-    "caseAssignment": {
-      "$ref": "#/definitions/CaseAssignment",
-      "description": "Case assignment information for investigation resolution (CAMT.029)"
+    "originalCreationDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Original creation date time"
     },
-    "resolutionCase": {
-      "$ref": "#/definitions/ResolutionCase",
-      "description": "Resolved case information (CAMT.029)"
+    
+    "_comment4": "=== CASE MANAGEMENT FIELDS (CAMT.029/CAMT.056) ===",
+    "caseId": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Case identification"
+    },
+    "caseCreator": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Party that created the case"
     },
     "investigationStatus": {
-      "$ref": "#/definitions/InvestigationStatus",
-      "description": "Status of the investigation (CAMT.029)"
+      "type": "string",
+      "enum": ["CONF", "RJCT", "MODI", "CNCL"],
+      "description": "Investigation status"
     },
-    "cancellationDetails": {
+    "rejectionReason": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "Rejection reason if applicable"
+    },
+    
+    "_comment5": "=== STATUS REPORTING FIELDS (PACS.002) ===",
+    "statusReports": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/CancellationDetails"
+        "$ref": "#/definitions/LeanStatusReport"
       },
-      "description": "Cancellation details for investigation resolution (CAMT.029)"
+      "description": "Transaction status reports - flattened structure"
     },
-    "modificationDetails": {
-      "$ref": "#/definitions/ModificationDetails",
-      "description": "Modification details for corrective transactions (CAMT.029)"
-    },
-    "transactionInformationAndStatus": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/TransactionInformationAndStatus"
-      },
-      "description": "Transaction information and status details (PACS.002)"
-    },
-    "controlData": {
-      "$ref": "#/definitions/ControlData",
-      "description": "Control data for validation"
-    },
+    
+    "_comment6": "=== SUPPLEMENTARY DATA ===",
     "supplementaryData": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/SupplementaryData"
-      },
-      "description": "Additional supplementary data"
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional data as key-value pairs"
     }
   },
   "definitions": {
-    "GroupHeader": {
-      "type": "object",
-      "required": ["messageId", "creationDateTime", "numberOfTransactions"],
-      "properties": {
-        "messageId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification for the message"
-        },
-        "creationDateTime": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Date and time at which the message was created"
-        },
-        "authorisation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Authorisation"
-          },
-          "maxItems": 2,
-          "description": "User identification or any user key to be used to check whether the initiating party is allowed to initiate transactions"
-        },
-        "batchBooking": {
-          "type": "boolean",
-          "description": "Identifies whether the financial institution is to book the transaction on a batch or individual basis"
-        },
-        "numberOfTransactions": {
-          "type": "string",
-          "pattern": "^[0-9]{1,15}$",
-          "description": "Number of individual transactions contained in the message"
-        },
-        "controlSum": {
-          "type": "number",
-          "multipleOf": 0.00001,
-          "description": "Total of all individual amounts included in the message"
-        },
-        "totalInterbankSettlementAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Total amount of money moved between the instructing agent and the instructed agent"
-        },
-        "interbankSettlementDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date on which the amount of money ceases to be available to the agent that owes it"
-        },
-        "settlementInformation": {
-          "$ref": "#/definitions/SettlementInformation"
-        },
-        "paymentTypeInformation": {
-          "$ref": "#/definitions/PaymentTypeInformation"
-        },
-        "instructingAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "instructedAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "groupReversal": {
-          "type": "boolean",
-          "description": "Indicates whether the reversal applies to the complete group or to individual transactions within the group"
-        },
-        "totalReversedInterbankSettlementAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Total amount to be reversed"
-        }
-      }
-    },
-    "TransactionInformation": {
-      "type": "object",
-      "properties": {
-        "paymentIdentification": {
-          "$ref": "#/definitions/PaymentIdentification"
-        },
-        "paymentTypeInformation": {
-          "$ref": "#/definitions/PaymentTypeInformation"
-        },
-        "interbankSettlementAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount of money moved between the instructing agent and the instructed agent"
-        },
-        "interbankSettlementDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date on which the amount of money ceases to be available"
-        },
-        "settlementPriority": {
-          "type": "string",
-          "enum": ["URGT", "HIGH", "NORM"],
-          "description": "Indicator of the urgency or order of importance that the instructing party would like the instructed party to apply"
-        },
-        "settlementTimeIndication": {
-          "$ref": "#/definitions/SettlementTimeIndication"
-        },
-        "instructedAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount of money to be moved between the debtor and creditor"
-        },
-        "exchangeRate": {
-          "type": "number",
-          "multipleOf": 0.0000000001,
-          "description": "Factor used to convert an amount from one currency into another"
-        },
-        "chargeBearer": {
-          "type": "string",
-          "enum": ["DEBT", "CRED", "SHAR", "SLEV"],
-          "description": "Specifies which party/parties will bear the charges associated with the processing of the payment transaction"
-        },
-        "chargesInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ChargesInformation"
-          },
-          "description": "Provides information on the charges to be paid by the charge bearer"
-        },
-        "requiredExecutionDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date at which the initiating party requests the clearing agent to process the payment"
-        },
-        "requiredCollectionDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date and time at which the creditor requests that the amount of money is to be collected from the debtor"
-        },
-        "directDebitTransaction": {
-          "$ref": "#/definitions/DirectDebitTransaction"
-        },
-        "creditor": {
-          "$ref": "#/definitions/Party"
-        },
-        "creditorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "creditorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "creditorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "ultimateCreditor": {
-          "$ref": "#/definitions/Party"
-        },
-        "initiatingParty": {
-          "$ref": "#/definitions/Party"
-        },
-        "debtor": {
-          "$ref": "#/definitions/Party"
-        },
-        "debtorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "debtorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "debtorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "ultimateDebtor": {
-          "$ref": "#/definitions/Party"
-        },
-        "intermediaryAgent1": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "intermediaryAgent1Account": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "intermediaryAgent2": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "intermediaryAgent2Account": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "intermediaryAgent3": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "intermediaryAgent3Account": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "purpose": {
-          "$ref": "#/definitions/Purpose"
-        },
-        "regulatoryReporting": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RegulatoryReporting"
-          },
-          "maxItems": 10,
-          "description": "Information needed due to regulatory and statutory requirements"
-        },
-        "relatedRemittanceInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RemittanceLocation"
-          },
-          "maxItems": 10,
-          "description": "Information that enables the matching of an entry with the items that the remittance information is for"
-        },
-        "remittanceInformation": {
-          "$ref": "#/definitions/RemittanceInformation"
-        },
-        "cancellationId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the cancelling party to unambiguously identify the cancellation request"
-        },
-        "reversalId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the reversing party to unambiguously identify the reversal"
-        },
-        "originalTransactionReference": {
-          "$ref": "#/definitions/OriginalTransactionReference"
-        },
-        "cancellationReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/CancellationReasonInformation"
-          },
-          "description": "Set of elements used to provide detailed information on the cancellation reason"
-        },
-        "reversalReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReversalReasonInformation"
-          },
-          "description": "Set of elements used to provide detailed information on the reversal reason"
-        },
-        "originalInstructionId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the instructing party to unambiguously identify the original instruction"
-        },
-        "originalEndToEndId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the initiating party to unambiguously identify the original transaction"
-        },
-        "originalTransactionId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the first instructing agent to unambiguously identify the original transaction"
-        },
-        "originalUETR": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$",
-          "description": "Universally unique identifier to provide an end-to-end reference of a payment transaction"
-        },
-        "originalClearingSystemReference": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique reference assigned by the clearing system to unambiguously identify the original transaction"
-        },
-        "originalInterbankSettlementAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount of money moved between the instructing agent and the instructed agent in the original transaction"
-        },
-        "originalInterbankSettlementDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date on which the amount of money ceased to be available to the agent that owed it in the original transaction"
-        },
-        "reversedInterbankSettlementAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount to be reversed"
-        },
-        "reversedInstructedAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount of money to be moved between the debtor and creditor in the reversal"
-        },
-        "compensationAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Amount of money asked or paid as compensation for the processing of the instruction"
-        },
-        "supplementaryData": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SupplementaryData"
-          },
-          "description": "Additional information that cannot be captured in the structured elements"
-        }
-      }
-    },
-    "PaymentIdentification": {
+    "LeanTransaction": {
       "type": "object",
       "required": ["endToEndId"],
       "properties": {
+        "_comment": "=== CORE TRANSACTION IDENTIFIERS ===",
         "instructionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique identification assigned by the instructing party to unambiguously identify the instruction"
+          "description": "Unique instruction identification"
         },
         "endToEndId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique identification assigned by the initiating party to unambiguously identify the transaction"
+          "description": "End-to-end identification"
         },
         "transactionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique identification assigned by the first instructing agent to unambiguously identify the transaction"
+          "description": "Transaction identification"
         },
         "UETR": {
           "type": "string",
           "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$",
-          "description": "Universally unique identifier to provide an end-to-end reference of a payment transaction"
+          "description": "Unique end-to-end transaction reference"
         },
         "clearingSystemReference": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique reference assigned by the clearing system to unambiguously identify the transaction"
-        }
-      }
-    },
-    "PaymentTypeInformation": {
-      "type": "object",
-      "properties": {
-        "instructionPriority": {
-          "type": "string",
-          "enum": ["HIGH", "NORM"],
-          "description": "Indicator of the urgency or order of importance that the instructing party would like the instructed party to apply"
+          "description": "Clearing system reference"
         },
-        "clearingChannel": {
-          "type": "string",
-          "enum": ["RTGS", "RTNS", "MPNS", "BOOK"],
-          "description": "Clearing channel to be used to process the payment instruction"
-        },
-        "serviceLevel": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ServiceLevel"
-          },
-          "description": "Agreement under which or rules under which the transaction should be processed"
-        },
-        "localInstrument": {
-          "$ref": "#/definitions/LocalInstrument",
-          "description": "User community specific instrument"
-        },
-        "sequenceType": {
-          "type": "string",
-          "enum": ["FRST", "RCUR", "FNAL", "OOFF", "RPRE"],
-          "description": "Identifies the direct debit sequence"
-        },
-        "categoryPurpose": {
-          "$ref": "#/definitions/CategoryPurpose",
-          "description": "Category purpose of the payment"
-        }
-      }
-    },
-    "Amount": {
-      "type": "object",
-      "required": ["value", "currency"],
-      "properties": {
-        "value": {
+        
+        "_comment2": "=== AMOUNTS ===",
+        "amount": {
           "type": "number",
-          "multipleOf": 0.00001,
           "minimum": 0,
-          "description": "Amount value"
+          "description": "Transaction amount"
         },
         "currency": {
           "type": "string",
           "pattern": "^[A-Z]{3}$",
-          "description": "Currency code as defined by ISO 4217"
-        }
-      }
-    },
-    "Party": {
-      "type": "object",
-      "properties": {
-        "name": {
+          "description": "Currency code (ISO 4217)"
+        },
+        "interbankSettlementAmount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Interbank settlement amount"
+        },
+        "instructedAmount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Instructed amount"
+        },
+        
+        "_comment3": "=== PARTIES - SIMPLIFIED ===",
+        "debtorName": {
           "type": "string",
           "maxLength": 140,
-          "description": "Name by which a party is known"
+          "description": "Debtor name"
         },
-        "postalAddress": {
-          "$ref": "#/definitions/PostalAddress"
-        },
-        "identification": {
-          "$ref": "#/definitions/PartyIdentification"
-        },
-        "countryOfResidence": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}$",
-          "description": "Country in which a person resides"
-        },
-        "contactDetails": {
-          "$ref": "#/definitions/ContactDetails"
-        }
-      }
-    },
-    "FinancialInstitution": {
-      "type": "object",
-      "properties": {
-        "financialInstitutionIdentification": {
-          "$ref": "#/definitions/FinancialInstitutionIdentification"
-        },
-        "branchIdentification": {
-          "$ref": "#/definitions/BranchData"
-        }
-      }
-    },
-    "CashAccount": {
-      "type": "object",
-      "properties": {
-        "identification": {
-          "$ref": "#/definitions/AccountIdentification"
-        },
-        "type": {
-          "$ref": "#/definitions/CashAccountType"
-        },
-        "currency": {
-          "type": "string",
-          "pattern": "^[A-Z]{3}$",
-          "description": "Currency of the account"
-        },
-        "name": {
+        "debtorAccountId": {
           "type": "string",
           "maxLength": 70,
-          "description": "Name of the account"
+          "description": "Debtor account identifier"
         },
-        "proxy": {
-          "$ref": "#/definitions/ProxyAccountIdentification"
-        }
-      }
-    },
-    "FinancialInstitutionIdentification": {
-      "type": "object",
-      "properties": {
-        "BICFI": {
+        "debtorBIC": {
           "type": "string",
           "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
-          "description": "Business Identifier Code"
+          "description": "Debtor agent BIC"
         },
-        "clearingSystemMemberId": {
-          "$ref": "#/definitions/ClearingSystemMemberIdentification"
-        },
-        "LEI": {
-          "type": "string",
-          "pattern": "^[A-Z0-9]{18}[0-9]{2}$",
-          "description": "Legal Entity Identifier"
-        },
-        "name": {
+        "creditorName": {
           "type": "string",
           "maxLength": 140,
-          "description": "Name by which the financial institution is known"
+          "description": "Creditor name"
         },
-        "postalAddress": {
-          "$ref": "#/definitions/PostalAddress"
-        },
-        "other": {
-          "$ref": "#/definitions/GenericFinancialIdentification"
-        }
-      }
-    },
-    "PostalAddress": {
-      "type": "object",
-      "properties": {
-        "addressType": {
-          "$ref": "#/definitions/AddressType"
-        },
-        "careOf": {
-          "type": "string",
-          "maxLength": 140,
-          "description": "Name of a referent appointed by the receiver to take delivery of the mail"
-        },
-        "department": {
+        "creditorAccountId": {
           "type": "string",
           "maxLength": 70,
-          "description": "Identification of a subdivision of an organisation"
+          "description": "Creditor account identifier"
         },
-        "subDepartment": {
+        "creditorBIC": {
           "type": "string",
-          "maxLength": 70,
-          "description": "Identification of a sub-division of a department"
+          "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+          "description": "Creditor agent BIC"
         },
-        "streetName": {
+        
+        "_comment4": "=== PAYMENT DETAILS ===",
+        "chargeBearer": {
           "type": "string",
-          "maxLength": 140,
-          "description": "Name of a street or thoroughfare"
+          "enum": ["DEBT", "CRED", "SHAR", "SLEV"],
+          "description": "Charge bearer"
         },
-        "buildingNumber": {
+        "settlementPriority": {
           "type": "string",
-          "maxLength": 16,
-          "description": "Number that identifies the position of a building on a street"
+          "enum": ["URGT", "HIGH", "NORM"],
+          "description": "Settlement priority"
         },
-        "buildingName": {
+        "purposeCode": {
           "type": "string",
-          "maxLength": 140,
-          "description": "Name of the building or house"
+          "maxLength": 4,
+          "description": "Purpose code"
         },
-        "floor": {
-          "type": "string",
-          "maxLength": 70,
-          "description": "Floor or storey within a building"
-        },
-        "unitNumber": {
-          "type": "string",
-          "maxLength": 16,
-          "description": "Number that identifies the unit within a building"
-        },
-        "postBox": {
-          "type": "string",
-          "maxLength": 16,
-          "description": "Numbered box in a post office assigned to a person or organization"
-        },
-        "room": {
-          "type": "string",
-          "maxLength": 70,
-          "description": "Building room number"
-        },
-        "postCode": {
-          "type": "string",
-          "maxLength": 16,
-          "description": "Identifier consisting of a group of letters and/or numbers that is added to a postal address"
-        },
-        "townName": {
+        "remittanceInformation": {
           "type": "string",
           "maxLength": 140,
-          "description": "Name of a built-up area"
+          "description": "Remittance information (unstructured)"
         },
-        "townLocationName": {
-          "type": "string",
-          "maxLength": 140,
-          "description": "Specific location name within a town"
-        },
-        "districtName": {
-          "type": "string",
-          "maxLength": 140,
-          "description": "Identifies a subdivision within a country"
-        },
-        "countrySubDivision": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Identifies a subdivision of a country"
-        },
-        "country": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}$",
-          "description": "Nation with its own government"
-        },
-        "addressLine": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 70
-          },
-          "maxItems": 7,
-          "description": "Information that locates and identifies a specific address"
-        }
-      }
-    },
-    "DirectDebitTransaction": {
-      "type": "object",
-      "properties": {
-        "mandateRelatedInformation": {
-          "$ref": "#/definitions/MandateRelatedInformation"
-        },
-        "creditorSchemeIdentification": {
-          "$ref": "#/definitions/Party"
-        },
-        "preNotificationId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Reference of the pre-notification which was sent separately"
-        },
-        "preNotificationDate": {
+        
+        "_comment5": "=== DATES ===",
+        "requiredExecutionDate": {
           "type": "string",
           "format": "date",
-          "description": "Date on which the pre-notification was sent"
-        }
-      }
-    },
-    "MandateRelatedInformation": {
-      "type": "object",
-      "properties": {
-        "mandateId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the creditor to refer to the mandate"
-        },
-        "dateOfSignature": {
-          "type": "string",
-          "format": "date",
-          "description": "Date on which the mandate was signed by the debtor"
-        },
-        "amendmentIndicator": {
-          "type": "boolean",
-          "description": "Indicates whether the underlying mandate is amended or not"
-        },
-        "amendmentInformationDetails": {
-          "$ref": "#/definitions/AmendmentInformationDetails"
-        },
-        "electronicSignature": {
-          "type": "string",
-          "maxLength": 1025,
-          "description": "Digital signature of the mandate"
-        },
-        "firstCollectionDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date of the first collection of a direct debit"
-        },
-        "finalCollectionDate": {
-          "type": "string",
-          "format": "date",
-          "description": "Date of the final collection of a direct debit"
-        },
-        "frequency": {
-          "$ref": "#/definitions/Frequency"
-        },
-        "reason": {
-          "$ref": "#/definitions/MandateSetupReason"
-        },
-        "trackingDays": {
-          "type": "string",
-          "pattern": "^[0-9]{2}$",
-          "description": "Number of days period during which the mandate is tracked"
-        }
-      }
-    },
-    "RemittanceInformation": {
-      "type": "object",
-      "properties": {
-        "unstructured": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 140
-          },
-          "description": "Information supplied to enable the matching of an entry with the items that the transfer is intended to settle"
-        },
-        "structured": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/StructuredRemittanceInformation"
-          },
-          "description": "Information supplied to enable the matching of an entry with the items that the transfer is intended to settle"
-        }
-      }
-    },
-    "OriginalGroupInformation": {
-      "type": "object",
-      "required": ["originalMessageId", "originalMessageNameId"],
-      "properties": {
-        "originalMessageId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Point to point reference assigned by the original instructing party to unambiguously identify the original message"
-        },
-        "originalMessageNameId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Specifies the original message name identifier to which the message refers"
-        },
-        "originalCreationDateTime": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Date and time at which the original message was created"
-        },
-        "reversalReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReversalReasonInformation"
-          },
-          "description": "Set of elements used to provide detailed information on the reversal reason"
-        }
-      }
-    },
-    "CaseInformation": {
-      "type": "object",
-      "required": ["id", "creator"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Unique identification assigned by the case creator to unambiguously identify the case"
-        },
-        "creator": {
-          "$ref": "#/definitions/PartyChoice",
-          "description": "Party that created the investigation case"
-        },
-        "reopenCaseIndication": {
-          "type": "boolean",
-          "description": "Indicates whether the case is new or reopened"
-        }
-      }
-    },
-    "ControlData": {
-      "type": "object",
-      "required": ["numberOfTransactions"],
-      "properties": {
-        "numberOfTransactions": {
-          "type": "string",
-          "pattern": "^[0-9]{1,15}$",
-          "description": "Number of individual transactions contained in the message"
-        },
-        "controlSum": {
-          "type": "number",
-          "multipleOf": 0.00001,
-          "description": "Total of all individual amounts included in the message"
-        }
-      }
-    },
-    "OriginalTransactionReference": {
-      "type": "object",
-      "properties": {
-        "interbankSettlementAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "amount": {
-          "$ref": "#/definitions/AmountType"
+          "description": "Required execution date"
         },
         "interbankSettlementDate": {
           "type": "string",
-          "format": "date"
-        },
-        "requiredCollectionDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "requiredExecutionDate": {
-          "oneOf": [
-            {
-              "type": "string",
-              "format": "date"
-            },
-            {
-              "type": "string",
-              "format": "date-time"
-            }
-          ]
-        },
-        "creditorSchemeIdentification": {
-          "$ref": "#/definitions/Party"
-        },
-        "settlementInformation": {
-          "$ref": "#/definitions/SettlementInformation"
-        },
-        "paymentTypeInformation": {
-          "$ref": "#/definitions/PaymentTypeInformation"
-        },
-        "paymentMethod": {
-          "type": "string",
-          "enum": ["CHK", "TRF", "DD", "TRA"]
-        },
-        "mandateRelatedInformation": {
-          "$ref": "#/definitions/MandateRelatedData"
-        },
-        "remittanceInformation": {
-          "$ref": "#/definitions/RemittanceInformation"
-        },
-        "ultimateDebtor": {
-          "$ref": "#/definitions/PartyChoice"
-        },
-        "debtor": {
-          "$ref": "#/definitions/PartyChoice"
-        },
-        "debtorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "debtorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "debtorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "creditorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "creditorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "creditor": {
-          "$ref": "#/definitions/PartyChoice"
-        },
-        "creditorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "ultimateCreditor": {
-          "$ref": "#/definitions/PartyChoice"
-        },
-        "purpose": {
-          "$ref": "#/definitions/Purpose"
-        }
-      }
-    },
-    "SettlementInformation": {
-      "type": "object",
-      "required": ["settlementMethod"],
-      "properties": {
-        "settlementMethod": {
-          "type": "string",
-          "enum": ["INDA", "INGA", "COVE", "CLRG"],
-          "description": "Method used to settle the (batch of) payment instructions"
-        },
-        "settlementAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "clearingSystem": {
-          "$ref": "#/definitions/ClearingSystemIdentification"
-        },
-        "instructingReimbursementAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "instructingReimbursementAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "instructedReimbursementAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "instructedReimbursementAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "thirdReimbursementAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "thirdReimbursementAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        }
-      }
-    },
-    "CancellationReasonInformation": {
-      "type": "object",
-      "properties": {
-        "originator": {
-          "$ref": "#/definitions/Party"
-        },
-        "reason": {
-          "$ref": "#/definitions/CancellationReason"
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          },
-          "description": "Further details on the cancellation reason"
-        }
-      }
-    },
-    "ReversalReasonInformation": {
-      "type": "object",
-      "properties": {
-        "originator": {
-          "$ref": "#/definitions/Party"
-        },
-        "reason": {
-          "$ref": "#/definitions/ReversalReason"
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          },
-          "description": "Further details on the reversal reason"
-        }
-      }
-    },
-    "SettlementTimeIndication": {
-      "type": "object",
-      "properties": {
-        "debitDateTime": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Date and time at which the debtor agent books the transaction to the debtor's account"
-        },
-        "creditDateTime": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Date and time at which the creditor agent books the transaction to the creditor's account"
-        }
-      }
-    },
-    "ChargesInformation": {
-      "type": "object",
-      "required": ["amount", "agent"],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "agent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "type": {
-          "$ref": "#/definitions/ChargeType"
-        }
-      }
-    },
-    "RegulatoryReporting": {
-      "type": "object",
-      "properties": {
-        "debitCreditReportingIndicator": {
-          "type": "string",
-          "enum": ["CRED", "DEBT", "BOTH"]
-        },
-        "authority": {
-          "$ref": "#/definitions/RegulatoryAuthority"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/StructuredRegulatoryReporting"
-          }
-        }
-      }
-    },
-    "RemittanceLocation": {
-      "type": "object",
-      "properties": {
-        "remittanceId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "remittanceLocationDetails": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RemittanceLocationData"
-          }
-        }
-      }
-    },
-    "SupplementaryData": {
-      "type": "object",
-      "properties": {
-        "placeAndName": {
-          "type": "string",
-          "maxLength": 350,
-          "description": "Unique identification that permits the retrieval of the extension information"
-        },
-        "envelope": {
-          "type": "object",
-          "description": "Technical wrapper that allows extending the message with non-standard business information",
-          "additionalProperties": true
-        }
-      }
-    },
-    "Authorisation": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "enum": ["AUTH", "FDET", "FSUM", "ILEV"]
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 128
-        }
-      }
-    },
-    "ServiceLevel": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "LocalInstrument": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "CategoryPurpose": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "Purpose": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "PartyIdentification": {
-      "type": "object",
-      "properties": {
-        "organisationIdentification": {
-          "$ref": "#/definitions/OrganisationIdentification"
-        },
-        "privateIdentification": {
-          "$ref": "#/definitions/PersonIdentification"
-        }
-      }
-    },
-    "ContactDetails": {
-      "type": "object",
-      "properties": {
-        "namePrefix": {
-          "type": "string",
-          "enum": ["DOCT", "MADM", "MISS", "MIST", "MIKS"]
-        },
-        "name": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "phoneNumber": {
-          "type": "string",
-          "pattern": "^\\+[0-9]{1,3}-[0-9()+\\-]{1,30}$"
-        },
-        "mobileNumber": {
-          "type": "string",
-          "pattern": "^\\+[0-9]{1,3}-[0-9()+\\-]{1,30}$"
-        },
-        "faxNumber": {
-          "type": "string",
-          "pattern": "^\\+[0-9]{1,3}-[0-9()+\\-]{1,30}$"
-        },
-        "emailAddress": {
-          "type": "string",
-          "maxLength": 256,
-          "format": "email"
-        },
-        "other": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/OtherContact"
-          }
-        }
-      }
-    },
-    "AccountIdentification": {
-      "type": "object",
-      "properties": {
-        "IBAN": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}[0-9]{2}[a-zA-Z0-9]{1,30}$"
-        },
-        "other": {
-          "$ref": "#/definitions/GenericAccountIdentification"
-        }
-      }
-    },
-    "CashAccountType": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "ProxyAccountIdentification": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/ProxyAccountType"
-        },
-        "id": {
-          "type": "string",
-          "maxLength": 2048
-        }
-      }
-    },
-    "ClearingSystemMemberIdentification": {
-      "type": "object",
-      "required": ["memberId"],
-      "properties": {
-        "clearingSystemId": {
-          "$ref": "#/definitions/ClearingSystemIdentification"
-        },
-        "memberId": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "GenericFinancialIdentification": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "schemeName": {
-          "$ref": "#/definitions/FinancialIdentificationSchemeName"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "BranchData": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "LEI": {
-          "type": "string",
-          "pattern": "^[A-Z0-9]{18}[0-9]{2}$"
-        },
-        "name": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "postalAddress": {
-          "$ref": "#/definitions/PostalAddress"
-        }
-      }
-    },
-    "AddressType": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "enum": ["ADDR", "PBOX", "HOME", "BIZZ", "MLTO", "DLVY"]
-        },
-        "proprietary": {
-          "$ref": "#/definitions/GenericIdentification"
-        }
-      }
-    },
-    "AmendmentInformationDetails": {
-      "type": "object",
-      "properties": {
-        "originalMandateId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "originalCreditorSchemeIdentification": {
-          "$ref": "#/definitions/Party"
-        },
-        "originalCreditorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "originalCreditorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "originalDebtor": {
-          "$ref": "#/definitions/Party"
-        },
-        "originalDebtorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "originalDebtorAgent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        },
-        "originalDebtorAgentAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "originalFinalCollectionDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "originalFrequency": {
-          "$ref": "#/definitions/Frequency"
-        },
-        "originalReason": {
-          "$ref": "#/definitions/MandateSetupReason"
-        },
-        "originalTrackingDays": {
-          "type": "string",
-          "pattern": "^[0-9]{2}$"
-        }
-      }
-    },
-    "Frequency": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["YEAR", "MNTH", "QURT", "MIAN", "WEEK", "DAIL", "ADHO", "INDA", "FRTN"]
-        },
-        "period": {
-          "$ref": "#/definitions/FrequencyPeriod"
-        },
-        "pointInTime": {
-          "$ref": "#/definitions/FrequencyAndMoment"
-        }
-      }
-    },
-    "MandateSetupReason": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 70
-        }
-      }
-    },
-    "StructuredRemittanceInformation": {
-      "type": "object",
-      "properties": {
-        "referredDocumentInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReferredDocumentInformation"
-          }
-        },
-        "referredDocumentAmount": {
-          "$ref": "#/definitions/RemittanceAmount"
-        },
-        "creditorReferenceInformation": {
-          "$ref": "#/definitions/CreditorReferenceInformation"
-        },
-        "invoicer": {
-          "$ref": "#/definitions/Party"
-        },
-        "invoicee": {
-          "$ref": "#/definitions/Party"
-        },
-        "taxRemittance": {
-          "$ref": "#/definitions/TaxData"
-        },
-        "garnishmentRemittance": {
-          "$ref": "#/definitions/Garnishment"
-        },
-        "additionalRemittanceInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 140
-          },
-          "maxItems": 3
-        }
-      }
-    },
-    "PartyChoice": {
-      "type": "object",
-      "properties": {
-        "party": {
-          "$ref": "#/definitions/Party"
-        },
-        "agent": {
-          "$ref": "#/definitions/FinancialInstitution"
-        }
-      }
-    },
-    "AmountType": {
-      "type": "object",
-      "properties": {
-        "instructedAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "equivalentAmount": {
-          "$ref": "#/definitions/EquivalentAmount"
-        }
-      }
-    },
-    "MandateRelatedData": {
-      "type": "object",
-      "properties": {
-        "directDebitMandate": {
-          "$ref": "#/definitions/MandateRelatedInformation"
-        },
-        "creditTransferMandate": {
-          "$ref": "#/definitions/CreditTransferMandateData"
-        }
-      }
-    },
-    "ClearingSystemIdentification": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 5
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "CancellationReason": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "ReversalReason": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "ChargeType": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "$ref": "#/definitions/GenericIdentification"
-        }
-      }
-    },
-    "RegulatoryAuthority": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "country": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}$"
-        }
-      }
-    },
-    "StructuredRegulatoryReporting": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "date": {
-          "type": "string",
-          "format": "date"
-        },
-        "country": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}$"
-        },
-        "code": {
-          "type": "string",
-          "maxLength": 10
-        },
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "information": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 35
-          }
-        }
-      }
-    },
-    "RemittanceLocationData": {
-      "type": "object",
-      "required": ["method"],
-      "properties": {
-        "method": {
-          "type": "string",
-          "enum": ["FAXI", "EDIC", "URID", "EMAL", "POST", "SMSM"]
-        },
-        "electronicAddress": {
-          "type": "string",
-          "maxLength": 2048
-        },
-        "postalAddress": {
-          "$ref": "#/definitions/NameAndAddress"
-        }
-      }
-    },
-    "OrganisationIdentification": {
-      "type": "object",
-      "properties": {
-        "anyBIC": {
-          "type": "string",
-          "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$"
-        },
-        "LEI": {
-          "type": "string",
-          "pattern": "^[A-Z0-9]{18}[0-9]{2}$"
-        },
-        "other": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GenericOrganisationIdentification"
-          }
-        }
-      }
-    },
-    "PersonIdentification": {
-      "type": "object",
-      "properties": {
-        "dateAndPlaceOfBirth": {
-          "$ref": "#/definitions/DateAndPlaceOfBirth"
-        },
-        "other": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GenericPersonIdentification"
-          }
-        }
-      }
-    },
-    "OtherContact": {
-      "type": "object",
-      "required": ["channelType"],
-      "properties": {
-        "channelType": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "id": {
-          "type": "string",
-          "maxLength": 128
-        }
-      }
-    },
-    "GenericAccountIdentification": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 34
-        },
-        "schemeName": {
-          "$ref": "#/definitions/AccountSchemeName"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "ProxyAccountType": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "FinancialIdentificationSchemeName": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "GenericIdentification": {
-      "type": "object",
-      "required": ["id", "issuer"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9]{4}$"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "schemeName": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "FrequencyPeriod": {
-      "type": "object",
-      "required": ["type", "countPerPeriod"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["YEAR", "MNTH", "QURT", "MIAN", "WEEK", "DAIL", "ADHO", "INDA", "FRTN"]
-        },
-        "countPerPeriod": {
-          "type": "number",
-          "multipleOf": 0.00001
-        }
-      }
-    },
-    "FrequencyAndMoment": {
-      "type": "object",
-      "required": ["type", "pointInTime"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["YEAR", "MNTH", "QURT", "MIAN", "WEEK", "DAIL", "ADHO", "INDA", "FRTN"]
-        },
-        "pointInTime": {
-          "type": "string",
-          "pattern": "^[0-9]{2}$"
-        }
-      }
-    },
-    "ReferredDocumentInformation": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/DocumentType"
-        },
-        "number": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "relatedDate": {
-          "$ref": "#/definitions/DateAndType"
-        },
-        "lineDetails": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DocumentLineInformation"
-          }
-        }
-      }
-    },
-    "RemittanceAmount": {
-      "type": "object",
-      "properties": {
-        "remittanceAmountAndType": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DocumentAmount"
-          }
-        },
-        "adjustmentAmountAndReason": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DocumentAdjustment"
-          }
-        }
-      }
-    },
-    "CreditorReferenceInformation": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/CreditorReferenceType"
-        },
-        "reference": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "TaxData": {
-      "type": "object",
-      "properties": {
-        "creditor": {
-          "$ref": "#/definitions/TaxParty"
-        },
-        "debtor": {
-          "$ref": "#/definitions/TaxParty"
-        },
-        "ultimateDebtor": {
-          "$ref": "#/definitions/TaxParty"
-        },
-        "administrationZone": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "referenceNumber": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "method": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "totalTaxableBaseAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "totalTaxAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "date": {
-          "type": "string",
-          "format": "date"
-        },
-        "sequenceNumber": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "record": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/TaxRecord"
-          }
-        }
-      }
-    },
-    "Garnishment": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/GarnishmentType"
-        },
-        "garnishee": {
-          "$ref": "#/definitions/Party"
-        },
-        "garnishmentAdministrator": {
-          "$ref": "#/definitions/Party"
-        },
-        "referenceNumber": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "date": {
-          "type": "string",
-          "format": "date"
-        },
-        "remittedAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "familyMedicalInsuranceIndicator": {
-          "type": "boolean"
-        },
-        "employeeTerminationIndicator": {
-          "type": "boolean"
-        }
-      }
-    },
-    "EquivalentAmount": {
-      "type": "object",
-      "required": ["amount", "currencyOfTransfer"],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "currencyOfTransfer": {
-          "type": "string",
-          "pattern": "^[A-Z]{3}$"
-        }
-      }
-    },
-    "CreditTransferMandateData": {
-      "type": "object",
-      "properties": {
-        "mandateId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "type": {
-          "$ref": "#/definitions/MandateTypeInformation"
-        },
-        "dateOfSignature": {
-          "type": "string",
-          "format": "date"
-        },
-        "dateOfVerification": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "electronicSignature": {
-          "type": "string",
-          "contentEncoding": "base64",
-          "maxLength": 10240
-        },
-        "firstPaymentDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "finalPaymentDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "frequency": {
-          "$ref": "#/definitions/Frequency"
-        },
-        "reason": {
-          "$ref": "#/definitions/MandateSetupReason"
-        }
-      }
-    },
-    "NameAndAddress": {
-      "type": "object",
-      "required": ["name", "address"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "maxLength": 140
-        },
-        "address": {
-          "$ref": "#/definitions/PostalAddress"
-        }
-      }
-    },
-    "GenericOrganisationIdentification": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 256
-        },
-        "schemeName": {
-          "$ref": "#/definitions/OrganisationIdentificationSchemeName"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "GenericPersonIdentification": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 256
-        },
-        "schemeName": {
-          "$ref": "#/definitions/PersonIdentificationSchemeName"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DateAndPlaceOfBirth": {
-      "type": "object",
-      "required": ["birthDate", "cityOfBirth", "countryOfBirth"],
-      "properties": {
-        "birthDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "provinceOfBirth": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "cityOfBirth": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "countryOfBirth": {
-          "type": "string",
-          "pattern": "^[A-Z]{2}$"
-        }
-      }
-    },
-    "AccountSchemeName": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DocumentType": {
-      "type": "object",
-      "required": ["codeOrProprietary"],
-      "properties": {
-        "codeOrProprietary": {
-          "$ref": "#/definitions/DocumentTypeChoice"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DateAndType": {
-      "type": "object",
-      "required": ["type", "date"],
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/DateTypeChoice"
-        },
-        "date": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "DocumentLineInformation": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DocumentLineIdentification"
-          },
-          "minItems": 1
-        },
-        "description": {
-          "type": "string",
-          "maxLength": 2048
-        },
-        "amount": {
-          "$ref": "#/definitions/RemittanceAmount"
-        }
-      }
-    },
-    "DocumentAmount": {
-      "type": "object",
-      "required": ["type", "amount"],
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/DocumentAmountTypeChoice"
-        },
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        }
-      }
-    },
-    "DocumentAdjustment": {
-      "type": "object",
-      "required": ["amount"],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "creditDebitIndicator": {
-          "type": "string",
-          "enum": ["CRDT", "DBIT"]
-        },
-        "reason": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "additionalInformation": {
-          "type": "string",
-          "maxLength": 140
-        }
-      }
-    },
-    "CreditorReferenceType": {
-      "type": "object",
-      "required": ["codeOrProprietary"],
-      "properties": {
-        "codeOrProprietary": {
-          "$ref": "#/definitions/CreditorReferenceTypeChoice"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "TaxParty": {
-      "type": "object",
-      "properties": {
-        "taxId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "registrationId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "taxType": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "authorisation": {
-          "$ref": "#/definitions/TaxAuthorisation"
-        }
-      }
-    },
-    "TaxRecord": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "category": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "categoryDetails": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "debtorStatus": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "certificateId": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "formsCode": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "period": {
-          "$ref": "#/definitions/TaxPeriod"
-        },
-        "taxAmount": {
-          "$ref": "#/definitions/TaxAmount"
-        },
-        "additionalInformation": {
-          "type": "string",
-          "maxLength": 140
-        }
-      }
-    },
-    "GarnishmentType": {
-      "type": "object",
-      "required": ["codeOrProprietary"],
-      "properties": {
-        "codeOrProprietary": {
-          "$ref": "#/definitions/GarnishmentTypeChoice"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "MandateTypeInformation": {
-      "type": "object",
-      "properties": {
-        "serviceLevel": {
-          "$ref": "#/definitions/ServiceLevel"
-        },
-        "localInstrument": {
-          "$ref": "#/definitions/LocalInstrument"
-        },
-        "categoryPurpose": {
-          "$ref": "#/definitions/CategoryPurpose"
-        },
-        "classification": {
-          "$ref": "#/definitions/MandateClassification"
-        }
-      }
-    },
-    "OrganisationIdentificationSchemeName": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "PersonIdentificationSchemeName": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DocumentTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DateTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DocumentLineIdentification": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/DocumentLineType"
-        },
-        "number": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "relatedDate": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "DocumentAmountTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "CreditorReferenceTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "TaxAuthorisation": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "type": "string",
-          "maxLength": 35
-        },
-        "name": {
-          "type": "string",
-          "maxLength": 140
-        }
-      }
-    },
-    "TaxPeriod": {
-      "type": "object",
-      "properties": {
-        "year": {
-          "type": "integer",
-          "minimum": 1000,
-          "maximum": 9999
-        },
-        "type": {
-          "type": "string",
-          "enum": ["MM01", "MM02", "MM03", "MM04", "MM05", "MM06", "MM07", "MM08", "MM09", "MM10", "MM11", "MM12", "QTR1", "QTR2", "QTR3", "QTR4", "HLF1", "HLF2"]
-        },
-        "fromToDate": {
-          "$ref": "#/definitions/DatePeriod"
-        }
-      }
-    },
-    "TaxAmount": {
-      "type": "object",
-      "properties": {
-        "rate": {
-          "type": "number",
-          "multipleOf": 0.0000000001
-        },
-        "taxableBaseAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "totalAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/TaxRecordDetails"
-          }
-        }
-      }
-    },
-    "GarnishmentTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "MandateClassification": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "enum": ["FIXE", "USGB", "VARI"]
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DocumentLineType": {
-      "type": "object",
-      "required": ["codeOrProprietary"],
-      "properties": {
-        "codeOrProprietary": {
-          "$ref": "#/definitions/DocumentLineTypeChoice"
-        },
-        "issuer": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "DatePeriod": {
-      "type": "object",
-      "required": ["fromDate", "toDate"],
-      "properties": {
-        "fromDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "toDate": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "TaxRecordDetails": {
-      "type": "object",
-      "required": ["amount"],
-      "properties": {
-        "period": {
-          "$ref": "#/definitions/TaxPeriod"
-        },
-        "amount": {
-          "$ref": "#/definitions/Amount"
-        }
-      }
-    },
-    "DocumentLineTypeChoice": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "maxLength": 4
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35
-        }
-      }
-    },
-    "CaseAssignment": {
-      "type": "object",
-      "required": ["id", "assigner", "assignee", "creationDateTime"],
-      "properties": {
-        "id": {
+          "format": "date",
+          "description": "Interbank settlement date"
+        },
+        
+        "_comment6": "=== CANCELLATION/REVERSAL SPECIFIC ===",
+        "cancellationId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique identification for the case assignment"
+          "description": "Cancellation ID"
         },
-        "assigner": {
-          "$ref": "#/definitions/PartyIdentification",
-          "description": "Party assigning the investigation case"
-        },
-        "assignee": {
-          "$ref": "#/definitions/PartyIdentification",
-          "description": "Party to which the investigation case is assigned"
-        },
-        "creationDateTime": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Date and time at which the assignment was created"
-        }
-      }
-    },
-    "ResolutionCase": {
-      "type": "object",
-      "required": ["id", "creator"],
-      "properties": {
-        "id": {
+        "reversalId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Unique identification for the case"
+          "description": "Reversal ID"
         },
-        "creator": {
-          "$ref": "#/definitions/PartyIdentification",
-          "description": "Party that created the case"
-        },
-        "reopenCaseIndication": {
-          "type": "boolean",
-          "description": "Indicates whether the case should be reopened"
-        }
-      }
-    },
-    "InvestigationStatus": {
-      "type": "object",
-      "required": ["confirmationIndicator"],
-      "properties": {
-        "confirmationIndicator": {
-          "type": "string",
-          "enum": ["CONF", "RJCT", "MODI", "CNCL"],
-          "description": "Confirmation indicator for the investigation"
-        },
-        "rejectionReason": {
-          "$ref": "#/definitions/RejectionReason",
-          "description": "Reason for rejection if applicable"
-        }
-      }
-    },
-    "CancellationDetails": {
-      "type": "object",
-      "properties": {
         "originalInstructionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original instruction identification"
+          "description": "Original instruction ID"
         },
         "originalEndToEndId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original end-to-end identification"
+          "description": "Original end-to-end ID"
         },
         "originalTransactionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original transaction identification"
-        },
-        "originalInstructedAmount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Original instructed amount"
+          "description": "Original transaction ID"
         },
         "cancellationReason": {
-          "$ref": "#/definitions/CancellationReason",
-          "description": "Reason for cancellation"
+          "type": "string",
+          "maxLength": 256,
+          "description": "Cancellation reason"
         },
-        "cancellationReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/CancellationReasonInformation"
-          },
-          "description": "Additional cancellation reason information"
+        "reversalReason": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Reversal reason"
         }
       }
     },
-    "ModificationDetails": {
+    "LeanStatusReport": {
       "type": "object",
       "properties": {
-        "originalInstructionId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Original instruction identification"
-        },
-        "originalEndToEndId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Original end-to-end identification"
-        },
-        "originalTransactionId": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Original transaction identification"
-        },
-        "modificationReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ModificationReasonInformation"
-          },
-          "description": "Modification reason information"
-        }
-      }
-    },
-    "TransactionInformationAndStatus": {
-      "type": "object",
-      "properties": {
+        "_comment": "=== STATUS REPORTING (PACS.002) ===",
         "statusId": {
           "type": "string",
           "maxLength": 35,
@@ -2413,250 +297,37 @@
         "originalInstructionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original instruction identification"
+          "description": "Original instruction ID"
         },
         "originalEndToEndId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original end-to-end identification"
+          "description": "Original end-to-end ID"
         },
         "originalTransactionId": {
           "type": "string",
           "maxLength": 35,
-          "description": "Original transaction identification"
-        },
-        "originalUniqueTransactionIdentifier": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Original unique transaction identifier"
+          "description": "Original transaction ID"
         },
         "transactionStatus": {
           "type": "string",
           "enum": ["ACCP", "ACSC", "ACSP", "ACTC", "ACWC", "ACWP", "CANC", "PART", "PDNG", "RCVD", "RJCT"],
-          "description": "Status of the transaction"
+          "description": "Transaction status"
         },
-        "statusReasonInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/StatusReasonInformation"
-          },
-          "description": "Status reason information"
-        },
-        "chargesInformation": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ChargesInformation"
-          },
-          "description": "Charges information"
+        "statusReason": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Status reason"
         },
         "acceptanceDateTime": {
           "type": "string",
           "format": "date-time",
-          "description": "Date and time of acceptance"
-        },
-        "accountServicerReference": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Account servicer reference"
+          "description": "Acceptance date and time"
         },
         "clearingSystemReference": {
           "type": "string",
           "maxLength": 35,
           "description": "Clearing system reference"
-        },
-        "instructingAgent": {
-          "$ref": "#/definitions/BranchAndFinancialInstitutionIdentification"
-        },
-        "instructedAgent": {
-          "$ref": "#/definitions/BranchAndFinancialInstitutionIdentification"
-        },
-        "originalTransactionReference": {
-          "$ref": "#/definitions/OriginalTransactionReference",
-          "description": "Original transaction reference"
-        }
-      }
-    },
-    "RejectionReason": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "description": "Rejection reason code"
-        },
-        "proprietary": {
-          "type": "string",
-          "maxLength": 35,
-          "description": "Proprietary rejection reason"
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          },
-          "description": "Additional rejection information"
-        }
-      }
-    },
-    "CancellationReason": {
-      "type": "object",
-      "properties": {
-        "originator": {
-          "$ref": "#/definitions/PartyIdentification"
-        },
-        "reason": {
-          "type": "object",
-          "properties": {
-            "code": {
-              "type": "string",
-              "description": "Cancellation reason code"
-            },
-            "proprietary": {
-              "type": "string",
-              "maxLength": 35,
-              "description": "Proprietary cancellation reason"
-            }
-          }
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          },
-          "description": "Additional cancellation information"
-        }
-      }
-    },
-    "CancellationReasonInformation": {
-      "type": "object",
-      "properties": {
-        "originator": {
-          "$ref": "#/definitions/PartyIdentification"
-        },
-        "reason": {
-          "$ref": "#/definitions/CancellationReason"
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          }
-        }
-      }
-    },
-    "ModificationReasonInformation": {
-      "type": "object",
-      "properties": {
-        "reason": {
-          "type": "object",
-          "properties": {
-            "code": {
-              "type": "string",
-              "description": "Modification reason code"
-            },
-            "proprietary": {
-              "type": "string",
-              "maxLength": 35,
-              "description": "Proprietary modification reason"
-            }
-          }
-        },
-        "additionalInformation": {
-          "type": "string",
-          "maxLength": 105,
-          "description": "Additional modification information"
-        }
-      }
-    },
-    "StatusReasonInformation": {
-      "type": "object",
-      "properties": {
-        "originator": {
-          "$ref": "#/definitions/PartyIdentification"
-        },
-        "reason": {
-          "type": "object",
-          "properties": {
-            "code": {
-              "type": "string",
-              "description": "Status reason code"
-            },
-            "proprietary": {
-              "type": "string",
-              "maxLength": 35,
-              "description": "Proprietary status reason"
-            }
-          }
-        },
-        "additionalInformation": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "maxLength": 105
-          },
-          "description": "Additional status information"
-        }
-      }
-    },
-    "ChargesInformation": {
-      "type": "object",
-      "required": ["amount", "agent"],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Amount",
-          "description": "Charge amount"
-        },
-        "agent": {
-          "$ref": "#/definitions/BranchAndFinancialInstitutionIdentification",
-          "description": "Agent applying the charge"
-        },
-        "type": {
-          "type": "object",
-          "properties": {
-            "code": {
-              "type": "string",
-              "description": "Charge type code"
-            },
-            "proprietary": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "maxLength": 35
-                },
-                "issuer": {
-                  "type": "string",
-                  "maxLength": 35
-                },
-                "schemeName": {
-                  "type": "string",
-                  "maxLength": 35
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "OriginalTransactionReference": {
-      "type": "object",
-      "properties": {
-        "instructedAmount": {
-          "$ref": "#/definitions/Amount"
-        },
-        "debtorAccount": {
-          "$ref": "#/definitions/CashAccount"
-        },
-        "debtorAgent": {
-          "$ref": "#/definitions/BranchAndFinancialInstitutionIdentification"
-        },
-        "creditorAgent": {
-          "$ref": "#/definitions/BranchAndFinancialInstitutionIdentification"
-        },
-        "creditorAccount": {
-          "$ref": "#/definitions/CashAccount"
         }
       }
     }
@@ -2671,12 +342,12 @@
         }
       },
       "then": {
-        "required": ["messageType", "groupHeader", "transactionInformation"],
+        "required": ["messageType", "messageId", "creationDateTime", "transactions"],
         "properties": {
-          "transactionInformation": {
+          "transactions": {
             "type": "array",
             "items": {
-              "required": ["paymentIdentification", "interbankSettlementAmount", "chargeBearer", "creditor", "creditorAgent", "debtor", "debtorAccount", "debtorAgent"]
+              "required": ["endToEndId", "amount", "currency", "chargeBearer", "creditorName", "debtorName", "debtorAccountId"]
             }
           }
         }
@@ -2691,12 +362,12 @@
         }
       },
       "then": {
-        "required": ["messageType", "groupHeader", "transactionInformation"],
+        "required": ["messageType", "messageId", "creationDateTime", "transactions"],
         "properties": {
-          "transactionInformation": {
+          "transactions": {
             "type": "array",
             "items": {
-              "required": ["paymentIdentification", "interbankSettlementAmount", "chargeBearer", "creditor", "creditorAccount", "creditorAgent", "debtor", "debtorAccount", "debtorAgent"]
+              "required": ["endToEndId", "amount", "currency", "chargeBearer", "creditorName", "creditorAccountId", "debtorName", "debtorAccountId"]
             }
           }
         }
@@ -2711,18 +382,7 @@
         }
       },
       "then": {
-        "required": ["messageType", "groupHeader"],
-        "properties": {
-          "originalGroupInformation": {
-            "$ref": "#/definitions/OriginalGroupInformation"
-          },
-          "transactionInformation": {
-            "type": "array",
-            "items": {
-              "required": ["reversedInterbankSettlementAmount"]
-            }
-          }
-        }
+        "required": ["messageType", "messageId", "creationDateTime", "originalMessageId", "transactions"]
       }
     },
     {
@@ -2734,15 +394,7 @@
         }
       },
       "then": {
-        "required": ["messageType", "groupHeader", "transactionInformation"],
-        "properties": {
-          "caseInformation": {
-            "$ref": "#/definitions/CaseInformation"
-          },
-          "controlData": {
-            "$ref": "#/definitions/ControlData"
-          }
-        }
+        "required": ["messageType", "messageId", "creationDateTime", "caseId", "transactions"]
       }
     },
     {
@@ -2754,19 +406,11 @@
         }
       },
       "then": {
-        "required": ["messageType", "groupHeader"],
+        "required": ["messageType", "messageId", "creationDateTime", "statusReports"],
         "properties": {
-          "originalGroupInformation": {
+          "statusReports": {
             "type": "array",
-            "items": {
-              "$ref": "#/definitions/OriginalGroupInformation"
-            }
-          },
-          "transactionInformationAndStatus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/TransactionInformationAndStatus"
-            }
+            "minItems": 1
           }
         }
       }
@@ -2780,27 +424,7 @@
         }
       },
       "then": {
-        "required": ["messageType", "caseAssignment", "investigationStatus"],
-        "properties": {
-          "caseAssignment": {
-            "$ref": "#/definitions/CaseAssignment"
-          },
-          "resolutionCase": {
-            "$ref": "#/definitions/ResolutionCase"
-          },
-          "investigationStatus": {
-            "$ref": "#/definitions/InvestigationStatus"
-          },
-          "cancellationDetails": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/CancellationDetails"
-            }
-          },
-          "modificationDetails": {
-            "$ref": "#/definitions/ModificationDetails"
-          }
-        }
+        "required": ["messageType", "messageId", "creationDateTime", "caseId", "investigationStatus"]
       }
     }
   ]

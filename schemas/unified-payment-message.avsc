@@ -2,7 +2,7 @@
   "type": "record",
   "name": "UnifiedPaymentMessage",
   "namespace": "com.anz.fastpayment.schema",
-  "doc": "Unified Avro schema for all ISO 20022 PACS and CAMT payment messages",
+  "doc": "Ultra lean Avro schema for all ISO 20022 PACS and CAMT payment messages - flattened structure",
   "fields": [
     {
       "name": "messageType",
@@ -19,163 +19,133 @@
       "default": null,
       "doc": "Version of the message schema"
     },
+    
     {
-      "name": "groupHeader",
-      "type": {
-        "type": "record",
-        "name": "GroupHeader",
-        "fields": [
-          {
-            "name": "messageId",
-            "type": "string",
-            "doc": "Unique identification for the message"
-          },
-          {
-            "name": "creationDateTime",
-            "type": "string",
-            "doc": "Date and time at which the message was created (ISO 8601)"
-          },
-          {
-            "name": "authorisation",
-            "type": ["null", {"type": "array", "items": "Authorisation"}],
-            "default": null
-          },
-          {
-            "name": "batchBooking",
-            "type": ["null", "boolean"],
-            "default": null
-          },
-          {
-            "name": "numberOfTransactions",
-            "type": ["null", "string"],
-            "default": null
-          },
-          {
-            "name": "controlSum",
-            "type": ["null", "double"],
-            "default": null
-          },
-          {
-            "name": "totalInterbankSettlementAmount",
-            "type": ["null", "Amount"],
-            "default": null
-          },
-          {
-            "name": "interbankSettlementDate",
-            "type": ["null", "string"],
-            "default": null
-          },
-          {
-            "name": "settlementInformation",
-            "type": ["null", "SettlementInformation"],
-            "default": null
-          },
-          {
-            "name": "paymentTypeInformation",
-            "type": ["null", "PaymentTypeInformation"],
-            "default": null
-          },
-          {
-            "name": "instructingAgent",
-            "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-            "default": null
-          },
-          {
-            "name": "instructedAgent",
-            "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-            "default": null
-          },
-          {
-            "name": "groupReversal",
-            "type": ["null", "boolean"],
-            "default": null,
-            "doc": "Group reversal indicator (PACS.007 specific)"
-          },
-          {
-            "name": "totalReversedInterbankSettlementAmount",
-            "type": ["null", "Amount"],
-            "default": null,
-            "doc": "Total reversed amount (PACS.007 specific)"
-          },
-          {
-            "name": "initiatingParty",
-            "type": ["null", "PartyIdentification"],
-            "default": null
-          },
-          {
-            "name": "forwardingAgent",
-            "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-            "default": null
-          }
-        ]
-      }
+      "name": "messageId",
+      "type": "string",
+      "doc": "Unique identification for the message"
     },
     {
-      "name": "transactionInformation",
-      "type": ["null", {"type": "array", "items": "TransactionInformation"}],
-      "default": null,
-      "doc": "Array of transaction information"
+      "name": "creationDateTime",
+      "type": "string",
+      "doc": "Date and time at which the message was created (ISO 8601)"
     },
     {
-      "name": "originalGroupInformation",
-      "type": ["null", "OriginalGroupInformation"],
+      "name": "numberOfTransactions",
+      "type": ["null", "string"],
       "default": null,
-      "doc": "Original group information for cancellation/reversal messages"
+      "doc": "Number of individual transactions contained in the message"
     },
     {
-      "name": "caseInformation",
-      "type": ["null", "CaseInformation"],
+      "name": "controlSum",
+      "type": ["null", "double"],
       "default": null,
-      "doc": "Case information for cancellation messages"
+      "doc": "Total of all individual amounts included in the message"
     },
     {
-      "name": "caseAssignment",
-      "type": ["null", "CaseAssignment"],
+      "name": "batchBooking",
+      "type": ["null", "boolean"],
       "default": null,
-      "doc": "Case assignment information for investigation resolution (CAMT.029)"
+      "doc": "Identifies whether the financial institution is to book the transaction on a batch or individual basis"
     },
     {
-      "name": "resolutionCase",
-      "type": ["null", "ResolutionCase"],
+      "name": "settlementMethod",
+      "type": ["null", {
+        "type": "enum",
+        "name": "SettlementMethod",
+        "symbols": ["INDA", "INGA", "COVE", "CLRG"]
+      }],
       "default": null,
-      "doc": "Resolved case information (CAMT.029)"
+      "doc": "Method used to settle the payment"
+    },
+    {
+      "name": "interbankSettlementDate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Date on which the amount of money ceases to be available (YYYY-MM-DD)"
+    },
+    {
+      "name": "instructingAgentBIC",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Instructing agent BIC"
+    },
+    {
+      "name": "instructedAgentBIC",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Instructed agent BIC"
+    },
+    
+    {
+      "name": "transactions",
+      "type": ["null", {"type": "array", "items": "LeanTransaction"}],
+      "default": null,
+      "doc": "Array of transaction information - flattened structure"
+    },
+    
+    {
+      "name": "originalMessageId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original message ID for cancellation/reversal"
+    },
+    {
+      "name": "originalMessageType",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original message type for cancellation/reversal"
+    },
+    {
+      "name": "originalCreationDateTime",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original creation date time (ISO 8601)"
+    },
+    
+    {
+      "name": "caseId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Case identification"
+    },
+    {
+      "name": "caseCreator",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Party that created the case"
     },
     {
       "name": "investigationStatus",
-      "type": ["null", "InvestigationStatus"],
+      "type": ["null", {
+        "type": "enum",
+        "name": "InvestigationStatus",
+        "symbols": ["CONF", "RJCT", "MODI", "CNCL"]
+      }],
       "default": null,
-      "doc": "Status of the investigation (CAMT.029)"
+      "doc": "Investigation status"
     },
     {
-      "name": "cancellationDetails",
-      "type": ["null", {"type": "array", "items": "CancellationDetails"}],
+      "name": "rejectionReason",
+      "type": ["null", "string"],
       "default": null,
-      "doc": "Cancellation details for investigation resolution (CAMT.029)"
+      "doc": "Rejection reason if applicable"
     },
+    
     {
-      "name": "modificationDetails",
-      "type": ["null", "ModificationDetails"],
+      "name": "statusReports",
+      "type": ["null", {"type": "array", "items": "LeanStatusReport"}],
       "default": null,
-      "doc": "Modification details for corrective transactions (CAMT.029)"
+      "doc": "Transaction status reports - flattened structure"
     },
-    {
-      "name": "transactionInformationAndStatus",
-      "type": ["null", {"type": "array", "items": "TransactionInformationAndStatus"}],
-      "default": null,
-      "doc": "Transaction information and status details (PACS.002)"
-    },
-    {
-      "name": "controlData",
-      "type": ["null", "ControlData"],
-      "default": null,
-      "doc": "Control data for validation"
-    },
+    
     {
       "name": "supplementaryData",
-      "type": ["null", {"type": "array", "items": "SupplementaryData"}],
+      "type": ["null", {"type": "map", "values": "string"}],
       "default": null,
-      "doc": "Additional supplementary data"
+      "doc": "Additional data as key-value pairs"
     },
+    
     {
       "name": "processingMetadata",
       "type": ["null", "ProcessingMetadata"],
@@ -186,8 +156,257 @@
 },
 {
   "type": "record",
+  "name": "LeanTransaction",
+  "namespace": "com.anz.fastpayment.schema",
+  "doc": "Flattened transaction structure with essential fields only",
+  "fields": [
+    {
+      "name": "instructionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Unique instruction identification"
+    },
+    {
+      "name": "endToEndId",
+      "type": "string",
+      "doc": "End-to-end identification"
+    },
+    {
+      "name": "transactionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Transaction identification"
+    },
+    {
+      "name": "UETR",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Unique end-to-end transaction reference"
+    },
+    {
+      "name": "clearingSystemReference",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Clearing system reference"
+    },
+    
+    {
+      "name": "amount",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Transaction amount"
+    },
+    {
+      "name": "currency",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "interbankSettlementAmount",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Interbank settlement amount"
+    },
+    {
+      "name": "instructedAmount",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Instructed amount"
+    },
+    
+    {
+      "name": "debtorName",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Debtor name"
+    },
+    {
+      "name": "debtorAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Debtor account identifier"
+    },
+    {
+      "name": "debtorBIC",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Debtor agent BIC"
+    },
+    {
+      "name": "creditorName",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Creditor name"
+    },
+    {
+      "name": "creditorAccountId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Creditor account identifier"
+    },
+    {
+      "name": "creditorBIC",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Creditor agent BIC"
+    },
+    
+    {
+      "name": "chargeBearer",
+      "type": ["null", {
+        "type": "enum",
+        "name": "ChargeBearerType",
+        "symbols": ["DEBT", "CRED", "SHAR", "SLEV"]
+      }],
+      "default": null,
+      "doc": "Charge bearer"
+    },
+    {
+      "name": "settlementPriority",
+      "type": ["null", {
+        "type": "enum",
+        "name": "SettlementPriority",
+        "symbols": ["URGT", "HIGH", "NORM"]
+      }],
+      "default": null,
+      "doc": "Settlement priority"
+    },
+    {
+      "name": "purposeCode",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Purpose code"
+    },
+    {
+      "name": "remittanceInformation",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Remittance information (unstructured)"
+    },
+    
+    {
+      "name": "requiredExecutionDate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Required execution date (YYYY-MM-DD)"
+    },
+    {
+      "name": "interbankSettlementDate",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Interbank settlement date (YYYY-MM-DD)"
+    },
+    
+    {
+      "name": "cancellationId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Cancellation ID"
+    },
+    {
+      "name": "reversalId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Reversal ID"
+    },
+    {
+      "name": "originalInstructionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original instruction ID"
+    },
+    {
+      "name": "originalEndToEndId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original end-to-end ID"
+    },
+    {
+      "name": "originalTransactionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original transaction ID"
+    },
+    {
+      "name": "cancellationReason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Cancellation reason"
+    },
+    {
+      "name": "reversalReason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Reversal reason"
+    }
+  ]
+},
+{
+  "type": "record",
+  "name": "LeanStatusReport",
+  "namespace": "com.anz.fastpayment.schema",
+  "doc": "Flattened status report structure for PACS.002",
+  "fields": [
+    {
+      "name": "statusId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Status identification"
+    },
+    {
+      "name": "originalInstructionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original instruction ID"
+    },
+    {
+      "name": "originalEndToEndId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original end-to-end ID"
+    },
+    {
+      "name": "originalTransactionId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Original transaction ID"
+    },
+    {
+      "name": "transactionStatus",
+      "type": ["null", {
+        "type": "enum",
+        "name": "TransactionStatus",
+        "symbols": ["ACCP", "ACSC", "ACSP", "ACTC", "ACWC", "ACWP", "CANC", "PART", "PDNG", "RCVD", "RJCT"]
+      }],
+      "default": null,
+      "doc": "Transaction status"
+    },
+    {
+      "name": "statusReason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Status reason"
+    },
+    {
+      "name": "acceptanceDateTime",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Acceptance date and time (ISO 8601)"
+    },
+    {
+      "name": "clearingSystemReference",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Clearing system reference"
+    }
+  ]
+},
+{
+  "type": "record",
   "name": "ProcessingMetadata",
   "namespace": "com.anz.fastpayment.schema",
+  "doc": "Internal processing metadata for tracking and auditing",
   "fields": [
     {
       "name": "receivedTimestamp",
@@ -235,885 +454,6 @@
       "type": ["null", "string"],
       "default": null,
       "doc": "Idempotency key for duplicate detection"
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "Amount",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "value",
-      "type": "double",
-      "doc": "Amount value"
-    },
-    {
-      "name": "currency",
-      "type": "string",
-      "doc": "Currency code (ISO 4217)"
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "PartyIdentification",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "name",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Name of the party"
-    },
-    {
-      "name": "postalAddress",
-      "type": ["null", "PostalAddress"],
-      "default": null
-    },
-    {
-      "name": "identification",
-      "type": ["null", "PartyIdIdentification"],
-      "default": null
-    },
-    {
-      "name": "countryOfResidence",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Country of residence (ISO 3166-1 alpha-2)"
-    },
-    {
-      "name": "contactDetails",
-      "type": ["null", "ContactDetails"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "BranchAndFinancialInstitutionIdentification",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "financialInstitutionIdentification",
-      "type": "FinancialInstitutionIdentification"
-    },
-    {
-      "name": "branchIdentification",
-      "type": ["null", "BranchData"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "FinancialInstitutionIdentification",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "bicfi",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Bank Identifier Code"
-    },
-    {
-      "name": "clearingSystemMemberIdentification",
-      "type": ["null", "ClearingSystemMemberIdentification"],
-      "default": null
-    },
-    {
-      "name": "legalEntityIdentifier",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Legal Entity Identifier (LEI)"
-    },
-    {
-      "name": "name",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Name of the financial institution"
-    },
-    {
-      "name": "postalAddress",
-      "type": ["null", "PostalAddress"],
-      "default": null
-    },
-    {
-      "name": "other",
-      "type": ["null", "GenericFinancialIdentification"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "TransactionInformation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "paymentIdentification",
-      "type": "PaymentIdentification"
-    },
-    {
-      "name": "paymentTypeInformation",
-      "type": ["null", "PaymentTypeInformation"],
-      "default": null
-    },
-    {
-      "name": "interbankSettlementAmount",
-      "type": "Amount"
-    },
-    {
-      "name": "interbankSettlementDate",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Settlement date (YYYY-MM-DD)"
-    },
-    {
-      "name": "settlementPriority",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "settlementTimeIndication",
-      "type": ["null", "SettlementTimeIndication"],
-      "default": null
-    },
-    {
-      "name": "settlementTimeRequest",
-      "type": ["null", "SettlementTimeRequest"],
-      "default": null
-    },
-    {
-      "name": "acceptanceDateTime",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Acceptance timestamp (ISO 8601)"
-    },
-    {
-      "name": "poolingAdjustmentDate",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "instructingAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "instructedAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent1",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent1Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent2",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent2Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent3",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "intermediaryAgent3Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent1",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent1Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent2",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent2Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent3",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "previousInstructingAgent3Account",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "ultimateDebtor",
-      "type": ["null", "PartyIdentification"],
-      "default": null
-    },
-    {
-      "name": "debtor",
-      "type": ["null", "PartyIdentification"],
-      "default": null
-    },
-    {
-      "name": "debtorAccount",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "debtorAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "debtorAgentAccount",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "creditorAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "creditorAgentAccount",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "creditor",
-      "type": ["null", "PartyIdentification"],
-      "default": null
-    },
-    {
-      "name": "creditorAccount",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "ultimateCreditor",
-      "type": ["null", "PartyIdentification"],
-      "default": null
-    },
-    {
-      "name": "chargeBearer",
-      "type": ["null", {
-        "type": "enum",
-        "name": "ChargeBearerType",
-        "symbols": ["DEBT", "CRED", "SHAR", "SLEV"]
-      }],
-      "default": null
-    },
-    {
-      "name": "chargesInformation",
-      "type": ["null", {"type": "array", "items": "ChargesInformation"}],
-      "default": null
-    },
-    {
-      "name": "purpose",
-      "type": ["null", "Purpose"],
-      "default": null
-    },
-    {
-      "name": "regulatoryReporting",
-      "type": ["null", {"type": "array", "items": "RegulatoryReporting"}],
-      "default": null
-    },
-    {
-      "name": "tax",
-      "type": ["null", "TaxInformation"],
-      "default": null
-    },
-    {
-      "name": "relatedRemittanceInformation",
-      "type": ["null", {"type": "array", "items": "RemittanceLocation"}],
-      "default": null
-    },
-    {
-      "name": "remittanceInformation",
-      "type": ["null", "RemittanceInformation"],
-      "default": null
-    },
-    {
-      "name": "supplementaryData",
-      "type": ["null", {"type": "array", "items": "SupplementaryData"}],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "CaseAssignment",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "id",
-      "type": "string",
-      "doc": "Unique identification for the case assignment"
-    },
-    {
-      "name": "assigner",
-      "type": "PartyIdentification",
-      "doc": "Party assigning the investigation case"
-    },
-    {
-      "name": "assignee",
-      "type": "PartyIdentification",
-      "doc": "Party to which the investigation case is assigned"
-    },
-    {
-      "name": "creationDateTime",
-      "type": "string",
-      "doc": "Date and time at which the assignment was created (ISO 8601)"
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "InvestigationStatus",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "confirmationIndicator",
-      "type": {
-        "type": "enum",
-        "name": "ConfirmationIndicator",
-        "symbols": ["CONF", "RJCT", "MODI", "CNCL"]
-      },
-      "doc": "Confirmation indicator for the investigation"
-    },
-    {
-      "name": "rejectionReason",
-      "type": ["null", "RejectionReason"],
-      "default": null,
-      "doc": "Reason for rejection if applicable"
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "TransactionInformationAndStatus",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "statusId",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Status identification"
-    },
-    {
-      "name": "originalInstructionId",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Original instruction identification"
-    },
-    {
-      "name": "originalEndToEndId",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Original end-to-end identification"
-    },
-    {
-      "name": "originalTransactionId",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Original transaction identification"
-    },
-    {
-      "name": "transactionStatus",
-      "type": ["null", {
-        "type": "enum",
-        "name": "TransactionStatus",
-        "symbols": ["ACCP", "ACSC", "ACSP", "ACTC", "ACWC", "ACWP", "CANC", "PART", "PDNG", "RCVD", "RJCT"]
-      }],
-      "default": null,
-      "doc": "Status of the transaction"
-    },
-    {
-      "name": "statusReasonInformation",
-      "type": ["null", {"type": "array", "items": "StatusReasonInformation"}],
-      "default": null,
-      "doc": "Status reason information"
-    },
-    {
-      "name": "acceptanceDateTime",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Date and time of acceptance (ISO 8601)"
-    },
-    {
-      "name": "instructingAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    },
-    {
-      "name": "instructedAgent",
-      "type": ["null", "BranchAndFinancialInstitutionIdentification"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "Authorisation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "code",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "proprietary",
-      "type": ["null", "string"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "SettlementInformation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "settlementMethod",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "settlementAccount",
-      "type": ["null", "CashAccount"],
-      "default": null
-    },
-    {
-      "name": "clearingSystem",
-      "type": ["null", "ClearingSystemIdentification"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "PaymentTypeInformation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "instructionPriority",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "clearingChannel",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "serviceLevel",
-      "type": ["null", {"type": "array", "items": "ServiceLevel"}],
-      "default": null
-    },
-    {
-      "name": "localInstrument",
-      "type": ["null", "LocalInstrument"],
-      "default": null
-    },
-    {
-      "name": "sequenceType",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "categoryPurpose",
-      "type": ["null", "CategoryPurpose"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "CashAccount",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "identification",
-      "type": ["null", "AccountIdentification"],
-      "default": null
-    },
-    {
-      "name": "type",
-      "type": ["null", "CashAccountType"],
-      "default": null
-    },
-    {
-      "name": "currency",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Currency code (ISO 4217)"
-    },
-    {
-      "name": "name",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "proxy",
-      "type": ["null", "ProxyAccountIdentification"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "PostalAddress",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "addressType",
-      "type": ["null", {
-        "type": "enum",
-        "name": "AddressType",
-        "symbols": ["ADDR", "PBOX", "HOME", "BIZZ", "MLTO", "DLVY"]
-      }],
-      "default": null
-    },
-    {
-      "name": "department",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "subDepartment",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "streetName",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "buildingNumber",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "buildingName",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "floor",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "postBox",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "room",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "postCode",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "townName",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "townLocationName",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "districtName",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "countrySubDivision",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "country",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Country code (ISO 3166-1 alpha-2)"
-    },
-    {
-      "name": "addressLine",
-      "type": ["null", {"type": "array", "items": "string"}],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "ContactDetails",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "namePrefix",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "name",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "phoneNumber",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "mobileNumber",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "faxNumber",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "emailAddress",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "other",
-      "type": ["null", "string"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "PaymentIdentification",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "instructionId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "endToEndId",
-      "type": "string"
-    },
-    {
-      "name": "uetr",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Unique End-to-end Transaction Reference"
-    },
-    {
-      "name": "txId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "clearingSystemReference",
-      "type": ["null", "string"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "SupplementaryData",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "placeDemand",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "envelope",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "JSON string containing additional data"
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "OriginalGroupInformation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "originalMessageId",
-      "type": "string"
-    },
-    {
-      "name": "originalMessageNameId",
-      "type": "string"
-    },
-    {
-      "name": "originalCreationDateTime",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalNumberOfTransactions",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalControlSum",
-      "type": ["null", "double"],
-      "default": null
-    },
-    {
-      "name": "reversalReasonInformation",
-      "type": ["null", {"type": "array", "items": "PaymentReversalReason"}],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "CaseInformation",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "id",
-      "type": "string"
-    },
-    {
-      "name": "creator",
-      "type": "PartyIdentification"
-    },
-    {
-      "name": "reopenCaseIndication",
-      "type": ["null", "boolean"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "ControlData",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "numberOfCancellationTransactions",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "controlSum",
-      "type": ["null", "double"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "ResolutionCase",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "id",
-      "type": "string"
-    },
-    {
-      "name": "creator",
-      "type": "PartyIdentification"
-    },
-    {
-      "name": "reopenCaseIndication",
-      "type": ["null", "boolean"],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "CancellationDetails",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "originalInstructionId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalEndToEndId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalTransactionId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalInstructedAmount",
-      "type": ["null", "Amount"],
-      "default": null
-    },
-    {
-      "name": "cancellationReasonInformation",
-      "type": ["null", {"type": "array", "items": "CancellationReasonInformation"}],
-      "default": null
-    }
-  ]
-},
-{
-  "type": "record",
-  "name": "ModificationDetails",
-  "namespace": "com.anz.fastpayment.schema",
-  "fields": [
-    {
-      "name": "originalInstructionId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalEndToEndId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "originalTransactionId",
-      "type": ["null", "string"],
-      "default": null
-    },
-    {
-      "name": "modificationReasonInformation",
-      "type": ["null", {"type": "array", "items": "ModificationReasonInformation"}],
-      "default": null
     }
   ]
 }]
