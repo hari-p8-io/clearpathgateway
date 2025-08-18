@@ -1,0 +1,646 @@
+{
+  "schemaVersion": "1.0.0",
+  "description": "Transformation configuration for ISO 20022 outward messages to unified JSON",
+  "targetSchema": "https://anz.com/schemas/unified-outward-message/v1.0.0",
+  "messageTypes": {
+    "camt.029.001.13": {
+      "jsonMessageType": "CAMT_029",
+      "messageVersion": "13",
+      "description": "Resolution of Investigation V13"
+    },
+    "pacs.002.001.15": {
+      "jsonMessageType": "PACS_002", 
+      "messageVersion": "15",
+      "description": "FI to FI Payment Status Report V15"
+    }
+  },
+  "transformationRules": {
+    "CAMT_029": {
+      "rootPath": "Document/RsltnOfInvstgtn",
+      "fieldMappings": {
+        "messageType": {
+          "value": "CAMT_029",
+          "type": "constant"
+        },
+        "messageVersion": {
+          "value": "13",
+          "type": "constant"
+        },
+        "caseAssignment": {
+          "sourcePath": "Assgnmt",
+          "type": "object",
+          "fields": {
+            "id": {
+              "sourcePath": "Id",
+              "type": "string",
+              "maxLength": 35,
+              "required": true
+            },
+            "assigner": {
+              "sourcePath": "Assgnr",
+              "type": "partyIdentification",
+              "required": true
+            },
+            "assignee": {
+              "sourcePath": "Assgne", 
+              "type": "partyIdentification",
+              "required": true
+            },
+            "creationDateTime": {
+              "sourcePath": "CreDtTm",
+              "type": "dateTime",
+              "required": true
+            }
+          }
+        },
+        "resolutionCase": {
+          "sourcePath": "RslvdCase",
+          "type": "object",
+          "optional": true,
+          "fields": {
+            "id": {
+              "sourcePath": "Id",
+              "type": "string",
+              "maxLength": 35,
+              "required": true
+            },
+            "creator": {
+              "sourcePath": "Cretr",
+              "type": "partyIdentification",
+              "required": true
+            },
+            "reopenCaseIndication": {
+              "sourcePath": "ReopCaseIndctn",
+              "type": "boolean",
+              "optional": true
+            }
+          }
+        },
+        "investigationStatus": {
+          "sourcePath": "Sts",
+          "type": "object",
+          "required": true,
+          "fields": {
+            "confirmationIndicator": {
+              "sourcePath": "ConfInd",
+              "type": "string",
+              "enum": ["CONF", "RJCT", "MODI", "CNCL"],
+              "required": true
+            },
+            "rejectionReason": {
+              "sourcePath": "RjctRsn",
+              "type": "rejectionReason",
+              "optional": true
+            }
+          }
+        },
+        "cancellationDetails": {
+          "sourcePath": "CxlDtls",
+          "type": "array",
+          "optional": true,
+          "itemType": "cancellationDetails"
+        },
+        "modificationDetails": {
+          "sourcePath": "ModDtls",
+          "type": "modificationDetails",
+          "optional": true
+        },
+        "supplementaryData": {
+          "sourcePath": "SplmtryData",
+          "type": "array",
+          "optional": true,
+          "itemType": "supplementaryData"
+        }
+      }
+    },
+    "PACS_002": {
+      "rootPath": "Document/FIToFIPmtStsRpt",
+      "fieldMappings": {
+        "messageType": {
+          "value": "PACS_002",
+          "type": "constant"
+        },
+        "messageVersion": {
+          "value": "15",
+          "type": "constant"
+        },
+        "groupHeader": {
+          "sourcePath": "GrpHdr",
+          "type": "object",
+          "required": true,
+          "fields": {
+            "messageId": {
+              "sourcePath": "MsgId",
+              "type": "string",
+              "maxLength": 35,
+              "required": true
+            },
+            "creationDateTime": {
+              "sourcePath": "CreDtTm",
+              "type": "dateTime",
+              "required": true
+            },
+            "numberOfTransactions": {
+              "sourcePath": "NbOfTxs",
+              "type": "string",
+              "pattern": "^[0-9]{1,15}$",
+              "optional": true
+            },
+            "controlSum": {
+              "sourcePath": "CtrlSum",
+              "type": "decimal",
+              "optional": true
+            },
+            "initiatingParty": {
+              "sourcePath": "InitgPty",
+              "type": "partyIdentification",
+              "optional": true
+            },
+            "forwardingAgent": {
+              "sourcePath": "FwdgAgt",
+              "type": "branchAndFinancialInstitutionIdentification",
+              "optional": true
+            }
+          }
+        },
+        "originalGroupInformation": {
+          "sourcePath": "OrgnlGrpInfAndSts",
+          "type": "array",
+          "optional": true,
+          "itemType": "originalGroupInformation"
+        },
+        "transactionInformationAndStatus": {
+          "sourcePath": "TxInfAndSts",
+          "type": "array",
+          "optional": true,
+          "itemType": "transactionInformationAndStatus"
+        },
+        "supplementaryData": {
+          "sourcePath": "SplmtryData",
+          "type": "array",
+          "optional": true,
+          "itemType": "supplementaryData"
+        }
+      }
+    }
+  },
+  "dataTypes": {
+    "partyIdentification": {
+      "type": "object",
+      "fields": {
+        "name": {
+          "sourcePath": "Nm",
+          "type": "string",
+          "maxLength": 140,
+          "optional": true
+        },
+        "postalAddress": {
+          "sourcePath": "PstlAdr",
+          "type": "postalAddress",
+          "optional": true
+        },
+        "identification": {
+          "sourcePath": "Id",
+          "type": "partyIdIdentification",
+          "optional": true
+        },
+        "countryOfResidence": {
+          "sourcePath": "CtryOfRes",
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "optional": true
+        },
+        "contactDetails": {
+          "sourcePath": "CtctDtls",
+          "type": "contactDetails",
+          "optional": true
+        }
+      }
+    },
+    "branchAndFinancialInstitutionIdentification": {
+      "type": "object",
+      "fields": {
+        "financialInstitutionIdentification": {
+          "sourcePath": "FinInstnId",
+          "type": "financialInstitutionIdentification",
+          "required": true
+        },
+        "branchIdentification": {
+          "sourcePath": "BrnchId",
+          "type": "branchData",
+          "optional": true
+        }
+      }
+    },
+    "financialInstitutionIdentification": {
+      "type": "object",
+      "fields": {
+        "bicfi": {
+          "sourcePath": "BICFI",
+          "type": "string",
+          "pattern": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+          "optional": true
+        },
+        "clearingSystemMemberIdentification": {
+          "sourcePath": "ClrSysMmbId",
+          "type": "clearingSystemMemberIdentification",
+          "optional": true
+        },
+        "legalEntityIdentifier": {
+          "sourcePath": "LEI",
+          "type": "string",
+          "pattern": "^[A-Z0-9]{18}[0-9]{2}$",
+          "optional": true
+        },
+        "name": {
+          "sourcePath": "Nm",
+          "type": "string",
+          "maxLength": 140,
+          "optional": true
+        },
+        "postalAddress": {
+          "sourcePath": "PstlAdr",
+          "type": "postalAddress",
+          "optional": true
+        },
+        "other": {
+          "sourcePath": "Othr",
+          "type": "genericFinancialIdentification",
+          "optional": true
+        }
+      }
+    },
+    "amount": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "sourcePath": "text()",
+          "type": "decimal",
+          "required": true
+        },
+        "currency": {
+          "sourcePath": "@Ccy",
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "required": true
+        }
+      }
+    },
+    "postalAddress": {
+      "type": "object",
+      "fields": {
+        "addressType": {
+          "sourcePath": "AdrTp/Cd",
+          "type": "string",
+          "enum": ["ADDR", "PBOX", "HOME", "BIZZ", "MLTO", "DLVY"],
+          "optional": true
+        },
+        "department": {
+          "sourcePath": "Dept",
+          "type": "string",
+          "maxLength": 70,
+          "optional": true
+        },
+        "subDepartment": {
+          "sourcePath": "SubDept",
+          "type": "string",
+          "maxLength": 70,
+          "optional": true
+        },
+        "streetName": {
+          "sourcePath": "StrtNm",
+          "type": "string",
+          "maxLength": 70,
+          "optional": true
+        },
+        "buildingNumber": {
+          "sourcePath": "BldgNb",
+          "type": "string",
+          "maxLength": 16,
+          "optional": true
+        },
+        "buildingName": {
+          "sourcePath": "BldgNm",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "floor": {
+          "sourcePath": "Flr",
+          "type": "string",
+          "maxLength": 70,
+          "optional": true
+        },
+        "postBox": {
+          "sourcePath": "PstBx",
+          "type": "string",
+          "maxLength": 16,
+          "optional": true
+        },
+        "room": {
+          "sourcePath": "Room",
+          "type": "string",
+          "maxLength": 70,
+          "optional": true
+        },
+        "postCode": {
+          "sourcePath": "PstCd",
+          "type": "string",
+          "maxLength": 16,
+          "optional": true
+        },
+        "townName": {
+          "sourcePath": "TwnNm",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "townLocationName": {
+          "sourcePath": "TwnLctnNm",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "districtName": {
+          "sourcePath": "DstrctNm",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "countrySubDivision": {
+          "sourcePath": "CtrySubDvsn",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "country": {
+          "sourcePath": "Ctry",
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "optional": true
+        },
+        "addressLine": {
+          "sourcePath": "AdrLine",
+          "type": "array",
+          "maxItems": 7,
+          "itemType": "string",
+          "maxLength": 70,
+          "optional": true
+        }
+      }
+    },
+    "rejectionReason": {
+      "type": "object",
+      "fields": {
+        "code": {
+          "sourcePath": "Cd",
+          "type": "string",
+          "optional": true
+        },
+        "proprietary": {
+          "sourcePath": "Prtry",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "additionalInformation": {
+          "sourcePath": "AddtlInf",
+          "type": "array",
+          "itemType": "string",
+          "maxLength": 105,
+          "optional": true
+        }
+      }
+    },
+    "cancellationDetails": {
+      "type": "object",
+      "fields": {
+        "originalInstructionId": {
+          "sourcePath": "OrgnlInstrId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalEndToEndId": {
+          "sourcePath": "OrgnlEndToEndId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalTransactionId": {
+          "sourcePath": "OrgnlTxId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalInstructedAmount": {
+          "sourcePath": "OrgnlIntrBkSttlmAmt",
+          "type": "amount",
+          "optional": true
+        },
+        "cancellationReasonInformation": {
+          "sourcePath": "CxlRsnInf",
+          "type": "array",
+          "itemType": "cancellationReasonInformation",
+          "optional": true
+        }
+      }
+    },
+    "modificationDetails": {
+      "type": "object",
+      "fields": {
+        "originalInstructionId": {
+          "sourcePath": "OrgnlInstrId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalEndToEndId": {
+          "sourcePath": "OrgnlEndToEndId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalTransactionId": {
+          "sourcePath": "OrgnlTxId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "modificationReasonInformation": {
+          "sourcePath": "ModRsnInf",
+          "type": "array",
+          "itemType": "modificationReasonInformation",
+          "optional": true
+        }
+      }
+    },
+    "originalGroupInformation": {
+      "type": "object",
+      "fields": {
+        "originalMessageId": {
+          "sourcePath": "OrgnlMsgId",
+          "type": "string",
+          "maxLength": 35,
+          "required": true
+        },
+        "originalMessageNameId": {
+          "sourcePath": "OrgnlMsgNmId",
+          "type": "string",
+          "maxLength": 35,
+          "required": true
+        },
+        "originalCreationDateTime": {
+          "sourcePath": "OrgnlCreDtTm",
+          "type": "dateTime",
+          "optional": true
+        },
+        "originalNumberOfTransactions": {
+          "sourcePath": "OrgnlNbOfTxs",
+          "type": "string",
+          "pattern": "^[0-9]{1,15}$",
+          "optional": true
+        },
+        "originalControlSum": {
+          "sourcePath": "OrgnlCtrlSum",
+          "type": "decimal",
+          "optional": true
+        },
+        "groupStatus": {
+          "sourcePath": "GrpSts",
+          "type": "string",
+          "enum": ["ACCP", "ACSC", "ACSP", "ACTC", "ACWC", "ACWP", "PART", "PDNG", "RCVD", "RJCT"],
+          "optional": true
+        },
+        "statusReasonInformation": {
+          "sourcePath": "StsRsnInf",
+          "type": "array",
+          "itemType": "statusReasonInformation",
+          "optional": true
+        }
+      }
+    },
+    "transactionInformationAndStatus": {
+      "type": "object",
+      "fields": {
+        "statusId": {
+          "sourcePath": "StsId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalInstructionId": {
+          "sourcePath": "OrgnlInstrId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalEndToEndId": {
+          "sourcePath": "OrgnlEndToEndId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalTransactionId": {
+          "sourcePath": "OrgnlTxId",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "originalUniqueTransactionIdentifier": {
+          "sourcePath": "OrgnlUETR",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "transactionStatus": {
+          "sourcePath": "TxSts",
+          "type": "string",
+          "enum": ["ACCP", "ACSC", "ACSP", "ACTC", "ACWC", "ACWP", "CANC", "PART", "PDNG", "RCVD", "RJCT"],
+          "optional": true
+        },
+        "statusReasonInformation": {
+          "sourcePath": "StsRsnInf",
+          "type": "array",
+          "itemType": "statusReasonInformation",
+          "optional": true
+        },
+        "chargesInformation": {
+          "sourcePath": "ChrgsInf",
+          "type": "array",
+          "itemType": "chargesInformation",
+          "optional": true
+        },
+        "acceptanceDateTime": {
+          "sourcePath": "AccptncDtTm",
+          "type": "dateTime",
+          "optional": true
+        },
+        "accountServicerReference": {
+          "sourcePath": "AcctSvcrRef",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "clearingSystemReference": {
+          "sourcePath": "ClrSysRef",
+          "type": "string",
+          "maxLength": 35,
+          "optional": true
+        },
+        "instructingAgent": {
+          "sourcePath": "InstgAgt",
+          "type": "branchAndFinancialInstitutionIdentification",
+          "optional": true
+        },
+        "instructedAgent": {
+          "sourcePath": "InstdAgt",
+          "type": "branchAndFinancialInstitutionIdentification",
+          "optional": true
+        },
+        "originalTransactionReference": {
+          "sourcePath": "OrgnlTxRef",
+          "type": "originalTransactionReference",
+          "optional": true
+        }
+      }
+    },
+    "supplementaryData": {
+      "type": "object",
+      "fields": {
+        "placeDemand": {
+          "sourcePath": "PlcAndNm",
+          "type": "string",
+          "maxLength": 350,
+          "optional": true
+        },
+        "envelope": {
+          "sourcePath": "Envlp",
+          "type": "object",
+          "optional": true
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "required": {
+      "CAMT_029": ["messageType", "caseAssignment", "investigationStatus"],
+      "PACS_002": ["messageType", "groupHeader"]
+    },
+    "formats": {
+      "dateTime": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$",
+      "date": "^\\d{4}-\\d{2}-\\d{2}$",
+      "bic": "^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+      "iban": "^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$",
+      "lei": "^[A-Z0-9]{18}[0-9]{2}$",
+      "currency": "^[A-Z]{3}$",
+      "country": "^[A-Z]{2}$"
+    },
+    "businessRules": {
+      "messageTypeConsistency": "Message type must match the XSD namespace",
+      "referenceIntegrity": "All reference IDs must be preserved",
+      "statusCodeValidation": "Status codes must be from predefined enumerations",
+      "amountValidation": "Amounts must be positive and have max 5 decimal places"
+    }
+  }
+}

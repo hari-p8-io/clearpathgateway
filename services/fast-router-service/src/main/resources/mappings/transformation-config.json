@@ -1,0 +1,1611 @@
+{
+  "version": "1.0.0",
+  "description": "Transformation configuration for ISO 20022 XML to Unified JSON mapping",
+  "messageTypes": {
+    "pacs.008.001.13": {
+      "unifiedType": "PACS_008",
+      "description": "FI To FI Customer Credit Transfer",
+      "rootElement": "Document/FIToFICstmrCdtTrf",
+      "requiredFields": ["groupHeader", "transactionInformation"],
+      "mappingRules": {
+        "documentRoot": "Document/FIToFICstmrCdtTrf",
+        "messageType": {
+          "fixed": "PACS_008"
+        },
+        "messageVersion": {
+          "fixed": "13"
+        },
+        "groupHeader": {
+          "source": "GrpHdr",
+          "fields": {
+            "messageId": "MsgId",
+            "creationDateTime": "CreDtTm",
+            "authorisation": {
+              "source": "Authstn",
+              "array": true,
+              "fields": {
+                "code": "Cd",
+                "proprietary": "Prtry"
+              }
+            },
+            "batchBooking": "BtchBookg",
+            "numberOfTransactions": "NbOfTxs",
+            "controlSum": "CtrlSum",
+            "totalInterbankSettlementAmount": {
+              "source": "TtlIntrBkSttlmAmt",
+              "fields": {
+                "value": "_text",
+                "currency": "@Ccy"
+              }
+            },
+            "interbankSettlementDate": "IntrBkSttlmDt",
+            "settlementInformation": {
+              "source": "SttlmInf",
+              "fields": {
+                "settlementMethod": "SttlmMtd",
+                "settlementAccount": {
+                  "source": "SttlmAcct",
+                  "transform": "cashAccount"
+                },
+                "clearingSystem": {
+                  "source": "ClrSys",
+                  "transform": "clearingSystemIdentification"
+                }
+              }
+            },
+            "paymentTypeInformation": {
+              "source": "PmtTpInf",
+              "transform": "paymentTypeInformation"
+            },
+            "instructingAgent": {
+              "source": "InstgAgt",
+              "transform": "financialInstitution"
+            },
+            "instructedAgent": {
+              "source": "InstdAgt",
+              "transform": "financialInstitution"
+            }
+          }
+        },
+        "transactionInformation": {
+          "source": "CdtTrfTxInf",
+          "array": true,
+          "fields": {
+            "paymentIdentification": {
+              "source": "PmtId",
+              "transform": "paymentIdentification"
+            },
+            "paymentTypeInformation": {
+              "source": "PmtTpInf",
+              "transform": "paymentTypeInformation"
+            },
+            "interbankSettlementAmount": {
+              "source": "IntrBkSttlmAmt",
+              "transform": "amount"
+            },
+            "interbankSettlementDate": "IntrBkSttlmDt",
+            "settlementPriority": "SttlmPrty",
+            "settlementTimeIndication": {
+              "source": "SttlmTmIndctn",
+              "fields": {
+                "debitDateTime": "DbtDtTm",
+                "creditDateTime": "CdtDtTm"
+              }
+            },
+            "instructedAmount": {
+              "source": "InstdAmt",
+              "transform": "amount"
+            },
+            "exchangeRate": "XchgRate",
+            "chargeBearer": "ChrgBr",
+            "chargesInformation": {
+              "source": "ChrgsInf",
+              "array": true,
+              "transform": "chargesInformation"
+            },
+            "creditor": {
+              "source": "Cdtr",
+              "transform": "party"
+            },
+            "creditorAccount": {
+              "source": "CdtrAcct",
+              "transform": "cashAccount"
+            },
+            "creditorAgent": {
+              "source": "CdtrAgt",
+              "transform": "financialInstitution"
+            },
+            "creditorAgentAccount": {
+              "source": "CdtrAgtAcct",
+              "transform": "cashAccount"
+            },
+            "ultimateCreditor": {
+              "source": "UltmtCdtr",
+              "transform": "party"
+            },
+            "initiatingParty": {
+              "source": "InitgPty",
+              "transform": "party"
+            },
+            "debtor": {
+              "source": "Dbtr",
+              "transform": "party"
+            },
+            "debtorAccount": {
+              "source": "DbtrAcct",
+              "transform": "cashAccount"
+            },
+            "debtorAgent": {
+              "source": "DbtrAgt",
+              "transform": "financialInstitution"
+            },
+            "debtorAgentAccount": {
+              "source": "DbtrAgtAcct",
+              "transform": "cashAccount"
+            },
+            "ultimateDebtor": {
+              "source": "UltmtDbtr",
+              "transform": "party"
+            },
+            "intermediaryAgent1": {
+              "source": "IntrmyAgt1",
+              "transform": "financialInstitution"
+            },
+            "intermediaryAgent1Account": {
+              "source": "IntrmyAgt1Acct",
+              "transform": "cashAccount"
+            },
+            "intermediaryAgent2": {
+              "source": "IntrmyAgt2",
+              "transform": "financialInstitution"
+            },
+            "intermediaryAgent2Account": {
+              "source": "IntrmyAgt2Acct",
+              "transform": "cashAccount"
+            },
+            "intermediaryAgent3": {
+              "source": "IntrmyAgt3",
+              "transform": "financialInstitution"
+            },
+            "intermediaryAgent3Account": {
+              "source": "IntrmyAgt3Acct",
+              "transform": "cashAccount"
+            },
+            "purpose": {
+              "source": "Purp",
+              "transform": "purpose"
+            },
+            "regulatoryReporting": {
+              "source": "RgltryRptg",
+              "array": true,
+              "transform": "regulatoryReporting"
+            },
+            "relatedRemittanceInformation": {
+              "source": "RltdRmtInf",
+              "array": true,
+              "transform": "remittanceLocation"
+            },
+            "remittanceInformation": {
+              "source": "RmtInf",
+              "transform": "remittanceInformation"
+            }
+          }
+        },
+        "supplementaryData": {
+          "source": "SplmtryData",
+          "array": true,
+          "transform": "supplementaryData"
+        }
+      }
+    },
+    "pacs.003.001.11": {
+      "unifiedType": "PACS_003",
+      "description": "FI To FI Customer Direct Debit",
+      "rootElement": "Document/FIToFICstmrDrctDbt",
+      "requiredFields": ["groupHeader", "transactionInformation"],
+      "mappingRules": {
+        "documentRoot": "Document/FIToFICstmrDrctDbt",
+        "messageType": {
+          "fixed": "PACS_003"
+        },
+        "messageVersion": {
+          "fixed": "11"
+        },
+        "groupHeader": {
+          "source": "GrpHdr",
+          "transform": "groupHeader"
+        },
+        "transactionInformation": {
+          "source": "DrctDbtTxInf",
+          "array": true,
+          "fields": {
+            "paymentIdentification": {
+              "source": "PmtId",
+              "transform": "paymentIdentification"
+            },
+            "paymentTypeInformation": {
+              "source": "PmtTpInf",
+              "transform": "paymentTypeInformation"
+            },
+            "interbankSettlementAmount": {
+              "source": "IntrBkSttlmAmt",
+              "transform": "amount"
+            },
+            "interbankSettlementDate": "IntrBkSttlmDt",
+            "settlementPriority": "SttlmPrty",
+            "settlementTimeIndication": {
+              "source": "SttlmTmIndctn",
+              "transform": "settlementTimeIndication"
+            },
+            "instructedAmount": {
+              "source": "InstdAmt",
+              "transform": "amount"
+            },
+            "exchangeRate": "XchgRate",
+            "chargeBearer": "ChrgBr",
+            "chargesInformation": {
+              "source": "ChrgsInf",
+              "array": true,
+              "transform": "chargesInformation"
+            },
+            "requiredCollectionDate": "ReqdColltnDt",
+            "directDebitTransaction": {
+              "source": "DrctDbtTx",
+              "fields": {
+                "mandateRelatedInformation": {
+                  "source": "MndtRltdInf",
+                  "transform": "mandateRelatedInformation"
+                },
+                "creditorSchemeIdentification": {
+                  "source": "CdtrSchmeId",
+                  "transform": "party"
+                },
+                "preNotificationId": "PreNtfctnId",
+                "preNotificationDate": "PreNtfctnDt"
+              }
+            },
+            "creditor": {
+              "source": "Cdtr",
+              "transform": "party"
+            },
+            "creditorAccount": {
+              "source": "CdtrAcct",
+              "transform": "cashAccount"
+            },
+            "creditorAgent": {
+              "source": "CdtrAgt",
+              "transform": "financialInstitution"
+            },
+            "debtor": {
+              "source": "Dbtr",
+              "transform": "party"
+            },
+            "debtorAccount": {
+              "source": "DbtrAcct",
+              "transform": "cashAccount"
+            },
+            "debtorAgent": {
+              "source": "DbtrAgt",
+              "transform": "financialInstitution"
+            }
+          }
+        }
+      }
+    },
+    "pacs.007.001.13": {
+      "unifiedType": "PACS_007",
+      "description": "FI To FI Payment Reversal",
+      "rootElement": "Document/FIToFIPmtRvsl",
+      "requiredFields": ["groupHeader"],
+      "mappingRules": {
+        "documentRoot": "Document/FIToFIPmtRvsl",
+        "messageType": {
+          "fixed": "PACS_007"
+        },
+        "messageVersion": {
+          "fixed": "13"
+        },
+        "groupHeader": {
+          "source": "GrpHdr",
+          "fields": {
+            "messageId": "MsgId",
+            "creationDateTime": "CreDtTm",
+            "authorisation": {
+              "source": "Authstn",
+              "array": true,
+              "transform": "authorisation"
+            },
+            "batchBooking": "BtchBookg",
+            "numberOfTransactions": "NbOfTxs",
+            "controlSum": "CtrlSum",
+            "groupReversal": "GrpRvsl",
+            "totalReversedInterbankSettlementAmount": {
+              "source": "TtlRvsdIntrBkSttlmAmt",
+              "transform": "amount"
+            },
+            "interbankSettlementDate": "IntrBkSttlmDt",
+            "settlementInformation": {
+              "source": "SttlmInf",
+              "transform": "settlementInformation"
+            },
+            "instructingAgent": {
+              "source": "InstgAgt",
+              "transform": "financialInstitution"
+            },
+            "instructedAgent": {
+              "source": "InstdAgt",
+              "transform": "financialInstitution"
+            }
+          }
+        },
+        "originalGroupInformation": {
+          "source": "OrgnlGrpInf",
+          "fields": {
+            "originalMessageId": "OrgnlMsgId",
+            "originalMessageNameId": "OrgnlMsgNmId",
+            "originalCreationDateTime": "OrgnlCreDtTm",
+            "reversalReasonInformation": {
+              "source": "RvslRsnInf",
+              "array": true,
+              "transform": "reversalReasonInformation"
+            }
+          }
+        },
+        "transactionInformation": {
+          "source": "TxInf",
+          "array": true,
+          "fields": {
+            "reversalId": "RvslId",
+            "originalGroupInformation": {
+              "source": "OrgnlGrpInf",
+              "transform": "originalGroupInformation"
+            },
+            "originalInstructionId": "OrgnlInstrId",
+            "originalEndToEndId": "OrgnlEndToEndId",
+            "originalTransactionId": "OrgnlTxId",
+            "originalUETR": "OrgnlUETR",
+            "originalClearingSystemReference": "OrgnlClrSysRef",
+            "originalInterbankSettlementAmount": {
+              "source": "OrgnlIntrBkSttlmAmt",
+              "transform": "amount"
+            },
+            "reversedInterbankSettlementAmount": {
+              "source": "RvsdIntrBkSttlmAmt",
+              "transform": "amount"
+            },
+            "interbankSettlementDate": "IntrBkSttlmDt",
+            "settlementPriority": "SttlmPrty",
+            "settlementTimeIndication": {
+              "source": "SttlmTmIndctn",
+              "transform": "settlementTimeIndication"
+            },
+            "reversedInstructedAmount": {
+              "source": "RvsdInstdAmt",
+              "transform": "amount"
+            },
+            "exchangeRate": "XchgRate",
+            "compensationAmount": {
+              "source": "CompstnAmt",
+              "transform": "amount"
+            },
+            "chargeBearer": "ChrgBr",
+            "chargesInformation": {
+              "source": "ChrgsInf",
+              "array": true,
+              "transform": "chargesInformation"
+            },
+            "instructingAgent": {
+              "source": "InstgAgt",
+              "transform": "financialInstitution"
+            },
+            "instructedAgent": {
+              "source": "InstdAgt",
+              "transform": "financialInstitution"
+            },
+            "reversalReasonInformation": {
+              "source": "RvslRsnInf",
+              "array": true,
+              "transform": "reversalReasonInformation"
+            },
+            "originalTransactionReference": {
+              "source": "OrgnlTxRef",
+              "transform": "originalTransactionReference"
+            }
+          }
+        }
+      }
+    },
+    "camt.056.001.11": {
+      "unifiedType": "CAMT_056",
+      "description": "FI To FI Payment Cancellation Request",
+      "rootElement": "Document/FIToFIPmtCxlReq",
+      "requiredFields": ["groupHeader", "transactionInformation"],
+      "mappingRules": {
+        "documentRoot": "Document/FIToFIPmtCxlReq",
+        "messageType": {
+          "fixed": "CAMT_056"
+        },
+        "messageVersion": {
+          "fixed": "11"
+        },
+        "groupHeader": {
+          "source": "Assgnmt",
+          "fields": {
+            "messageId": "Id",
+            "creationDateTime": "CreDtTm",
+            "instructingAgent": {
+              "source": "Assgnr",
+              "transform": "partyChoice"
+            },
+            "instructedAgent": {
+              "source": "Assgne",
+              "transform": "partyChoice"
+            }
+          }
+        },
+        "caseInformation": {
+          "source": "Case",
+          "fields": {
+            "id": "Id",
+            "creator": {
+              "source": "Cretr",
+              "transform": "partyChoice"
+            },
+            "reopenCaseIndication": "ReopCaseIndctn"
+          }
+        },
+        "controlData": {
+          "source": "CtrlData",
+          "fields": {
+            "numberOfTransactions": "NbOfTxs",
+            "controlSum": "CtrlSum"
+          }
+        },
+        "transactionInformation": {
+          "source": "Undrlyg",
+          "array": true,
+          "fields": {
+            "originalGroupInformation": {
+              "source": "OrgnlGrpInfAndCxl",
+              "fields": {
+                "groupCancellationId": "GrpCxlId",
+                "caseInformation": {
+                  "source": "Case",
+                  "transform": "caseInformation"
+                },
+                "originalMessageId": "OrgnlMsgId",
+                "originalMessageNameId": "OrgnlMsgNmId",
+                "originalCreationDateTime": "OrgnlCreDtTm",
+                "numberOfTransactions": "NbOfTxs",
+                "controlSum": "CtrlSum",
+                "groupCancellation": "GrpCxl",
+                "cancellationReasonInformation": {
+                  "source": "CxlRsnInf",
+                  "array": true,
+                  "transform": "cancellationReasonInformation"
+                }
+              }
+            },
+            "transactionInformation": {
+              "source": "TxInf",
+              "array": true,
+              "fields": {
+                "cancellationId": "CxlId",
+                "caseInformation": {
+                  "source": "Case",
+                  "transform": "caseInformation"
+                },
+                "originalGroupInformation": {
+                  "source": "OrgnlGrpInf",
+                  "transform": "originalGroupInformation"
+                },
+                "originalInstructionId": "OrgnlInstrId",
+                "originalEndToEndId": "OrgnlEndToEndId",
+                "originalTransactionId": "OrgnlTxId",
+                "originalUETR": "OrgnlUETR",
+                "originalClearingSystemReference": "OrgnlClrSysRef",
+                "originalInterbankSettlementAmount": {
+                  "source": "OrgnlIntrBkSttlmAmt",
+                  "transform": "amount"
+                },
+                "originalInterbankSettlementDate": "OrgnlIntrBkSttlmDt",
+                "instructingAgent": {
+                  "source": "Assgnr",
+                  "transform": "financialInstitution"
+                },
+                "instructedAgent": {
+                  "source": "Assgne",
+                  "transform": "financialInstitution"
+                },
+                "cancellationReasonInformation": {
+                  "source": "CxlRsnInf",
+                  "array": true,
+                  "transform": "cancellationReasonInformation"
+                },
+                "originalTransactionReference": {
+                  "source": "OrgnlTxRef",
+                  "transform": "originalTransactionReference"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "transformationTemplates": {
+    "amount": {
+      "fields": {
+        "value": "_text",
+        "currency": "@Ccy"
+      },
+      "dataTypes": {
+        "value": "decimal",
+        "currency": "string"
+      }
+    },
+    "party": {
+      "fields": {
+        "name": "Nm",
+        "postalAddress": {
+          "source": "PstlAdr",
+          "transform": "postalAddress"
+        },
+        "identification": {
+          "source": "Id",
+          "transform": "partyIdentification"
+        },
+        "countryOfResidence": "CtryOfRes",
+        "contactDetails": {
+          "source": "CtctDtls",
+          "transform": "contactDetails"
+        }
+      }
+    },
+    "partyChoice": {
+      "fields": {
+        "party": {
+          "source": "Pty",
+          "transform": "party"
+        },
+        "agent": {
+          "source": "Agt",
+          "transform": "financialInstitution"
+        }
+      }
+    },
+    "financialInstitution": {
+      "fields": {
+        "financialInstitutionIdentification": {
+          "source": "FinInstnId",
+          "fields": {
+            "BICFI": "BICFI",
+            "clearingSystemMemberId": {
+              "source": "ClrSysMmbId",
+              "transform": "clearingSystemMemberIdentification"
+            },
+            "LEI": "LEI",
+            "name": "Nm",
+            "postalAddress": {
+              "source": "PstlAdr",
+              "transform": "postalAddress"
+            },
+            "other": {
+              "source": "Othr",
+              "transform": "genericFinancialIdentification"
+            }
+          }
+        },
+        "branchIdentification": {
+          "source": "BrnchId",
+          "fields": {
+            "id": "Id",
+            "LEI": "LEI",
+            "name": "Nm",
+            "postalAddress": {
+              "source": "PstlAdr",
+              "transform": "postalAddress"
+            }
+          }
+        }
+      }
+    },
+    "cashAccount": {
+      "fields": {
+        "identification": {
+          "source": "Id",
+          "fields": {
+            "IBAN": "IBAN",
+            "other": {
+              "source": "Othr",
+              "transform": "genericAccountIdentification"
+            }
+          }
+        },
+        "type": {
+          "source": "Tp",
+          "transform": "codeOrProprietary"
+        },
+        "currency": "Ccy",
+        "name": "Nm",
+        "proxy": {
+          "source": "Prxy",
+          "fields": {
+            "type": {
+              "source": "Tp",
+              "transform": "codeOrProprietary"
+            },
+            "id": "Id"
+          }
+        }
+      }
+    },
+    "paymentIdentification": {
+      "fields": {
+        "instructionId": "InstrId",
+        "endToEndId": "EndToEndId",
+        "transactionId": "TxId",
+        "UETR": "UETR",
+        "clearingSystemReference": "ClrSysRef"
+      }
+    },
+    "paymentTypeInformation": {
+      "fields": {
+        "instructionPriority": "InstrPrty",
+        "clearingChannel": "ClrChanl",
+        "serviceLevel": {
+          "source": "SvcLvl",
+          "array": true,
+          "transform": "codeOrProprietary"
+        },
+        "localInstrument": {
+          "source": "LclInstrm",
+          "transform": "codeOrProprietary"
+        },
+        "sequenceType": "SeqTp",
+        "categoryPurpose": {
+          "source": "CtgyPurp",
+          "transform": "codeOrProprietary"
+        }
+      }
+    },
+    "postalAddress": {
+      "fields": {
+        "addressType": {
+          "source": "AdrTp",
+          "transform": "addressTypeChoice"
+        },
+        "careOf": "CareOf",
+        "department": "Dept",
+        "subDepartment": "SubDept",
+        "streetName": "StrtNm",
+        "buildingNumber": "BldgNb",
+        "buildingName": "BldgNm",
+        "floor": "Flr",
+        "unitNumber": "UnitNb",
+        "postBox": "PstBx",
+        "room": "Room",
+        "postCode": "PstCd",
+        "townName": "TwnNm",
+        "townLocationName": "TwnLctnNm",
+        "districtName": "DstrctNm",
+        "countrySubDivision": "CtrySubDvsn",
+        "country": "Ctry",
+        "addressLine": {
+          "source": "AdrLine",
+          "array": true
+        }
+      }
+    },
+    "contactDetails": {
+      "fields": {
+        "namePrefix": "NmPrfx",
+        "name": "Nm",
+        "phoneNumber": "PhneNb",
+        "mobileNumber": "MobNb",
+        "faxNumber": "FaxNb",
+        "emailAddress": "EmailAdr",
+        "other": {
+          "source": "Othr",
+          "array": true,
+          "fields": {
+            "channelType": "ChanlTp",
+            "id": "Id"
+          }
+        }
+      }
+    },
+    "partyIdentification": {
+      "fields": {
+        "organisationIdentification": {
+          "source": "OrgId",
+          "fields": {
+            "anyBIC": "AnyBIC",
+            "LEI": "LEI",
+            "other": {
+              "source": "Othr",
+              "array": true,
+              "transform": "genericOrganisationIdentification"
+            }
+          }
+        },
+        "privateIdentification": {
+          "source": "PrvtId",
+          "fields": {
+            "dateAndPlaceOfBirth": {
+              "source": "DtAndPlcOfBirth",
+              "fields": {
+                "birthDate": "BirthDt",
+                "provinceOfBirth": "PrvcOfBirth",
+                "cityOfBirth": "CityOfBirth",
+                "countryOfBirth": "CtryOfBirth"
+              }
+            },
+            "other": {
+              "source": "Othr",
+              "array": true,
+              "transform": "genericPersonIdentification"
+            }
+          }
+        }
+      }
+    },
+    "mandateRelatedInformation": {
+      "fields": {
+        "mandateId": "MndtId",
+        "dateOfSignature": "DtOfSgntr",
+        "amendmentIndicator": "AmdmntInd",
+        "amendmentInformationDetails": {
+          "source": "AmdmntInfDtls",
+          "transform": "amendmentInformationDetails"
+        },
+        "electronicSignature": "ElctrncSgntr",
+        "firstCollectionDate": "FrstColltnDt",
+        "finalCollectionDate": "FnlColltnDt",
+        "frequency": {
+          "source": "Frqcy",
+          "transform": "frequency"
+        },
+        "reason": {
+          "source": "Rsn",
+          "transform": "codeOrProprietary"
+        },
+        "trackingDays": "TrckgDays"
+      }
+    },
+    "remittanceInformation": {
+      "fields": {
+        "unstructured": {
+          "source": "Ustrd",
+          "array": true
+        },
+        "structured": {
+          "source": "Strd",
+          "array": true,
+          "transform": "structuredRemittanceInformation"
+        }
+      }
+    },
+    "structuredRemittanceInformation": {
+      "fields": {
+        "referredDocumentInformation": {
+          "source": "RfrdDocInf",
+          "array": true,
+          "transform": "referredDocumentInformation"
+        },
+        "referredDocumentAmount": {
+          "source": "RfrdDocAmt",
+          "transform": "remittanceAmount"
+        },
+        "creditorReferenceInformation": {
+          "source": "CdtrRefInf",
+          "transform": "creditorReferenceInformation"
+        },
+        "invoicer": {
+          "source": "Invcr",
+          "transform": "party"
+        },
+        "invoicee": {
+          "source": "Invcee",
+          "transform": "party"
+        },
+        "taxRemittance": {
+          "source": "TaxRmt",
+          "transform": "taxData"
+        },
+        "garnishmentRemittance": {
+          "source": "GrnshmtRmt",
+          "transform": "garnishment"
+        },
+        "additionalRemittanceInformation": {
+          "source": "AddtlRmtInf",
+          "array": true
+        }
+      }
+    },
+    "chargesInformation": {
+      "fields": {
+        "amount": {
+          "source": "Amt",
+          "transform": "amount"
+        },
+        "agent": {
+          "source": "Agt",
+          "transform": "financialInstitution"
+        },
+        "type": {
+          "source": "Tp",
+          "transform": "chargeTypeChoice"
+        }
+      }
+    },
+    "regulatoryReporting": {
+      "fields": {
+        "debitCreditReportingIndicator": "DbtCdtRptgInd",
+        "authority": {
+          "source": "Authrty",
+          "fields": {
+            "name": "Nm",
+            "country": "Ctry"
+          }
+        },
+        "details": {
+          "source": "Dtls",
+          "array": true,
+          "fields": {
+            "type": "Tp",
+            "date": "Dt",
+            "country": "Ctry",
+            "code": "Cd",
+            "amount": {
+              "source": "Amt",
+              "transform": "amount"
+            },
+            "information": {
+              "source": "Inf",
+              "array": true
+            }
+          }
+        }
+      }
+    },
+    "remittanceLocation": {
+      "fields": {
+        "remittanceId": "RmtId",
+        "remittanceLocationDetails": {
+          "source": "RmtLctnDtls",
+          "array": true,
+          "fields": {
+            "method": "Mtd",
+            "electronicAddress": "ElctrncAdr",
+            "postalAddress": {
+              "source": "PstlAdr",
+              "fields": {
+                "name": "Nm",
+                "address": {
+                  "source": "Adr",
+                  "transform": "postalAddress"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "settlementInformation": {
+      "fields": {
+        "settlementMethod": "SttlmMtd",
+        "settlementAccount": {
+          "source": "SttlmAcct",
+          "transform": "cashAccount"
+        },
+        "clearingSystem": {
+          "source": "ClrSys",
+          "transform": "clearingSystemIdentification"
+        },
+        "instructingReimbursementAgent": {
+          "source": "InstgRmbrsmntAgt",
+          "transform": "financialInstitution"
+        },
+        "instructingReimbursementAgentAccount": {
+          "source": "InstgRmbrsmntAgtAcct",
+          "transform": "cashAccount"
+        },
+        "instructedReimbursementAgent": {
+          "source": "InstdRmbrsmntAgt",
+          "transform": "financialInstitution"
+        },
+        "instructedReimbursementAgentAccount": {
+          "source": "InstdRmbrsmntAgtAcct",
+          "transform": "cashAccount"
+        },
+        "thirdReimbursementAgent": {
+          "source": "ThrdRmbrsmntAgt",
+          "transform": "financialInstitution"
+        },
+        "thirdReimbursementAgentAccount": {
+          "source": "ThrdRmbrsmntAgtAcct",
+          "transform": "cashAccount"
+        }
+      }
+    },
+    "originalTransactionReference": {
+      "fields": {
+        "interbankSettlementAmount": {
+          "source": "IntrBkSttlmAmt",
+          "transform": "amount"
+        },
+        "amount": {
+          "source": "Amt",
+          "transform": "amountType"
+        },
+        "interbankSettlementDate": "IntrBkSttlmDt",
+        "requiredCollectionDate": "ReqdColltnDt",
+        "requiredExecutionDate": "ReqdExctnDt",
+        "creditorSchemeIdentification": {
+          "source": "CdtrSchmeId",
+          "transform": "party"
+        },
+        "settlementInformation": {
+          "source": "SttlmInf",
+          "transform": "settlementInformation"
+        },
+        "paymentTypeInformation": {
+          "source": "PmtTpInf",
+          "transform": "paymentTypeInformation"
+        },
+        "paymentMethod": "PmtMtd",
+        "mandateRelatedInformation": {
+          "source": "MndtRltdInf",
+          "transform": "mandateRelatedData"
+        },
+        "remittanceInformation": {
+          "source": "RmtInf",
+          "transform": "remittanceInformation"
+        },
+        "ultimateDebtor": {
+          "source": "UltmtDbtr",
+          "transform": "partyChoice"
+        },
+        "debtor": {
+          "source": "Dbtr",
+          "transform": "partyChoice"
+        },
+        "debtorAccount": {
+          "source": "DbtrAcct",
+          "transform": "cashAccount"
+        },
+        "debtorAgent": {
+          "source": "DbtrAgt",
+          "transform": "financialInstitution"
+        },
+        "debtorAgentAccount": {
+          "source": "DbtrAgtAcct",
+          "transform": "cashAccount"
+        },
+        "creditorAgent": {
+          "source": "CdtrAgt",
+          "transform": "financialInstitution"
+        },
+        "creditorAgentAccount": {
+          "source": "CdtrAgtAcct",
+          "transform": "cashAccount"
+        },
+        "creditor": {
+          "source": "Cdtr",
+          "transform": "partyChoice"
+        },
+        "creditorAccount": {
+          "source": "CdtrAcct",
+          "transform": "cashAccount"
+        },
+        "ultimateCreditor": {
+          "source": "UltmtCdtr",
+          "transform": "partyChoice"
+        },
+        "purpose": {
+          "source": "Purp",
+          "transform": "purpose"
+        }
+      }
+    },
+    "cancellationReasonInformation": {
+      "fields": {
+        "originator": {
+          "source": "Orgtr",
+          "transform": "party"
+        },
+        "reason": {
+          "source": "Rsn",
+          "transform": "codeOrProprietary"
+        },
+        "additionalInformation": {
+          "source": "AddtlInf",
+          "array": true
+        }
+      }
+    },
+    "reversalReasonInformation": {
+      "fields": {
+        "originator": {
+          "source": "Orgtr",
+          "transform": "party"
+        },
+        "reason": {
+          "source": "Rsn",
+          "transform": "codeOrProprietary"
+        },
+        "additionalInformation": {
+          "source": "AddtlInf",
+          "array": true
+        }
+      }
+    },
+    "supplementaryData": {
+      "fields": {
+        "placeAndName": "PlcAndNm",
+        "envelope": "Envlp"
+      }
+    },
+    "codeOrProprietary": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": "Prtry"
+      }
+    },
+    "purpose": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": "Prtry"
+      }
+    },
+    "clearingSystemIdentification": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": "Prtry"
+      }
+    },
+    "clearingSystemMemberIdentification": {
+      "fields": {
+        "clearingSystemId": {
+          "source": "ClrSysId",
+          "transform": "clearingSystemIdentification"
+        },
+        "memberId": "MmbId"
+      }
+    },
+    "genericFinancialIdentification": {
+      "fields": {
+        "id": "Id",
+        "schemeName": {
+          "source": "SchmeNm",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "genericAccountIdentification": {
+      "fields": {
+        "id": "Id",
+        "schemeName": {
+          "source": "SchmeNm",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "genericOrganisationIdentification": {
+      "fields": {
+        "id": "Id",
+        "schemeName": {
+          "source": "SchmeNm",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "genericPersonIdentification": {
+      "fields": {
+        "id": "Id",
+        "schemeName": {
+          "source": "SchmeNm",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "frequency": {
+      "fields": {
+        "type": "Tp",
+        "period": {
+          "source": "Prd",
+          "fields": {
+            "type": "Tp",
+            "countPerPeriod": "CntPerPrd"
+          }
+        },
+        "pointInTime": {
+          "source": "PtInTm",
+          "fields": {
+            "type": "Tp",
+            "pointInTime": "PtInTm"
+          }
+        }
+      }
+    },
+    "amendmentInformationDetails": {
+      "fields": {
+        "originalMandateId": "OrgnlMndtId",
+        "originalCreditorSchemeIdentification": {
+          "source": "OrgnlCdtrSchmeId",
+          "transform": "party"
+        },
+        "originalCreditorAgent": {
+          "source": "OrgnlCdtrAgt",
+          "transform": "financialInstitution"
+        },
+        "originalCreditorAgentAccount": {
+          "source": "OrgnlCdtrAgtAcct",
+          "transform": "cashAccount"
+        },
+        "originalDebtor": {
+          "source": "OrgnlDbtr",
+          "transform": "party"
+        },
+        "originalDebtorAccount": {
+          "source": "OrgnlDbtrAcct",
+          "transform": "cashAccount"
+        },
+        "originalDebtorAgent": {
+          "source": "OrgnlDbtrAgt",
+          "transform": "financialInstitution"
+        },
+        "originalDebtorAgentAccount": {
+          "source": "OrgnlDbtrAgtAcct",
+          "transform": "cashAccount"
+        },
+        "originalFinalCollectionDate": "OrgnlFnlColltnDt",
+        "originalFrequency": {
+          "source": "OrgnlFrqcy",
+          "transform": "frequency"
+        },
+        "originalReason": {
+          "source": "OrgnlRsn",
+          "transform": "codeOrProprietary"
+        },
+        "originalTrackingDays": "OrgnlTrckgDays"
+      }
+    },
+    "referredDocumentInformation": {
+      "fields": {
+        "type": {
+          "source": "Tp",
+          "transform": "documentType"
+        },
+        "number": "Nb",
+        "relatedDate": {
+          "source": "RltdDt",
+          "fields": {
+            "type": {
+              "source": "Tp",
+              "transform": "codeOrProprietary"
+            },
+            "date": "Dt"
+          }
+        },
+        "lineDetails": {
+          "source": "LineDtls",
+          "array": true,
+          "transform": "documentLineInformation"
+        }
+      }
+    },
+    "remittanceAmount": {
+      "fields": {
+        "remittanceAmountAndType": {
+          "source": "RmtAmtAndTp",
+          "array": true,
+          "fields": {
+            "type": {
+              "source": "Tp",
+              "transform": "codeOrProprietary"
+            },
+            "amount": {
+              "source": "Amt",
+              "transform": "amount"
+            }
+          }
+        },
+        "adjustmentAmountAndReason": {
+          "source": "AdjstmntAmtAndRsn",
+          "array": true,
+          "fields": {
+            "amount": {
+              "source": "Amt",
+              "transform": "amount"
+            },
+            "creditDebitIndicator": "CdtDbtInd",
+            "reason": "Rsn",
+            "additionalInformation": "AddtlInf"
+          }
+        }
+      }
+    },
+    "creditorReferenceInformation": {
+      "fields": {
+        "type": {
+          "source": "Tp",
+          "fields": {
+            "codeOrProprietary": {
+              "source": "CdOrPrtry",
+              "transform": "codeOrProprietary"
+            },
+            "issuer": "Issr"
+          }
+        },
+        "reference": "Ref"
+      }
+    },
+    "taxData": {
+      "fields": {
+        "creditor": {
+          "source": "Cdtr",
+          "transform": "taxParty"
+        },
+        "debtor": {
+          "source": "Dbtr",
+          "transform": "taxParty"
+        },
+        "ultimateDebtor": {
+          "source": "UltmtDbtr",
+          "transform": "taxParty"
+        },
+        "administrationZone": "AdmstnZone",
+        "referenceNumber": "RefNb",
+        "method": "Mtd",
+        "totalTaxableBaseAmount": {
+          "source": "TtlTaxblBaseAmt",
+          "transform": "amount"
+        },
+        "totalTaxAmount": {
+          "source": "TtlTaxAmt",
+          "transform": "amount"
+        },
+        "date": "Dt",
+        "sequenceNumber": "SeqNb",
+        "record": {
+          "source": "Rcrd",
+          "array": true,
+          "transform": "taxRecord"
+        }
+      }
+    },
+    "garnishment": {
+      "fields": {
+        "type": {
+          "source": "Tp",
+          "fields": {
+            "codeOrProprietary": {
+              "source": "CdOrPrtry",
+              "transform": "codeOrProprietary"
+            },
+            "issuer": "Issr"
+          }
+        },
+        "garnishee": {
+          "source": "Grnshee",
+          "transform": "party"
+        },
+        "garnishmentAdministrator": {
+          "source": "GrnshmtAdmstr",
+          "transform": "party"
+        },
+        "referenceNumber": "RefNb",
+        "date": "Dt",
+        "remittedAmount": {
+          "source": "RmtdAmt",
+          "transform": "amount"
+        },
+        "familyMedicalInsuranceIndicator": "FmlyMdclInsrncInd",
+        "employeeTerminationIndicator": "MplyeeTermntnInd"
+      }
+    },
+    "addressTypeChoice": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": {
+          "source": "Prtry",
+          "fields": {
+            "id": "Id",
+            "issuer": "Issr",
+            "schemeName": "SchmeNm"
+          }
+        }
+      }
+    },
+    "chargeTypeChoice": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": {
+          "source": "Prtry",
+          "fields": {
+            "id": "Id",
+            "issuer": "Issr"
+          }
+        }
+      }
+    },
+    "amountType": {
+      "fields": {
+        "instructedAmount": {
+          "source": "InstdAmt",
+          "transform": "amount"
+        },
+        "equivalentAmount": {
+          "source": "EqvtAmt",
+          "fields": {
+            "amount": {
+              "source": "Amt",
+              "transform": "amount"
+            },
+            "currencyOfTransfer": "CcyOfTrf"
+          }
+        }
+      }
+    },
+    "mandateRelatedData": {
+      "fields": {
+        "directDebitMandate": {
+          "source": "DrctDbtMndt",
+          "transform": "mandateRelatedInformation"
+        },
+        "creditTransferMandate": {
+          "source": "CdtTrfMndt",
+          "transform": "creditTransferMandateData"
+        }
+      }
+    },
+    "creditTransferMandateData": {
+      "fields": {
+        "mandateId": "MndtId",
+        "type": {
+          "source": "Tp",
+          "transform": "mandateTypeInformation"
+        },
+        "dateOfSignature": "DtOfSgntr",
+        "dateOfVerification": "DtOfVrfctn",
+        "electronicSignature": "ElctrncSgntr",
+        "firstPaymentDate": "FrstPmtDt",
+        "finalPaymentDate": "FnlPmtDt",
+        "frequency": {
+          "source": "Frqcy",
+          "transform": "frequency"
+        },
+        "reason": {
+          "source": "Rsn",
+          "transform": "codeOrProprietary"
+        }
+      }
+    },
+    "mandateTypeInformation": {
+      "fields": {
+        "serviceLevel": {
+          "source": "SvcLvl",
+          "transform": "codeOrProprietary"
+        },
+        "localInstrument": {
+          "source": "LclInstrm",
+          "transform": "codeOrProprietary"
+        },
+        "categoryPurpose": {
+          "source": "CtgyPurp",
+          "transform": "codeOrProprietary"
+        },
+        "classification": {
+          "source": "Clssfctn",
+          "transform": "codeOrProprietary"
+        }
+      }
+    },
+    "documentType": {
+      "fields": {
+        "codeOrProprietary": {
+          "source": "CdOrPrtry",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "documentLineInformation": {
+      "fields": {
+        "id": {
+          "source": "Id",
+          "array": true,
+          "fields": {
+            "type": {
+              "source": "Tp",
+              "transform": "documentLineType"
+            },
+            "number": "Nb",
+            "relatedDate": "RltdDt"
+          }
+        },
+        "description": "Desc",
+        "amount": {
+          "source": "Amt",
+          "transform": "remittanceAmount"
+        }
+      }
+    },
+    "documentLineType": {
+      "fields": {
+        "codeOrProprietary": {
+          "source": "CdOrPrtry",
+          "transform": "codeOrProprietary"
+        },
+        "issuer": "Issr"
+      }
+    },
+    "taxParty": {
+      "fields": {
+        "taxId": "TaxId",
+        "registrationId": "RegnId",
+        "taxType": "TaxTp",
+        "authorisation": {
+          "source": "Authstn",
+          "fields": {
+            "title": "Titl",
+            "name": "Nm"
+          }
+        }
+      }
+    },
+    "taxRecord": {
+      "fields": {
+        "type": "Tp",
+        "category": "Ctgy",
+        "categoryDetails": "CtgyDtls",
+        "debtorStatus": "DbtrSts",
+        "certificateId": "CertId",
+        "formsCode": "FrmsCd",
+        "period": {
+          "source": "Prd",
+          "fields": {
+            "year": "Yr",
+            "type": "Tp",
+            "fromToDate": {
+              "source": "FrToDt",
+              "fields": {
+                "fromDate": "FrDt",
+                "toDate": "ToDt"
+              }
+            }
+          }
+        },
+        "taxAmount": {
+          "source": "TaxAmt",
+          "fields": {
+            "rate": "Rate",
+            "taxableBaseAmount": {
+              "source": "TaxblBaseAmt",
+              "transform": "amount"
+            },
+            "totalAmount": {
+              "source": "TtlAmt",
+              "transform": "amount"
+            },
+            "details": {
+              "source": "Dtls",
+              "array": true,
+              "fields": {
+                "period": {
+                  "source": "Prd",
+                  "transform": "taxPeriod"
+                },
+                "amount": {
+                  "source": "Amt",
+                  "transform": "amount"
+                }
+              }
+            }
+          }
+        },
+        "additionalInformation": "AddtlInf"
+      }
+    },
+    "settlementTimeIndication": {
+      "fields": {
+        "debitDateTime": "DbtDtTm",
+        "creditDateTime": "CdtDtTm"
+      }
+    },
+    "originalGroupInformation": {
+      "fields": {
+        "originalMessageId": "OrgnlMsgId",
+        "originalMessageNameId": "OrgnlMsgNmId",
+        "originalCreationDateTime": "OrgnlCreDtTm"
+      }
+    },
+    "authorisation": {
+      "fields": {
+        "code": "Cd",
+        "proprietary": "Prtry"
+      }
+    },
+    "groupHeader": {
+      "fields": {
+        "messageId": "MsgId",
+        "creationDateTime": "CreDtTm",
+        "authorisation": {
+          "source": "Authstn",
+          "array": true,
+          "transform": "authorisation"
+        },
+        "batchBooking": "BtchBookg",
+        "numberOfTransactions": "NbOfTxs",
+        "controlSum": "CtrlSum",
+        "totalInterbankSettlementAmount": {
+          "source": "TtlIntrBkSttlmAmt",
+          "transform": "amount"
+        },
+        "interbankSettlementDate": "IntrBkSttlmDt",
+        "settlementInformation": {
+          "source": "SttlmInf",
+          "transform": "settlementInformation"
+        },
+        "paymentTypeInformation": {
+          "source": "PmtTpInf",
+          "transform": "paymentTypeInformation"
+        },
+        "instructingAgent": {
+          "source": "InstgAgt",
+          "transform": "financialInstitution"
+        },
+        "instructedAgent": {
+          "source": "InstdAgt",
+          "transform": "financialInstitution"
+        }
+      }
+    }
+  },
+  "dataTypeConversions": {
+    "ISODate": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "ISODateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z?$"
+    },
+    "ISOYear": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 9999
+    },
+    "decimal": {
+      "type": "number"
+    },
+    "boolean": {
+      "type": "boolean"
+    },
+    "string": {
+      "type": "string"
+    }
+  },
+  "validationRules": {
+    "mandatoryFields": {
+      "PACS_008": ["groupHeader.messageId", "groupHeader.creationDateTime", "groupHeader.numberOfTransactions", "transactionInformation[].paymentIdentification.endToEndId", "transactionInformation[].interbankSettlementAmount", "transactionInformation[].chargeBearer"],
+      "PACS_003": ["groupHeader.messageId", "groupHeader.creationDateTime", "groupHeader.numberOfTransactions", "transactionInformation[].paymentIdentification.endToEndId", "transactionInformation[].interbankSettlementAmount", "transactionInformation[].chargeBearer"],
+      "PACS_007": ["groupHeader.messageId", "groupHeader.creationDateTime", "groupHeader.numberOfTransactions", "transactionInformation[].reversedInterbankSettlementAmount"],
+      "CAMT_056": ["groupHeader.messageId", "groupHeader.creationDateTime", "transactionInformation"]
+    },
+    "businessRules": {
+      "currencyConsistency": "All amounts in a transaction should use the same currency unless explicitly different (e.g., instructed vs settlement currency)",
+      "dateLogic": "Settlement dates should be equal to or after creation dates",
+      "amountPrecision": "All monetary amounts should have at most 5 decimal places",
+      "referenceConsistency": "Original references in reversal/cancellation messages should reference valid transactions"
+    }
+  }
+}
