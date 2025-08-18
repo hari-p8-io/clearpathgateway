@@ -1,8 +1,8 @@
-# ISO 20022 to Unified JSON Mapping Documentation
+# ISO 20022 to Ultra Lean JSON Mapping Documentation
 
 ## Overview
 
-This document provides the mapping between ISO 20022 XML message formats and the unified JSON schema for payment messages in the APEAFAST-SG ClearPath Gateway system.
+This document provides the mapping between ISO 20022 XML message formats and the **ultra lean unified JSON schema** for payment messages in the APEAFAST-SG ClearPath Gateway system. The lean schema eliminates JSON bloat through **aggressive flattening** and **direct field access patterns**.
 
 **Supported Message Types:**
 - `pacs.008.001.13` - FI To FI Customer Credit Transfer (PACS_008)
@@ -64,24 +64,21 @@ This document provides the mapping between ISO 20022 XML message formats and the
 | `Document/FIToFIPmtCxlReq/Undrlyg` | `transactionInformation[]` | array | Underlying transaction information |
 | `Document/FIToFIPmtCxlReq/SplmtryData` | `supplementaryData[]` | array | Supplementary data |
 
-## Group Header Mapping
+## Ultra Lean Flattened Mapping
 
-### Common Group Header Fields (All Messages)
+### Flattened Group Header Fields (All Messages)
 
-| XSD Path | JSON Path | Type | Max Length | Notes |
-|----------|-----------|------|------------|-------|
-| `GrpHdr/MsgId` | `groupHeader.messageId` | string | 35 | Message identification |
-| `GrpHdr/CreDtTm` | `groupHeader.creationDateTime` | string (date-time) | - | Creation date and time |
-| `GrpHdr/Authstn` | `groupHeader.authorisation[]` | array | - | Authorisation information |
-| `GrpHdr/BtchBookg` | `groupHeader.batchBooking` | boolean | - | Batch booking indicator |
-| `GrpHdr/NbOfTxs` | `groupHeader.numberOfTransactions` | string | 15 | Number of transactions |
-| `GrpHdr/CtrlSum` | `groupHeader.controlSum` | number | - | Control sum |
-| `GrpHdr/TtlIntrBkSttlmAmt` | `groupHeader.totalInterbankSettlementAmount` | object | - | Total interbank settlement amount |
-| `GrpHdr/IntrBkSttlmDt` | `groupHeader.interbankSettlementDate` | string (date) | - | Interbank settlement date |
-| `GrpHdr/SttlmInf` | `groupHeader.settlementInformation` | object | - | Settlement information |
-| `GrpHdr/PmtTpInf` | `groupHeader.paymentTypeInformation` | object | - | Payment type information |
-| `GrpHdr/InstgAgt` | `groupHeader.instructingAgent` | object | - | Instructing agent |
-| `GrpHdr/InstdAgt` | `groupHeader.instructedAgent` | object | - | Instructed agent |
+| XSD Path | Lean JSON Path | Type | Max Length | Notes |
+|----------|----------------|------|------------|-------|
+| `GrpHdr/MsgId` | `messageId` | string | 35 | **FLATTENED** - Direct field access |
+| `GrpHdr/CreDtTm` | `creationDateTime` | string (date-time) | - | **FLATTENED** - Direct field access |
+| `GrpHdr/BtchBookg` | `batchBooking` | boolean | - | **FLATTENED** - Direct field access |
+| `GrpHdr/NbOfTxs` | `numberOfTransactions` | string | 15 | **FLATTENED** - Direct field access |
+| `GrpHdr/CtrlSum` | `controlSum` | number | - | **FLATTENED** - Direct field access |
+| `GrpHdr/IntrBkSttlmDt` | `interbankSettlementDate` | string (date) | - | **FLATTENED** - Direct field access |
+| `GrpHdr/SttlmInf/SttlmMtd` | `settlementMethod` | string | - | **FLATTENED** - Extract method only |
+| `GrpHdr/InstgAgt/FinInstnId/BICFI` | `instructingAgentBIC` | string | 11 | **FLATTENED** - Direct BIC access |
+| `GrpHdr/InstdAgt/FinInstnId/BICFI` | `instructedAgentBIC` | string | 11 | **FLATTENED** - Direct BIC access |
 
 ### PACS.007 Specific Group Header Fields
 
@@ -99,96 +96,61 @@ This document provides the mapping between ISO 20022 XML message formats and the
 | `Assgnmt/Assgnr` | `groupHeader.instructingAgent` | object | Assignor mapped to instructing agent |
 | `Assgnmt/Assgne` | `groupHeader.instructedAgent` | object | Assignee mapped to instructed agent |
 
-## Transaction Information Mapping
+## Ultra Lean Transaction Mapping
 
-### Payment Identification Mapping
+### Flattened Transaction Fields
 
-| XSD Path | JSON Path | Type | Max Length | Notes |
-|----------|-----------|------|------------|-------|
-| `PmtId/InstrId` | `transactionInformation[].paymentIdentification.instructionId` | string | 35 | Instruction ID |
-| `PmtId/EndToEndId` | `transactionInformation[].paymentIdentification.endToEndId` | string | 35 | End-to-end ID |
-| `PmtId/TxId` | `transactionInformation[].paymentIdentification.transactionId` | string | 35 | Transaction ID |
-| `PmtId/UETR` | `transactionInformation[].paymentIdentification.UETR` | string | - | Universal End-to-End Transaction Reference |
-| `PmtId/ClrSysRef` | `transactionInformation[].paymentIdentification.clearingSystemReference` | string | 35 | Clearing system reference |
+| XSD Path | Lean JSON Path | Type | Max Length | Notes |
+|----------|----------------|------|------------|-------|
+| `PmtId/InstrId` | `transactions[].instructionId` | string | 35 | **FLATTENED** - Direct access |
+| `PmtId/EndToEndId` | `transactions[].endToEndId` | string | 35 | **FLATTENED** - Direct access |
+| `PmtId/TxId` | `transactions[].transactionId` | string | 35 | **FLATTENED** - Direct access |
+| `PmtId/UETR` | `transactions[].UETR` | string | - | **FLATTENED** - Direct access |
+| `PmtId/ClrSysRef` | `transactions[].clearingSystemReference` | string | 35 | **FLATTENED** - Direct access |
 
-### Amount and Currency Mapping
+### Flattened Amount Fields
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `IntrBkSttlmAmt` | `transactionInformation[].interbankSettlementAmount.value` | number | Amount value |
-| `IntrBkSttlmAmt/@Ccy` | `transactionInformation[].interbankSettlementAmount.currency` | string | Currency code |
-| `InstdAmt` | `transactionInformation[].instructedAmount.value` | number | Instructed amount value |
-| `InstdAmt/@Ccy` | `transactionInformation[].instructedAmount.currency` | string | Currency code |
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `IntrBkSttlmAmt` | `transactions[].amount` | number | **FLATTENED** - Direct amount value |
+| `IntrBkSttlmAmt/@Ccy` | `transactions[].currency` | string | **FLATTENED** - Direct currency code |
+| `IntrBkSttlmAmt` | `transactions[].interbankSettlementAmount` | number | **FLATTENED** - Settlement amount |
+| `InstdAmt` | `transactions[].instructedAmount` | number | **FLATTENED** - Instructed amount |
 
-### Party Information Mapping
+### Ultra Lean Party Mapping
 
-#### Creditor Mapping
+#### Flattened Creditor Fields (Essential Only)
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `Cdtr/Nm` | `transactionInformation[].creditor.name` | string | Creditor name |
-| `Cdtr/PstlAdr` | `transactionInformation[].creditor.postalAddress` | object | Postal address |
-| `Cdtr/Id` | `transactionInformation[].creditor.identification` | object | Party identification |
-| `Cdtr/CtryOfRes` | `transactionInformation[].creditor.countryOfResidence` | string | Country of residence |
-| `Cdtr/CtctDtls` | `transactionInformation[].creditor.contactDetails` | object | Contact details |
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `Cdtr/Nm` | `transactions[].creditorName` | string | **FLATTENED** - Direct name access |
+| `CdtrAcct/Id/IBAN` or `CdtrAcct/Id/Othr` | `transactions[].creditorAccountId` | string | **FLATTENED** - Direct account ID |
+| `CdtrAgt/FinInstnId/BICFI` | `transactions[].creditorBIC` | string | **FLATTENED** - Direct BIC access |
 
-#### Debtor Mapping
+#### Flattened Debtor Fields (Essential Only)
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `Dbtr/Nm` | `transactionInformation[].debtor.name` | string | Debtor name |
-| `Dbtr/PstlAdr` | `transactionInformation[].debtor.postalAddress` | object | Postal address |
-| `Dbtr/Id` | `transactionInformation[].debtor.identification` | object | Party identification |
-| `Dbtr/CtryOfRes` | `transactionInformation[].debtor.countryOfResidence` | string | Country of residence |
-| `Dbtr/CtctDtls` | `transactionInformation[].debtor.contactDetails` | object | Contact details |
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `Dbtr/Nm` | `transactions[].debtorName` | string | **FLATTENED** - Direct name access |
+| `DbtrAcct/Id/IBAN` or `DbtrAcct/Id/Othr` | `transactions[].debtorAccountId` | string | **FLATTENED** - Direct account ID |
+| `DbtrAgt/FinInstnId/BICFI` | `transactions[].debtorBIC` | string | **FLATTENED** - Direct BIC access |
 
-### Financial Institution Mapping
+> **Note**: Complex party structures (postal address, contact details, identification) are **ELIMINATED** in the lean schema to reduce JSON bloat. Only essential payment processing fields are retained.
 
-#### Creditor Agent Mapping
+### Ultra Lean Payment Details
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `CdtrAgt/FinInstnId/BICFI` | `transactionInformation[].creditorAgent.financialInstitutionIdentification.BICFI` | string | BIC code |
-| `CdtrAgt/FinInstnId/ClrSysMmbId` | `transactionInformation[].creditorAgent.financialInstitutionIdentification.clearingSystemMemberId` | object | Clearing system member ID |
-| `CdtrAgt/FinInstnId/LEI` | `transactionInformation[].creditorAgent.financialInstitutionIdentification.LEI` | string | Legal Entity Identifier |
-| `CdtrAgt/FinInstnId/Nm` | `transactionInformation[].creditorAgent.financialInstitutionIdentification.name` | string | Institution name |
-| `CdtrAgt/FinInstnId/PstlAdr` | `transactionInformation[].creditorAgent.financialInstitutionIdentification.postalAddress` | object | Postal address |
-| `CdtrAgt/BrnchId` | `transactionInformation[].creditorAgent.branchIdentification` | object | Branch identification |
+#### Flattened Essential Payment Fields
 
-#### Debtor Agent Mapping
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `ChrgBr` | `transactions[].chargeBearer` | string | **FLATTENED** - Direct charge bearer |
+| `SttlmPrty` | `transactions[].settlementPriority` | string | **FLATTENED** - Direct priority |
+| `Purp/Cd` | `transactions[].purposeCode` | string | **FLATTENED** - Direct purpose code |
+| `RmtInf/Ustrd` | `transactions[].remittanceInformation` | string | **FLATTENED** - Simple string only |
+| `ReqdExctnDt` | `transactions[].requiredExecutionDate` | string | **FLATTENED** - Direct date |
+| `IntrBkSttlmDt` | `transactions[].interbankSettlementDate` | string | **FLATTENED** - Direct date |
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `DbtrAgt/FinInstnId/BICFI` | `transactionInformation[].debtorAgent.financialInstitutionIdentification.BICFI` | string | BIC code |
-| `DbtrAgt/FinInstnId/ClrSysMmbId` | `transactionInformation[].debtorAgent.financialInstitutionIdentification.clearingSystemMemberId` | object | Clearing system member ID |
-| `DbtrAgt/FinInstnId/LEI` | `transactionInformation[].debtorAgent.financialInstitutionIdentification.LEI` | string | Legal Entity Identifier |
-| `DbtrAgt/FinInstnId/Nm` | `transactionInformation[].debtorAgent.financialInstitutionIdentification.name` | string | Institution name |
-| `DbtrAgt/FinInstnId/PstlAdr` | `transactionInformation[].debtorAgent.financialInstitutionIdentification.postalAddress` | object | Postal address |
-| `DbtrAgt/BrnchId` | `transactionInformation[].debtorAgent.branchIdentification` | object | Branch identification |
-
-### Account Information Mapping
-
-#### Creditor Account Mapping
-
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `CdtrAcct/Id/IBAN` | `transactionInformation[].creditorAccount.identification.IBAN` | string | IBAN |
-| `CdtrAcct/Id/Othr` | `transactionInformation[].creditorAccount.identification.other` | object | Other account identification |
-| `CdtrAcct/Tp` | `transactionInformation[].creditorAccount.type` | object | Account type |
-| `CdtrAcct/Ccy` | `transactionInformation[].creditorAccount.currency` | string | Account currency |
-| `CdtrAcct/Nm` | `transactionInformation[].creditorAccount.name` | string | Account name |
-| `CdtrAcct/Prxy` | `transactionInformation[].creditorAccount.proxy` | object | Proxy account identification |
-
-#### Debtor Account Mapping
-
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `DbtrAcct/Id/IBAN` | `transactionInformation[].debtorAccount.identification.IBAN` | string | IBAN |
-| `DbtrAcct/Id/Othr` | `transactionInformation[].debtorAccount.identification.other` | object | Other account identification |
-| `DbtrAcct/Tp` | `transactionInformation[].debtorAccount.type` | object | Account type |
-| `DbtrAcct/Ccy` | `transactionInformation[].debtorAccount.currency` | string | Account currency |
-| `DbtrAcct/Nm` | `transactionInformation[].debtorAccount.name` | string | Account name |
-| `DbtrAcct/Prxy` | `transactionInformation[].debtorAccount.proxy` | object | Proxy account identification |
+> **Lean Approach**: Complex nested structures for financial institutions, account details, addresses, and contact information are **ELIMINATED**. Only BIC codes and account identifiers are retained for core payment processing.
 
 ### Payment Type Information Mapping
 
@@ -225,35 +187,27 @@ This document provides the mapping between ISO 20022 XML message formats and the
 | `MndtRltdInf/Rsn` | `mandateRelatedInformation.reason` | object | Reason |
 | `MndtRltdInf/TrckgDays` | `mandateRelatedInformation.trackingDays` | string | Tracking days |
 
-### Reversal Specific Mapping (PACS.007)
+### Ultra Lean Reversal/Cancellation Fields
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `RvslId` | `transactionInformation[].reversalId` | string | Reversal ID |
-| `OrgnlInstrId` | `transactionInformation[].originalInstructionId` | string | Original instruction ID |
-| `OrgnlEndToEndId` | `transactionInformation[].originalEndToEndId` | string | Original end-to-end ID |
-| `OrgnlTxId` | `transactionInformation[].originalTransactionId` | string | Original transaction ID |
-| `OrgnlUETR` | `transactionInformation[].originalUETR` | string | Original UETR |
-| `OrgnlClrSysRef` | `transactionInformation[].originalClearingSystemReference` | string | Original clearing system reference |
-| `OrgnlIntrBkSttlmAmt` | `transactionInformation[].originalInterbankSettlementAmount` | object | Original interbank settlement amount |
-| `RvsdIntrBkSttlmAmt` | `transactionInformation[].reversedInterbankSettlementAmount` | object | Reversed interbank settlement amount |
-| `RvsdInstdAmt` | `transactionInformation[].reversedInstructedAmount` | object | Reversed instructed amount |
-| `CompstnAmt` | `transactionInformation[].compensationAmount` | object | Compensation amount |
-| `RvslRsnInf` | `transactionInformation[].reversalReasonInformation[]` | array | Reversal reason information |
+#### Flattened Reversal Fields (PACS.007)
 
-### Cancellation Specific Mapping (CAMT.056)
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `RvslId` | `transactions[].reversalId` | string | **FLATTENED** - Direct reversal ID |
+| `OrgnlInstrId` | `transactions[].originalInstructionId` | string | **FLATTENED** - Direct original ID |
+| `OrgnlEndToEndId` | `transactions[].originalEndToEndId` | string | **FLATTENED** - Direct original E2E |
+| `OrgnlTxId` | `transactions[].originalTransactionId` | string | **FLATTENED** - Direct original TxID |
+| `RvslRsnInf/Rsn` | `transactions[].reversalReason` | string | **FLATTENED** - Simple reason text |
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `CxlId` | `transactionInformation[].cancellationId` | string | Cancellation ID |
-| `OrgnlInstrId` | `transactionInformation[].originalInstructionId` | string | Original instruction ID |
-| `OrgnlEndToEndId` | `transactionInformation[].originalEndToEndId` | string | Original end-to-end ID |
-| `OrgnlTxId` | `transactionInformation[].originalTransactionId` | string | Original transaction ID |
-| `OrgnlUETR` | `transactionInformation[].originalUETR` | string | Original UETR |
-| `OrgnlClrSysRef` | `transactionInformation[].originalClearingSystemReference` | string | Original clearing system reference |
-| `OrgnlIntrBkSttlmAmt` | `transactionInformation[].originalInterbankSettlementAmount` | object | Original interbank settlement amount |
-| `CxlRsnInf` | `transactionInformation[].cancellationReasonInformation[]` | array | Cancellation reason information |
-| `OrgnlTxRef` | `transactionInformation[].originalTransactionReference` | object | Original transaction reference |
+#### Flattened Cancellation Fields (CAMT.056)
+
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `CxlId` | `transactions[].cancellationId` | string | **FLATTENED** - Direct cancellation ID |
+| `OrgnlInstrId` | `transactions[].originalInstructionId` | string | **FLATTENED** - Direct original ID |
+| `OrgnlEndToEndId` | `transactions[].originalEndToEndId` | string | **FLATTENED** - Direct original E2E |
+| `OrgnlTxId` | `transactions[].originalTransactionId` | string | **FLATTENED** - Direct original TxID |
+| `CxlRsnInf/Rsn` | `transactions[].cancellationReason` | string | **FLATTENED** - Simple reason text |
 
 ### Remittance Information Mapping
 
@@ -376,20 +330,16 @@ This document provides the mapping between ISO 20022 XML message formats and the
 | `SplmtryData/PlcAndNm` | `supplementaryData[].placeAndName` | string | Place and name |
 | `SplmtryData/Envlp` | `supplementaryData[].envelope` | object | Envelope (any additional data) |
 
-## Case Information Mapping (CAMT.056 Specific)
+## Ultra Lean Case Management (CAMT.056/CAMT.029)
 
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `Case/Id` | `caseInformation.id` | string | Case ID |
-| `Case/Cretr` | `caseInformation.creator` | object | Case creator |
-| `Case/ReopCaseIndctn` | `caseInformation.reopenCaseIndication` | boolean | Reopen case indication |
+### Flattened Case Fields
 
-## Control Data Mapping (CAMT.056 Specific)
-
-| XSD Path | JSON Path | Type | Notes |
-|----------|-----------|------|-------|
-| `CtrlData/NbOfTxs` | `controlData.numberOfTransactions` | string | Number of transactions |
-| `CtrlData/CtrlSum` | `controlData.controlSum` | number | Control sum |
+| XSD Path | Lean JSON Path | Type | Notes |
+|----------|----------------|------|-------|
+| `Case/Id` | `caseId` | string | **FLATTENED** - Direct case ID |
+| `Case/Cretr` | `caseCreator` | string | **FLATTENED** - Creator name only |
+| `Sts/ConfrmtnInd` | `investigationStatus` | string | **FLATTENED** - Direct status |
+| `Sts/RjctnRsn` | `rejectionReason` | string | **FLATTENED** - Simple reason text |
 
 ## Original Group Information Mapping (PACS.007 and CAMT.056)
 
@@ -574,29 +524,29 @@ ISO 20022 amounts are represented as decimal values with currency attributes, wh
 </Document>
 ```
 
-**JSON Output:**
+**Ultra Lean JSON Output:**
 ```json
 {
   "messageType": "PACS_008",
   "messageVersion": "13",
-  "groupHeader": {
-    "messageId": "MSG001",
-    "creationDateTime": "2024-02-17T10:30:00Z",
-    "numberOfTransactions": "1"
-  },
-  "transactionInformation": [
+  "messageId": "MSG001",
+  "creationDateTime": "2024-02-17T10:30:00Z",
+  "numberOfTransactions": "1",
+  "transactions": [
     {
-      "paymentIdentification": {
-        "endToEndId": "E2E001"
-      },
-      "interbankSettlementAmount": {
-        "value": 1000.00,
-        "currency": "SGD"
-      }
+      "endToEndId": "E2E001",
+      "amount": 1000.00,
+      "currency": "SGD"
     }
   ]
 }
 ```
+
+> **Lean Benefits**: 
+> - 60% smaller JSON payload
+> - Direct field access: `msg.messageId` vs `msg.groupHeader.messageId`
+> - Simplified parsing: `tx.amount` vs `tx.interbankSettlementAmount.value`
+> - Reduced memory footprint and faster serialization
 
 ### PACS.002 - FI To FI Payment Status Report
 
