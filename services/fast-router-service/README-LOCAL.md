@@ -34,7 +34,7 @@ docker compose -f ./docker-compose.yml up -d zookeeper kafka activemq spanner-em
 Verify:
 ```bash
 # Kafka port
-nc -zv localhost 9092
+nc -zv localhost 29092
 # Kafka UI
 open http://localhost:8090
 # ActiveMQ console (user/pass: admin/admin)
@@ -76,7 +76,7 @@ Main config file: `services/fast-router-service/src/main/resources/application.y
   - `spring.activemq.user` / `spring.activemq.password`: `admin` / `admin`
   - Input queue: `app.activemq.input-queue: payment.inbound`
 - Kafka
-  - `spring.kafka.bootstrap-servers`: `localhost:9092`
+  - `spring.kafka.bootstrap-servers`: `localhost:29092`
   - Topics (local):
     - `payment-messages` (valid transformed messages)
     - `exception-queue` (failed/invalid messages)

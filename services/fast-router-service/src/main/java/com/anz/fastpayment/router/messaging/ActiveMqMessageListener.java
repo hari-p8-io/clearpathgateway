@@ -20,6 +20,9 @@ public class ActiveMqMessageListener {
     @Value("${app.router.timeout-ms:4500}")
     private long processingTimeoutMs;
 
+    @Value("${app.logging.payload-preview-enabled:false}")
+    private boolean payloadPreviewEnabled;
+
     public ActiveMqMessageListener(RouterOrchestrator routerOrchestrator) {
         this.routerOrchestrator = routerOrchestrator;
     }
@@ -33,17 +36,33 @@ public class ActiveMqMessageListener {
             log.warn("[MQ] Ignoring empty/null payload for key={}", messageKey);
             return;
         }
-        if (log.isDebugEnabled()) {
+        if (payloadPreviewEnabled && log.isDebugEnabled()) {
             log.debug("[MQ] Payload preview (first 500 chars) key={} => {}", messageKey,
-                    payload.substring(0, Math.min(500, payload.length())));
+                    safePreview(payload, 500));
         }
         try {
             routerOrchestrator.processInboundXml(payload);
-        } catch (Throwable t) {
-            String preview = payload.substring(0, Math.min(200, payload.length()));
-            log.error("[MQ] Error processing message key={}, size={}, preview='{}': {}", messageKey, size, preview, t.toString(), t);
-            // Do not rethrow to avoid poison-message redelivery loops
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            String preview = safePreview(payload, 200);
+            log.error("[MQ] Error processing message key={}, size={}, preview='{}': {}", messageKey, size, preview, e.toString(), e);
+            // Rethrow so broker redelivery/DLQ policies can apply
+            throw e;
         }
+    }
+
+    private String safePreview(String s, int maxChars) {
+        if (s == null || s.isEmpty()) return "<empty>";
+        String cut = s.substring(0, Math.min(maxChars, s.length()));
+        // Mask long digit runs (likely PAN/account numbers)
+        cut = cut.replaceAll("\\d{6,}", "***masked***");
+        // Mask common account-like tags
+        cut = cut.replaceAll("(?i)(<IBAN>)(.*?)(</IBAN>)", "$1***masked***$3");
+        cut = cut.replaceAll("(?i)(<AcctNbr>)(.*?)(</AcctNbr>)", "$1***masked***$3");
+        cut = cut.replaceAll("(?i)(<CardNbr>)(.*?)(</CardNbr>)", "$1***masked***$3");
+        return cut;
     }
 }
 
