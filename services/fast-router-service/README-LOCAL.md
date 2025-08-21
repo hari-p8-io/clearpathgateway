@@ -3,14 +3,14 @@
 This guide documents how to build, run, and validate the `fast-router-service` locally. It includes infra setup, ports, commands, message flow, validation/transformation details, and troubleshooting.
 
 ## What this service does
-- Consumes ISO 20022 payment XML from ActiveMQ queue `payment.inbound`.
-- Detects message type (e.g., pacs.008.001.13, pacs.003.001.11, pacs.007.001.13, camt.056.001.11).
-- Validates the XML against the corresponding XSD.
-- Transforms valid XML into a unified JSON format.
-- Publishes transformed JSON to Kafka topic `payment-messages`.
-- On failure, publishes original XML to Kafka topic `exception-queue`.
-- Persists an inbound “message safe store” record in Spanner (emulator locally) with status transitions: RECEIVED → VALIDATED → PUBLISHED, or ERROR.
-- Generates a PUID for each message: 16 chars = "G3I" + `yymmdd` + 7 digits.
+- Consume ISO 20022 payment XML from ActiveMQ queue `payment.inbound`.
+- Detect the message type (e.g., pacs.008.001.13, pacs.003.001.11, pacs.007.001.13, camt.056.001.11).
+- Validate the XML against the corresponding XSD.
+- Transform valid XML into a unified JSON format.
+- Publish transformed JSON to Kafka topic `payment-messages`.
+- On failure, publish original XML to Kafka topic `exception-queue`.
+- Persist an inbound message safe store record in Spanner (emulator locally) with status transitions: RECEIVED → VALIDATED → PUBLISHED, or ERROR.
+- Generate a PUID for each message: 16 chars = "G3I" + `yymmdd` + 7 digits.
 
 ## Repo and paths
 You can work from the repository root. For portability, use repo-relative paths or set an env var:
@@ -123,8 +123,9 @@ Using ActiveMQ REST API (auth via env vars):
 ```bash
 export ACTIVEMQ_USER=admin
 export ACTIVEMQ_PASS=admin
+# Save XML to /tmp/pacs008.xml first (see samples below), then:
 curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" \
-     -d @/absolute/path/to/valid-pacs008.xml \
+     --data-binary @/tmp/pacs008.xml \
      "http://localhost:8161/api/message/payment.inbound?type=queue"
 ```
 Alternatively, use the ActiveMQ web console to post a text message to `payment.inbound`.
@@ -139,11 +140,11 @@ Using Kafka UI: `http://localhost:8090`
 
 From the Kafka container shell (optional):
 ```bash
-docker exec -it clearpathgateway-kafka-1 \
+docker exec -it "$(docker compose ps -q kafka)" \
   kafka-console-consumer --bootstrap-server kafka:9092 \
   --topic payment-messages --from-beginning --max-messages 5
 
-docker exec -it clearpathgateway-kafka-1 \
+docker exec -it "$(docker compose ps -q kafka)" \
   kafka-console-consumer --bootstrap-server kafka:9092 \
   --topic exception-queue --from-beginning --max-messages 5
 ```
@@ -161,7 +162,7 @@ tail -f /tmp/router.jar.log
 ```
 - Kafka logs:
 ```bash
-docker logs --tail=200 clearpathgateway-kafka-1
+docker logs --tail=200 "$(docker compose ps -q kafka)"
 ```
 - Health endpoint:
 ```bash
