@@ -9,6 +9,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class ActiveMqMessageListener {
@@ -30,9 +31,9 @@ public class ActiveMqMessageListener {
     @JmsListener(destination = "${app.activemq.input-queue:payment.inbound}")
     public void onMessage(@Payload String payload) {
         String messageKey = UUID.randomUUID().toString();
-        int size = payload == null ? 0 : payload.length();
-        log.info("[MQ] Received message key={}, size={} bytes", messageKey, size);
-        if (payload == null || payload.trim().isEmpty()) {
+        int sizeBytes = payload == null ? 0 : payload.getBytes(StandardCharsets.UTF_8).length;
+        log.info("[MQ] Received message key={}, size={} bytes", messageKey, sizeBytes);
+        if (payload == null || payload.isBlank()) {
             log.warn("[MQ] Ignoring empty/null payload for key={}", messageKey);
             return;
         }
@@ -47,21 +48,21 @@ public class ActiveMqMessageListener {
                 Thread.currentThread().interrupt();
             }
             String preview = safePreview(payload, 200);
-            log.error("[MQ] Error processing message key={}, size={}, preview='{}': {}", messageKey, size, preview, e.toString(), e);
+            log.error("[MQ] Error processing message key={}, sizeBytes={}, preview='{}'", messageKey, sizeBytes, preview, e);
             // Rethrow so broker redelivery/DLQ policies can apply
             throw e;
         }
     }
 
     private String safePreview(String s, int maxChars) {
-        if (s == null || s.isEmpty()) return "<empty>";
+        if (s == null) return "<empty>";
+        if (s.isBlank()) return "<blank>";
         String cut = s.substring(0, Math.min(maxChars, s.length()));
         // Mask long digit runs (likely PAN/account numbers)
-        cut = cut.replaceAll("\\d{6,}", "***masked***");
-        // Mask common account-like tags
+        cut = cut.replaceAll("\\d{8,}", "***masked***");
+        // Mask common account-like tags and variants
         cut = cut.replaceAll("(?i)(<IBAN>)(.*?)(</IBAN>)", "$1***masked***$3");
-        cut = cut.replaceAll("(?i)(<AcctNbr>)(.*?)(</AcctNbr>)", "$1***masked***$3");
-        cut = cut.replaceAll("(?i)(<CardNbr>)(.*?)(</CardNbr>)", "$1***masked***$3");
+        cut = cut.replaceAll("(?i)(<(?:AcctNbr|AccountNumber|CardNbr|CardNumber|PAN)>)(.*?)(</\\s*(?:AcctNbr|AccountNumber|CardNbr|CardNumber|PAN)>)", "$1***masked***$3");
         return cut;
     }
 }

@@ -36,9 +36,13 @@ Verify:
 # Kafka port
 nc -zv localhost 29092
 # Kafka UI
-open http://localhost:8090
+# macOS:    open http://localhost:8090
+# Linux:    xdg-open http://localhost:8090
+# Windows:  start http://localhost:8090
 # ActiveMQ console (user/pass: admin/admin)
-open http://localhost:8161
+# macOS:    open http://localhost:8161
+# Linux:    xdg-open http://localhost:8161
+# Windows:  start http://localhost:8161
 # Spanner emulator ports
 nc -zv localhost 9010 && nc -zv localhost 9020
 ```
@@ -55,12 +59,20 @@ Build only the router module (tests skipped) from repo root:
 mvn -q -pl ./services/fast-router-service -DskipTests clean package
 ```
 
-Run the packaged JAR with local profile and emulator (from repo root):
+Run the app (from repo root):
 ```bash
+# Option A (recommended during local dev)
+mvn -q -pl ./services/fast-router-service \
+  -Dspring-boot.run.profiles=local \
+  -Dspring-boot.run.jvmArguments="-DSPANNER_EMULATOR_HOST=localhost:9010 -DSPRING_CLOUD_GCP_PROJECT_ID=local-project" \
+  spring-boot:run \
+  > /tmp/router.jar.log 2>&1 & echo $!
+
+# Option B (if you prefer the JAR)
 SPRING_PROFILES_ACTIVE=local \
 SPRING_CLOUD_GCP_PROJECT_ID=local-project \
 SPANNER_EMULATOR_HOST=localhost:9010 \
-java -jar ./services/fast-router-service/target/fast-router-service-21.0.0-apeafast-SNAPSHOT.jar \
+java -jar "$(ls ./services/fast-router-service/target/fast-router-service-*-SNAPSHOT.jar | head -1)" \
 > /tmp/router.jar.log 2>&1 & echo $!
 ```
 
@@ -107,9 +119,11 @@ On startup (local profile), `SpannerLocalSchema` will auto-create:
 - Table: `InboundMessages`
 
 ## Send a sample message (ActiveMQ)
-Using ActiveMQ REST API (basic auth: admin/admin):
+Using ActiveMQ REST API (auth via env vars):
 ```bash
-curl -u admin:admin -H "Content-Type: text/xml" \
+export ACTIVEMQ_USER=admin
+export ACTIVEMQ_PASS=admin
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" \
      -d @/absolute/path/to/valid-pacs008.xml \
      "http://localhost:8161/api/message/payment.inbound?type=queue"
 ```
@@ -295,17 +309,17 @@ If you need a fully config-driven transformation covering “all fields” acros
 ```
 
 ### Send sample via ActiveMQ (curl)
-Using a file:
+Using a file (auth via env vars):
 ```bash
 # Save XML to /tmp/pacs008.xml first, then:
-curl -u admin:admin -H "Content-Type: text/xml" \
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" \
      --data-binary @/tmp/pacs008.xml \
      "http://localhost:8161/api/message/payment.inbound?type=queue"
 ```
 
-Inline (here-doc):
+Inline (here-doc, auth via env vars):
 ```bash
-curl -u admin:admin -H "Content-Type: text/xml" --data-binary @- \
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" --data-binary @- \
   "http://localhost:8161/api/message/payment.inbound?type=queue" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.13">
@@ -645,15 +659,21 @@ cat >/tmp/camt056.xml <<'XML'
 </Document>
 XML
 
-# post to the ActiveMQ queue
-curl -u admin:admin -H "Content-Type: text/xml" --data-binary @/tmp/pacs003.xml \
+# post to the ActiveMQ queue (auth via env vars)
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" --data-binary @/tmp/pacs003.xml \
   "http://localhost:8161/api/message/payment.inbound?type=queue"
 
-curl -u admin:admin -H "Content-Type: text/xml" --data-binary @/tmp/pacs007.xml \
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" --data-binary @/tmp/pacs007.xml \
   "http://localhost:8161/api/message/payment.inbound?type=queue"
 
-curl -u admin:admin -H "Content-Type: text/xml" --data-binary @/tmp/camt056.xml \
+curl -u "$ACTIVEMQ_USER:$ACTIVEMQ_PASS" -H "Content-Type: text/xml" --data-binary @/tmp/camt056.xml \
   "http://localhost:8161/api/message/payment.inbound?type=queue"
+```
+
+Note: Set ACTIVEMQ_USER and ACTIVEMQ_PASS before running the above examples, e.g.:
+```bash
+export ACTIVEMQ_USER=admin
+export ACTIVEMQ_PASS=admin
 ```
 
 After posting, observe `/tmp/router.jar.log` for validation/transform logs, and inspect `payment-messages` topic in Kafka UI for the resulting JSON.
