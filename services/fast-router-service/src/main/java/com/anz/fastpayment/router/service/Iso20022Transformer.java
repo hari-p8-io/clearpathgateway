@@ -45,10 +45,7 @@ public class Iso20022Transformer {
     }
 
     private String transformPacs008(String xml, String puid) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        Document doc = parseSecure(xml);
 
         // naive extraction for demo: MsgId, CreDtTm, EndToEndId, IntrBkSttlmAmt/@Ccy and text
         String ns = "urn:iso:std:iso:20022:tech:xsd:pacs.008.001.13";
@@ -76,10 +73,7 @@ public class Iso20022Transformer {
     }
 
     private String transformPacs003(String xml, String puid) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        Document doc = parseSecure(xml);
 
         String ns = "urn:iso:std:iso:20022:tech:xsd:pacs.003.001.11";
         String msgId = text(doc, ns, "MsgId");
@@ -106,10 +100,7 @@ public class Iso20022Transformer {
     }
 
     private String transformPacs007(String xml, String puid) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        Document doc = parseSecure(xml);
 
         String ns = "urn:iso:std:iso:20022:tech:xsd:pacs.007.001.13";
         String msgId = text(doc, ns, "MsgId");
@@ -137,10 +128,7 @@ public class Iso20022Transformer {
     }
 
     private String transformCamt056(String xml, String puid) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        Document doc = parseSecure(xml);
 
         String ns = "urn:iso:std:iso:20022:tech:xsd:camt.056.001.11";
         String id = text(doc, ns, "Id"); // Case/Id
@@ -179,6 +167,21 @@ public class Iso20022Transformer {
     }
 
     private String quote(String s) { return "\"" + s + "\""; }
+
+    private Document parseSecure(String xml) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        try {
+            dbf.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        } catch (Exception ignore) { /* best-effort hardening */ }
+        dbf.setXIncludeAware(false);
+        dbf.setExpandEntityReferences(false);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        return db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    }
 }
 
 

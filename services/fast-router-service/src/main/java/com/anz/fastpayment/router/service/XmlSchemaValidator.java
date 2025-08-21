@@ -19,6 +19,12 @@ public class XmlSchemaValidator {
     private static final Logger log = LoggerFactory.getLogger(XmlSchemaValidator.class);
 
     public void validate(String xmlContent, String messageType) {
+        if (messageType == null || messageType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Unsupported or empty message type for XSD validation: " + messageType);
+        }
+        if (xmlContent == null || xmlContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("xmlContent must not be null or blank for XSD validation");
+        }
         String schemaPath = resolveSchemaPath(messageType);
         if (schemaPath == null) {
             throw new IllegalArgumentException("Unsupported message type for XSD validation: " + messageType);
@@ -26,13 +32,20 @@ public class XmlSchemaValidator {
         try {
             log.debug("[XSD] Loading schema from classpath:{}", schemaPath);
             ClassPathResource schemaResource = new ClassPathResource(schemaPath);
-            try (InputStream is = schemaResource.getInputStream()) {
-                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                Schema schema = factory.newSchema(new StreamSource(is));
-                Validator validator = schema.newValidator();
-                log.debug("[XSD] Running validator for messageType={}", messageType);
-                validator.validate(new StreamSource(new ByteArrayInputStream(xmlContent.getBytes())));
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            try {
+                factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+                factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            } catch (Exception secureEx) {
+                log.debug("[XSD] Could not set secure properties on SchemaFactory: {}", secureEx.getMessage());
             }
+            // Use URL-based source so XSD includes/imports resolve correctly
+            Schema schema = factory.newSchema(schemaResource.getURL());
+            Validator validator = schema.newValidator();
+            log.debug("[XSD] Running validator for messageType={}", messageType);
+            validator.validate(new StreamSource(new ByteArrayInputStream(
+                    xmlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8))));
         } catch (Exception ex) {
             log.warn("XSD validation failed for type {}: {}", messageType, ex.getMessage());
             throw new IllegalArgumentException("XML does not conform to XSD for type " + messageType, ex);

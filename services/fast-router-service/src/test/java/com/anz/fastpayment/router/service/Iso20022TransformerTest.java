@@ -39,7 +39,7 @@ class Iso20022TransformerTest {
         assertTrue(json.contains("\"puid\":\"" + puid + "\""));
         assertTrue(json.contains("\"messageType\":\"PACS_008\""));
         assertTrue(json.contains("\"messageVersion\":\"13\""));
-        assertTrue(json.contains("\"EndToEndId\"".toLowerCase()) || json.contains("endToEndId"));
+        assertTrue(json.contains("\"EndToEndId\"") || json.contains("\"endToEndId\""));
         assertTrue(json.contains("\"currency\":\"SGD\""));
     }
 }

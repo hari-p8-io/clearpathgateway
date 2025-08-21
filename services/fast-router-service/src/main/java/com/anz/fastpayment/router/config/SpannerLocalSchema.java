@@ -46,7 +46,7 @@ public class SpannerLocalSchema {
     public void ensureTables() {
         try {
             ensureInstanceAndDatabase();
-            String ddl = "CREATE TABLE IF NOT EXISTS InboundMessages (" +
+            String ddl = "CREATE TABLE InboundMessages (" +
                     " puid STRING(16) NOT NULL,\n" +
                     " channel_id STRING(64),\n" +
                     " message_type STRING(64),\n" +
@@ -55,8 +55,17 @@ public class SpannerLocalSchema {
                     " status STRING(32),\n" +
                     " error STRING(MAX)\n" +
                     ") PRIMARY KEY (puid)";
-            adminTemplate.executeDdlStrings(Collections.singletonList(ddl), true);
-            log.info("Ensured Spanner emulator table exists for InboundMessages");
+            try {
+                adminTemplate.executeDdlStrings(Collections.singletonList(ddl), true);
+                log.info("Created table InboundMessages in Spanner emulator");
+            } catch (Exception ce) {
+                String msg = ce.getMessage() == null ? "" : ce.getMessage();
+                if (msg.contains("ALREADY_EXISTS") || msg.contains("AlreadyExists") || msg.contains("already exists")) {
+                    log.info("InboundMessages table already exists; skipping create");
+                } else {
+                    throw ce;
+                }
+            }
         } catch (Exception e) {
             log.warn("Spanner emulator init warning: {}", e.getMessage());
         }

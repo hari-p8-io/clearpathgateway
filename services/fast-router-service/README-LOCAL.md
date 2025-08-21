@@ -13,9 +13,10 @@ This guide documents how to build, run, and validate the `fast-router-service` l
 - Generates a PUID for each message: 16 chars = "G3I" + `yymmdd` + 7 digits.
 
 ## Repo and paths
-Workspace root: `/Users/avinash/CursorProjects/clearpathgateway`
+You can work from the repository root. For portability, use repo-relative paths or set an env var:
 
-Service path: `/Users/avinash/CursorProjects/clearpathgateway/services/fast-router-service`
+- Repo root (example): `export REPO_ROOT=$(pwd)` (run this at the repo root)
+- Service path: `$REPO_ROOT/services/fast-router-service` (or `./services/fast-router-service` from repo root)
 
 ## Local infrastructure (Docker Compose)
 Services started from `/Users/avinash/CursorProjects/clearpathgateway/docker-compose.yml`:
@@ -25,10 +26,9 @@ Services started from `/Users/avinash/CursorProjects/clearpathgateway/docker-com
 - Spanner emulator: 9010 (gRPC), 9020 (REST)
 - Kafka UI: 8090
 
-Start infra:
+Start infra (from repo root):
 ```bash
-cd /Users/avinash/CursorProjects/clearpathgateway
-docker compose -f docker-compose.yml up -d zookeeper kafka activemq spanner-emulator kafka-ui
+docker compose -f ./docker-compose.yml up -d zookeeper kafka activemq spanner-emulator kafka-ui
 ```
 
 Verify:
@@ -50,18 +50,17 @@ lsof -iTCP:8080 -sTCP:LISTEN -n -P
 kill <pid>
 ```
 
-Build only the router module (tests skipped):
+Build only the router module (tests skipped) from repo root:
 ```bash
-cd /Users/avinash/CursorProjects/clearpathgateway
-mvn -q -pl services/fast-router-service -DskipTests clean package
+mvn -q -pl ./services/fast-router-service -DskipTests clean package
 ```
 
-Run the packaged JAR with local profile and emulator:
+Run the packaged JAR with local profile and emulator (from repo root):
 ```bash
 SPRING_PROFILES_ACTIVE=local \
 SPRING_CLOUD_GCP_PROJECT_ID=local-project \
 SPANNER_EMULATOR_HOST=localhost:9010 \
-java -jar services/fast-router-service/target/fast-router-service-21.0.0-apeafast-SNAPSHOT.jar \
+java -jar ./services/fast-router-service/target/fast-router-service-21.0.0-apeafast-SNAPSHOT.jar \
 > /tmp/router.jar.log 2>&1 & echo $!
 ```
 
@@ -119,7 +118,9 @@ Alternatively, use the ActiveMQ web console to post a text message to `payment.i
 ## View Kafka messages
 Using Kafka UI: `http://localhost:8090`
 - Cluster name: local
-- Bootstrap servers (inside compose): `kafka:9092`
+- Bootstrap servers:
+  - From containers: `kafka:9092`
+  - From host: `localhost:29092` (dual listeners configured in docker-compose)
 - Topics: `payment-messages`, `exception-queue`, `bank-availability`
 
 From the Kafka container shell (optional):
@@ -131,6 +132,12 @@ docker exec -it clearpathgateway-kafka-1 \
 docker exec -it clearpathgateway-kafka-1 \
   kafka-console-consumer --bootstrap-server kafka:9092 \
   --topic exception-queue --from-beginning --max-messages 5
+```
+
+From the host (optional):
+```bash
+kafka-console-consumer --bootstrap-server localhost:29092 \
+  --topic payment-messages --from-beginning --max-messages 5
 ```
 
 ## Logs and observability

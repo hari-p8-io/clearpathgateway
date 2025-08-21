@@ -27,13 +27,23 @@ public class ActiveMqMessageListener {
     @JmsListener(destination = "${app.activemq.input-queue:payment.inbound}")
     public void onMessage(@Payload String payload) {
         String messageKey = UUID.randomUUID().toString();
-        log.info("[MQ] Received message key={}, size={} bytes", messageKey, payload != null ? payload.length() : 0);
+        int size = payload == null ? 0 : payload.length();
+        log.info("[MQ] Received message key={}, size={} bytes", messageKey, size);
+        if (payload == null || payload.trim().isEmpty()) {
+            log.warn("[MQ] Ignoring empty/null payload for key={}", messageKey);
+            return;
+        }
         if (log.isDebugEnabled()) {
             log.debug("[MQ] Payload preview (first 500 chars) key={} => {}", messageKey,
-                    payload == null ? "<null>" : payload.substring(0, Math.min(500, payload.length())));
+                    payload.substring(0, Math.min(500, payload.length())));
         }
-
-        routerOrchestrator.processInboundXml(payload);
+        try {
+            routerOrchestrator.processInboundXml(payload);
+        } catch (Throwable t) {
+            String preview = payload.substring(0, Math.min(200, payload.length()));
+            log.error("[MQ] Error processing message key={}, size={}, preview='{}': {}", messageKey, size, preview, t.toString(), t);
+            // Do not rethrow to avoid poison-message redelivery loops
+        }
     }
 }
 
