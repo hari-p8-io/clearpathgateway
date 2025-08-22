@@ -1,8 +1,56 @@
-# FAST Non-Value Router Service - Technical Implementation Diagrams
+# FAST Non-Value Router Service - Technical Design
+
+## Business Purpose
+
+The **Fast Non-Value Router Service** is a critical operational component of the APEAFAST-SG ClearPath Gateway that handles all administrative communications between banks and the central payment infrastructure. This service ensures reliable processing of bank availability notifications, administrative messages, and operational data that keeps the payment network functioning smoothly.
+
+## Core Responsibilities
+
+### 1. **Bank Availability Management**
+- Receive and process bank sign-on/sign-off requests (ADMN.001-004)
+- Validate administrative messages against ISO 20022 XSD schemas
+- Route bank availability changes to the Availability Service for real-time status updates
+
+### 2. **Bank Statement Processing**
+- Accept CAMT.053 bank statement files from CPG
+- Validate statement format and content
+- Store validated statements in AWS S3 for reconciliation and audit
+
+### 3. **Message Validation & Routing**
+- Perform XSD schema validation on all incoming XML messages
+- Transform valid XML messages to Avro format for internal consumption
+- Route invalid messages to poison topics for investigation and remediation
+
+### 4. **Operational Data Management**
+- Handle settlement notifications for liquidity consumption tracking (future)
+- Maintain audit trails for all non-value message processing
+- Provide idempotency to prevent duplicate message processing
+
+## Key Features
+
+### ✅ **High-Performance Message Processing**
+- **Virtual Thread Architecture**: Java 21 Project Loom for handling 1,000+ messages/minute
+- **Sub-2-Second SLA**: Complete message processing within strict performance targets
+- **Parallel Processing**: Concurrent handling of multiple message types
+
+### ✅ **Enterprise-Grade Reliability**
+- **XSD Validation**: Strict ISO 20022 schema compliance for all incoming messages
+- **Poison Topic Handling**: Automatic isolation of invalid messages for investigation
+- **Multi-Tier Fallback**: Kafka → Spanner → S3 for guaranteed message preservation
+
+### ✅ **Real-Time Bank Status Updates**
+- **Immediate Routing**: ADMN messages reach Availability Service within 500ms
+- **Avro Serialization**: Efficient binary format for high-throughput message queues
+- **Status Change Tracking**: Complete audit trail of bank availability changes
+
+### ✅ **Operational Excellence**
+- **S3 Integration**: Automatic storage of bank statements with organized folder structure
+- **Comprehensive Monitoring**: Business and technical metrics for full observability
+- **Idempotency Protection**: Prevent duplicate processing of administrative messages
 
 ## Service Overview
 
-The **Fast Non-Value Router Service** handles all administrative and non-value payment messages within the APEAFAST-SG ClearPath Gateway system. This service processes ADMN (administrative) messages, bank statements (CAMT.053), settlement notifications, and other operational messages that do not involve actual payment values.
+This service acts as the **entry point** for all administrative and operational messages from the CPG network, ensuring they are properly validated, transformed, and routed to appropriate internal services for processing. It bridges the external ISO 20022 XML world with the internal Avro-based microservices architecture.
 
 ## Service Architecture Diagram
 

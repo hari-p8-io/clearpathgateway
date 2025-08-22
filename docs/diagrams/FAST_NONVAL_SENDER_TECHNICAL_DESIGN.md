@@ -1,8 +1,56 @@
-# FAST Non-Value Sender Service - Technical Implementation Diagrams
+# FAST Non-Value Sender Service - Technical Design
+
+## Business Purpose
+
+The **Fast Non-Value Sender Service** is the critical outbound gateway that delivers administrative and operational messages from the APEAFAST-SG ClearPath Gateway to the CPG/G3 network. This service ensures that bank status changes, settlement notifications, and administrative responses reach external systems reliably and within strict SLA requirements.
+
+## Core Responsibilities
+
+### 1. **Outbound Administrative Messaging**
+- Transform internal Avro messages to ISO 20022 XML format
+- Generate ADMN.001 (Sign-On) and ADMN.003 (Sign-Off) requests for bank availability changes
+- Build compliant XML messages using predefined templates and field mappings
+
+### 2. **Message Delivery Management** 
+- Send administrative messages to CPG/G3 via IBM MQ with guaranteed delivery
+- Track message delivery status and handle acknowledgments
+- Implement retry logic with exponential backoff for failed deliveries
+
+### 3. **Settlement & Notification Processing**
+- Process settlement confirmation messages from Availability Service (future)
+- Handle emergency alerts and maintenance notifications
+- Support priority message routing for time-sensitive communications
+
+### 4. **Quality Assurance & Compliance**
+- Validate generated XML against XSD schemas before transmission
+- Maintain comprehensive audit trails for all outbound messages
+- Ensure idempotency to prevent duplicate message transmission
+
+## Key Features
+
+### ✅ **High-Performance Message Generation**
+- **Avro-to-XML Transformation**: Efficient conversion from internal format to ISO 20022 XML
+- **Template-Based Generation**: Pre-validated XML templates for consistent message structure
+- **Sub-2-Second Delivery**: Complete message generation and delivery within SLA targets
+
+### ✅ **Guaranteed Message Delivery**
+- **IBM MQ Integration**: Reliable message queuing with delivery confirmation
+- **Retry with Backoff**: Intelligent retry logic for transient failures
+- **Multi-Queue Fallback**: Alternative delivery paths for high availability
+
+### ✅ **Real-Time Status Management**
+- **Bank Availability Broadcasting**: Immediate notification of bank status changes to CPG
+- **Emergency Message Priority**: Fast-track processing for critical alerts
+- **Delivery Tracking**: Real-time monitoring of message delivery status
+
+### ✅ **Enterprise Resilience**
+- **Circuit Breaker Protection**: Prevent cascade failures during MQ outages
+- **Poison Message Handling**: Isolate and investigate failed message generations
+- **Comprehensive Audit**: Full traceability for regulatory compliance
 
 ## Service Overview
 
-The **Fast Non-Value Sender Service** handles outbound transmission of all administrative and non-value messages from the APEAFAST-SG ClearPath Gateway system to the CPG/G3 network. This service processes bank availability notifications, administrative messages, settlement confirmations, and other operational messages that do not involve actual payment values.
+This service acts as the **exit point** for all administrative communications from the ClearPath Gateway to external systems, transforming internal Avro messages back to ISO 20022 XML format and ensuring reliable delivery via IBM MQ. It completes the operational message lifecycle by delivering bank status updates and administrative responses to the CPG network.
 
 ## Service Architecture Diagram
 
