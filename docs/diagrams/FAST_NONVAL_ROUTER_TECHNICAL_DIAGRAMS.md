@@ -476,6 +476,8 @@ replication: 3
 ```
 
 #### Avro Schema for ADMN Messages
+**Location:** `services/fast-nonval-router/src/main/resources/avro/admn-message.avsc`
+
 ```json
 {
   "type": "record",
@@ -506,7 +508,9 @@ replication: 3
 }
 ```
 
-#### Poison Topic Schemas
+#### Poison Topic Schemas  
+**Location:** `services/fast-nonval-router/src/main/resources/avro/poison-message.avsc`
+
 ```json
 {
   "poison_message": {

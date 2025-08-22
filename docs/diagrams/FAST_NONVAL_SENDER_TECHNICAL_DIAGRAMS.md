@@ -491,6 +491,11 @@ alerts:
     severity: "medium"
 ```
 
+## Avro Schema Location
+
+**ADMN Message Schema:** `services/fast-nonval-sender/src/main/resources/avro/admn-message.avsc`  
+*Shared schema for consuming Avro messages and transforming to XML for CPG/G3 delivery*
+
 ## Integration APIs
 
 ### gRPC Service Interface
