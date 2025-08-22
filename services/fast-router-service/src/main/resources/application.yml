@@ -67,6 +67,9 @@ management:
 app:
   name: Fast Router Service
   version: 21.0.0-apeafast-SNAPSHOT
+  validation:
+    xsd:
+      enabled: ${XSD_VALIDATION_ENABLED:true}
   
   # Message processing configuration
   router:

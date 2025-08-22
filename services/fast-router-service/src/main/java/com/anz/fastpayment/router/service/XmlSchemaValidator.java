@@ -2,6 +2,7 @@ package com.anz.fastpayment.router.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +19,25 @@ public class XmlSchemaValidator {
 
     private static final Logger log = LoggerFactory.getLogger(XmlSchemaValidator.class);
 
+    @Value("${app.validation.xsd.enabled:true}")
+    private boolean xsdValidationEnabled;
+
+    @Value("${app.validation.max-bytes:1048576}")
+    private int maxXmlBytes;
+
     public void validate(String xmlContent, String messageType) {
+        if (!xsdValidationEnabled) {
+            log.info("[XSD] Validation disabled by configuration; skipping XSD check for type={}", messageType);
+            return;
+        }
         if (messageType == null || messageType.trim().isEmpty()) {
             throw new IllegalArgumentException("Unsupported or empty message type for XSD validation: " + messageType);
         }
         if (xmlContent == null || xmlContent.trim().isEmpty()) {
             throw new IllegalArgumentException("xmlContent must not be null or blank for XSD validation");
+        }
+        if (xmlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > maxXmlBytes) {
+            throw new IllegalArgumentException("XML too large for validation");
         }
         String schemaPath = resolveSchemaPath(messageType);
         if (schemaPath == null) {

@@ -45,7 +45,19 @@ public class SpannerLocalSchema {
     @PostConstruct
     public void ensureTables() {
         try {
-            ensureInstanceAndDatabase();
+            // Retry instance/db ensure to tolerate emulator cold start
+            int attempts = 0;
+            while (true) {
+                try {
+                    ensureInstanceAndDatabase();
+                    break;
+                } catch (Exception initEx) {
+                    attempts++;
+                    if (attempts >= 3) throw initEx;
+                    log.info("Spanner emulator not ready yet, retrying instance/db ensure (attempt {} of 3)", attempts + 1);
+                    try { Thread.sleep(500L * attempts); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); break; }
+                }
+            }
             String ddl = "CREATE TABLE InboundMessages (" +
                     " puid STRING(16) NOT NULL,\n" +
                     " channel_id STRING(64),\n" +
@@ -62,6 +74,41 @@ public class SpannerLocalSchema {
                 String msg = ce.getMessage() == null ? "" : ce.getMessage();
                 if (msg.contains("ALREADY_EXISTS") || msg.contains("AlreadyExists") || msg.contains("already exists")) {
                     log.info("InboundMessages table already exists; skipping create");
+                } else {
+                    throw ce;
+                }
+            }
+
+            String ddl3 = "CREATE TABLE RouterEvents (" +
+                    " puid STRING(16) NOT NULL,\n" +
+                    " topic STRING(128),\n" +
+                    " created_at TIMESTAMP,\n" +
+                    " json STRING(MAX)\n" +
+                    ") PRIMARY KEY (puid)";
+            try {
+                adminTemplate.executeDdlStrings(Collections.singletonList(ddl3), true);
+                log.info("Created table RouterEvents in Spanner emulator");
+            } catch (Exception ce) {
+                String msg = ce.getMessage() == null ? "" : ce.getMessage();
+                if (msg.contains("ALREADY_EXISTS") || msg.contains("AlreadyExists") || msg.contains("already exists")) {
+                    log.info("RouterEvents table already exists; skipping create");
+                } else {
+                    throw ce;
+                }
+            }
+            String ddl2 = "CREATE TABLE UnifiedMessages (" +
+                    " puid STRING(16) NOT NULL,\n" +
+                    " message_type STRING(64),\n" +
+                    " created_at TIMESTAMP,\n" +
+                    " json STRING(MAX)\n" +
+                    ") PRIMARY KEY (puid)";
+            try {
+                adminTemplate.executeDdlStrings(Collections.singletonList(ddl2), true);
+                log.info("Created table UnifiedMessages in Spanner emulator");
+            } catch (Exception ce) {
+                String msg = ce.getMessage() == null ? "" : ce.getMessage();
+                if (msg.contains("ALREADY_EXISTS") || msg.contains("AlreadyExists") || msg.contains("already exists")) {
+                    log.info("UnifiedMessages table already exists; skipping create");
                 } else {
                     throw ce;
                 }

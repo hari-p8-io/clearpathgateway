@@ -777,3 +777,117 @@ These examples illustrate the typical unified JSON structure produced by the tra
   }
 }
 ```
+
+---
+
+## Additional Local Notes (Routing, Events, and Persistence)
+
+- On XSD validation failure, router publishes to:
+  - `${app.kafka.topics.exception-queue}` with the original XML
+  - `${app.kafka.topics.pacs002-requests}` with JSON: `puid`, `messageType`, `uniqueId`, `error`, `originalXml`
+- Unified JSON for valid messages is also persisted in Spanner table `UnifiedMessages`.
+- Router emits a payment event JSON to `${app.kafka.topics.payment-events}` and stores a copy in `RouterEvents` (local emulator).
+
+Tables auto-created in local profile:
+- `UnifiedMessages(puid STRING(16) PK, message_type STRING(64), created_at TIMESTAMP, json STRING(MAX))`
+- `RouterEvents(puid STRING(16) PK, topic STRING(128), created_at TIMESTAMP, json STRING(MAX))`
+
+## Architecture (Local)
+
+```mermaid
+graph TD
+    subgraph Edge[Edge Integration]
+      AMQ_IN[ActiveMQ Queue\npayment.inbound]
+      AMQ_OUT[ActiveMQ Queue\npacs002.outbound]
+    end
+
+    subgraph Router[fast-router-service]
+      L[ActiveMqMessageListener]
+      O[RouterOrchestrator]
+      V[XmlSchemaValidator]
+      T[Iso20022Transformer]
+      KP[KafkaPublisher]
+      EP[EventPublisher]
+      SR[(Spanner\nInboundMessages\nUnifiedMessages\nRouterEvents)]
+    end
+
+    subgraph Sender[fast-sender-service]
+      C[Kafka Consumer\npacs002-requests]
+      S[Pacs002Service]
+      JMS[JmsTemplate]
+      SP[(Spanner\nPacs002Messages)]
+      KEP[EventJsonPublisher]
+    end
+
+    AMQ_IN --> L --> O --> V
+    V -- valid --> T --> KP -->|payment-messages| KAFKA[(Kafka)]
+    V -- invalid --> O
+    O -->|exception payload| KP
+    O -->|pacs002-requests JSON| KAFKA
+    O --> EP -->|payment-events| KAFKA
+    O --> SR
+    T --> SR
+
+    KAFKA -->|pacs002-requests| C --> S --> JMS --> AMQ_OUT
+    S --> SP
+    S --> KEP -->|payment-events| KAFKA
+```
+
+## Failure Path (Sequence)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant AMQ as ActiveMQ (payment.inbound)
+  participant R as RouterOrchestrator
+  participant V as XmlSchemaValidator
+  participant K as Kafka
+  participant S as Sender (Consumer)
+  participant AMQO as ActiveMQ (pacs002.outbound)
+  participant DB as Spanner
+
+  AMQ->>R: XML message
+  R->>V: validate(xml, type)
+  V-->>R: throws (invalid)
+  R->>K: publish exception-queue (original XML)
+  R->>K: publish pacs002-requests (puid, type, uniqueId, error, originalXml)
+  R->>DB: save RouterEvents (payment-events)
+  K-->>S: consume pacs002-requests
+  S->>S: build pacs.002 reject XML
+  S->>DB: save Pacs002Messages (xml, event json)
+  S->>AMQO: send pacs.002 XML
+  S->>K: publish payment-events
+```
+
+## Local Topics and Queues (defaults)
+
+- Kafka topics
+  - `payment-messages`
+  - `exception-queue`
+  - `pacs002-requests`
+  - `payment-events`
+- ActiveMQ queues
+  - Inbound: `payment.inbound`
+  - Outbound (sender): `pacs002.outbound`
+
+All names are configurable in `application.yml` under `app.kafka.topics.*` and `app.activemq.*`.
+
+## End-to-End (Local) – Quick Checks
+
+1) Invalid XML (XSD fail)
+- Post malformed ISO 20022 XML to `payment.inbound` (see examples above)
+- Expect:
+  - Kafka: message in `exception-queue`
+  - Kafka: JSON in `pacs002-requests`
+  - Spanner: row in `RouterEvents` and `InboundMessages(status=ERROR)`
+  - ActiveMQ: pacs.002 XML in `pacs002.outbound` (from sender)
+  - Kafka: event in `payment-events`
+
+2) Valid XML
+- Expect:
+  - Kafka: unified JSON in `payment-messages`
+  - Spanner: `InboundMessages(status=PUBLISHED)` and `UnifiedMessages`
+
+## Playwright E2E (Optional)
+
+An optional e2e scaffold exists under `e2e/` to assert black-box flows (Kafka/Spanner/AMQ). It uses `@playwright/test` with `kafkajs` and Spanner SDK helpers. See `e2e/README.md` for setup and examples.

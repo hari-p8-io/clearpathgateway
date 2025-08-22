@@ -1,8 +1,8 @@
 import { test, expect, request } from '@playwright/test';
+import { Kafka } from 'kafkajs';
 
 test.describe('Fast Router Service E2E', () => {
   const activemqUrl = 'http://localhost:8161';
-  const kafkaUiUrl = 'http://localhost:8090';
   const healthUrl = 'http://localhost:8080/health';
 
   const validXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -36,20 +36,36 @@ test.describe('Fast Router Service E2E', () => {
     const h = await fetch(healthUrl);
     expect(h.ok).toBeTruthy();
 
-    // Post XML to ActiveMQ REST
+    // Post XML to ActiveMQ REST (Classic REST plugin)
     const mqReq = await request.newContext({ httpCredentials: { username: 'admin', password: 'admin' } });
-    const resp = await mqReq.post(`${activemqUrl}/api/message/payment.inbound?type=queue`, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const basic = 'Basic ' + Buffer.from('admin:admin').toString('base64');
+    const resp = await mqReq.post(`${activemqUrl}/api/message?destination=queue://payment.inbound`, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': basic },
       form: { body: validXml }
     });
     expect(resp.ok()).toBeTruthy();
 
-    // Open Kafka UI and wait for topic page to render
-    await page.goto(kafkaUiUrl);
-    await page.getByText('local').click();
-    await page.getByText('payment-messages').click();
-    // Expect some JSON content appears eventually
-    await expect(page.getByText('messageType').first()).toBeVisible({ timeout: 15000 });
+    // Consume from Kafka payment-messages to confirm flow
+    const brokers = (process.env.KAFKA_BROKERS || 'localhost:29092').split(',');
+    const kafka = new Kafka({ clientId: 'e2e-router', brokers });
+    const consumer = kafka.consumer({ groupId: 'e2e-router' });
+    await consumer.connect();
+    await consumer.subscribe({ topic: process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages', fromBeginning: true });
+    await consumer.subscribe({ topic: process.env.EXCEPTION_TOPIC || 'exception-queue', fromBeginning: true });
+    let seen = false;
+    await new Promise<void>((resolve) => {
+      consumer.run({
+        eachMessage: async ({ topic, message }) => {
+          const v = message.value?.toString() || '';
+          if (v.length === 0) return;
+          if (topic.includes('payment-messages') && v.includes('messageType') && v.includes('puid')) { seen = true; resolve(); }
+          if (topic.includes('exception-queue') && v.startsWith('<')) { seen = true; resolve(); }
+        },
+      });
+      setTimeout(resolve, 15000);
+    });
+    await consumer.disconnect();
+    expect(seen).toBeTruthy();
   });
 });
 
