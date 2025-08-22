@@ -573,6 +573,3 @@ replication: 3
 }
 ```
 
-## Conclusion
-
-The Fast Non-Value Router Service provides critical operational message handling for the APEAFAST-SG payment system, ensuring reliable processing of administrative messages, bank statements, and settlement notifications with enterprise-grade resilience and monitoring capabilities.
