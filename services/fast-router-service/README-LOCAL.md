@@ -1,6 +1,6 @@
 # Fast Router Service – Local Development Guide
 
-This guide documents how to build, run, and validate the `fast-router-service` locally. It includes infra setup, ports, commands, message flow, validation/transformation details, and troubleshooting.
+This guide documents how to build, run, and validate the `fast-router-service` locally. It includes infrastructure setup, ports, commands, message flow, validation/transformation details, and troubleshooting.
 
 ## What this service does
 - Consume ISO 20022 payment XML from ActiveMQ queue `payment.inbound`.
@@ -17,6 +17,12 @@ You can work from the repository root. For portability, use repo-relative paths 
 
 - Repo root (example): `export REPO_ROOT=$(pwd)` (run this at the repo root)
 - Service path: `$REPO_ROOT/services/fast-router-service` (or `./services/fast-router-service` from repo root)
+ 
+## Prerequisites
+- Docker Desktop (Compose v2) with at least 4 GB memory allocated
+- JDK 17+ (Java 21 recommended)
+- Maven 3.9+
+- curl, nc (or PowerShell Test-NetConnection on Windows)
 
 ## Local infrastructure (Docker Compose)
 Services started from `/Users/avinash/CursorProjects/clearpathgateway/docker-compose.yml`:
@@ -35,6 +41,8 @@ Verify:
 ```bash
 # Kafka port
 nc -zv localhost 29092
+# Windows (PowerShell):
+# Test-NetConnection -ComputerName localhost -Port 29092 | Format-List -Property TcpTestSucceeded
 # Kafka UI
 # macOS:    open http://localhost:8090
 # Linux:    xdg-open http://localhost:8090
@@ -45,6 +53,9 @@ nc -zv localhost 29092
 # Windows:  start http://localhost:8161
 # Spanner emulator ports
 nc -zv localhost 9010 && nc -zv localhost 9020
+# Windows (PowerShell):
+# Test-NetConnection -ComputerName localhost -Port 9010 | Select-Object TcpTestSucceeded
+# Test-NetConnection -ComputerName localhost -Port 9020 | Select-Object TcpTestSucceeded
 ```
 
 ## Build and run the service
@@ -180,8 +191,8 @@ mvn -q -pl services/fast-router-service test
 - Port 8080 in use
   - `lsof -iTCP:8080 -sTCP:LISTEN -n -P` then `kill <pid>`
 - Kafka connectivity
-  - Ensure broker logs show `Awaiting socket connections on 0.0.0.0:9092` and `Registered broker ... PLAINTEXT://localhost:9092`
-  - `nc -zv localhost 9092` should succeed
+  - Ensure broker logs show `Awaiting socket connections on 0.0.0.0:29092` and `Registered broker ... PLAINTEXT://localhost:29092`
+  - `nc -zv localhost 29092` should succeed
 - ActiveMQ auth
   - Use `admin`/`admin` credentials for REST and console
 - Spanner emulator
@@ -282,7 +293,7 @@ If you need a fully config-driven transformation covering “all fields” acros
     "msgId": "MSG-20250101-0001",
     "creationDateTime": "2025-01-01T10:00:00Z",
     "numberOfTransactions": 1,
-    "controlSum": 100.50,
+    "controlSum": "100.50",
     "interbankSettlementAmount": { "amount": "100.50", "currency": "SGD" },
     "interbankSettlementDate": "2025-01-01"
   },
@@ -692,7 +703,7 @@ These examples illustrate the typical unified JSON structure produced by the tra
     "msgId": "DD-20250101-0001",
     "creationDateTime": "2025-01-01T11:00:00Z",
     "numberOfTransactions": 1,
-    "controlSum": 55.00,
+    "controlSum": "55.00",
     "interbankSettlementAmount": { "amount": "55.00", "currency": "SGD" },
     "interbankSettlementDate": "2025-01-02"
   },
