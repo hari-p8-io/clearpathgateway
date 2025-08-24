@@ -4,10 +4,22 @@ This project uses Playwright test runner (TypeScript) for black-box integration 
 
 ## Setup
 - Install Node.js >= 18
-- From repo root:
+- From `e2e/` directory:
   - `npm init -y` (first time)
-  - `npm i -D @playwright/test kafkajs @google-cloud/spanner dotenv` 
-- Configure `.env` in `e2e/` as needed (Kafka brokers, Spanner emulator host, ActiveMQ broker URL).
+  - `npm i -D @playwright/test kafkajs @google-cloud/spanner dotenv`
+- Create `e2e/.env` with:
+```
+KAFKA_BROKERS=localhost:29092
+SPANNER_EMULATOR_HOST=localhost:9010
+GCP_PROJECT_ID=local-project
+SPANNER_INSTANCE=payment-gateway-local
+SPANNER_DATABASE=router-db
+ACTIVEMQ_BROKER_URL=tcp://localhost:61616
+ACTIVEMQ_ADMIN_URL=http://localhost:8161
+ACTIVEMQ_USERNAME=admin
+ACTIVEMQ_PASSWORD=admin
+```
+Playwright config preloads dotenv (`import 'dotenv/config'`).
 
 ## Run
 - `npx playwright test`

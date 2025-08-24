@@ -8,7 +8,7 @@ test.describe('XSD failure triggers sender flow', () => {
     // Arrange
     const brokers = process.env.KAFKA_BROKERS?.split(',') ?? ['localhost:29092'];
     const kafka = new Kafka({ clientId: 'e2e-tests', brokers });
-    const consumer = kafka.consumer({ groupId: 'e2e-tests' });
+    const consumer = kafka.consumer({ groupId: `e2e-xsd-${process.pid}-${Math.random().toString(36).slice(2, 6)}` });
 
     await consumer.connect();
     await consumer.subscribe({ topic: process.env.PACS002_REQUESTS_TOPIC ?? 'pacs002-requests', fromBeginning: true });
@@ -23,30 +23,29 @@ test.describe('XSD failure triggers sender flow', () => {
       body: new URLSearchParams({ body: invalidXml }).toString()
     });
 
-    let seen = false;
+    let resolved = false;
+    const timeoutId = setTimeout(() => { if (!resolved) resolved = true; }, 20000);
     await new Promise<void>((resolve) => {
       consumer.run({
         eachMessage: async ({ message }) => {
           if (!message.value) return;
           const payload = message.value.toString();
-          // JsonSerializer may wrap the JSON as a string; handle both cases
           try {
             let obj: any = JSON.parse(payload);
             if (typeof obj === 'string') {
               try { obj = JSON.parse(obj); } catch {}
             }
-            if (obj && obj.puid && obj.originalXml && obj.error) { seen = true; resolve(); }
-          } catch {
-            if (payload.includes('"puid"') && payload.includes('"originalXml"') && payload.includes('"error"')) { seen = true; resolve(); }
+            if (obj && obj.puid && obj.originalXml === invalidXml && obj.error) {
+              if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(); }
+            }
+          } catch (e) {
+            // ignore parse errors
           }
         },
-      });
-      setTimeout(resolve, 20_000);
+      }).catch(() => {});
     });
-
+    await consumer.stop();
     await consumer.disconnect();
-
-    // Assert
-    expect(seen).toBeTruthy();
+    expect(resolved).toBeTruthy();
   });
 });

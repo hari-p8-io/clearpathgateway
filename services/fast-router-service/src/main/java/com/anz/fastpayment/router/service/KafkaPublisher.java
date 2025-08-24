@@ -30,8 +30,11 @@ public class KafkaPublisher {
         log.info("Publishing valid message to topic {} with key {}", paymentMessagesTopic, key);
         try {
             kafkaTemplate.send(paymentMessagesTopic, key, payload).get(5, java.util.concurrent.TimeUnit.SECONDS);
-        } catch (Exception e) {
-            log.warn("Kafka publish timeout/failure for topic={}, key={}, err={}", paymentMessagesTopic, key, e.getMessage());
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while publishing to topic={}, key={}", paymentMessagesTopic, key, ie);
+        } catch (java.util.concurrent.TimeoutException | java.util.concurrent.ExecutionException e) {
+            log.warn("Kafka publish timeout/failure for topic={}, key={}", paymentMessagesTopic, key, e);
         }
     }
 
@@ -39,8 +42,11 @@ public class KafkaPublisher {
         log.warn("Publishing invalid message to exception topic {} with key {}", exceptionTopic, key);
         try {
             kafkaTemplate.send(exceptionTopic, key, payload).get(5, java.util.concurrent.TimeUnit.SECONDS);
-        } catch (Exception e) {
-            log.warn("Kafka publish timeout/failure for topic={}, key={}, err={}", exceptionTopic, key, e.getMessage());
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while publishing to topic={}, key={}", exceptionTopic, key, ie);
+        } catch (java.util.concurrent.TimeoutException | java.util.concurrent.ExecutionException e) {
+            log.warn("Kafka publish timeout/failure for topic={}, key={}", exceptionTopic, key, e);
         }
     }
 
@@ -48,8 +54,11 @@ public class KafkaPublisher {
         log.info("Publishing pacs002 request to topic {} with key {}", pacs002RequestsTopic, key);
         try {
             kafkaTemplate.send(pacs002RequestsTopic, key, payload).get(5, java.util.concurrent.TimeUnit.SECONDS);
-        } catch (Exception e) {
-            log.warn("Kafka publish timeout/failure for topic={}, key={}, err={}", pacs002RequestsTopic, key, e.getMessage());
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while publishing to topic={}, key={}", pacs002RequestsTopic, key, ie);
+        } catch (java.util.concurrent.TimeoutException | java.util.concurrent.ExecutionException e) {
+            log.warn("Kafka publish timeout/failure for topic={}, key={}", pacs002RequestsTopic, key, e);
         }
     }
 }

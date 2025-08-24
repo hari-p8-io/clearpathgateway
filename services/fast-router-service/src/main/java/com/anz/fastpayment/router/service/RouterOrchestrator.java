@@ -107,12 +107,13 @@ public class RouterOrchestrator {
             kafkaPublisher.publishInvalid(puid, xml);
             try {
                 String uniqueId = uniqueIdExtractor.extractUniqueId(xml, messageType);
-                String payload = "{" +
-                        "\"puid\":\"" + safe(puid) + "\"," +
-                        "\"messageType\":\"" + safe(messageType) + "\"," +
-                        "\"uniqueId\":\"" + safe(uniqueId) + "\"," +
-                        "\"error\":\"" + safe(xsdEx.getMessage()) + "\"," +
-                        "\"originalXml\":\"" + xml.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\"}";
+                com.fasterxml.jackson.databind.node.ObjectNode node = objectMapper.createObjectNode();
+                node.put("puid", puid);
+                node.put("messageType", messageType);
+                if (uniqueId == null || uniqueId.isBlank()) node.putNull("uniqueId"); else node.put("uniqueId", uniqueId);
+                node.put("error", xsdEx.getMessage());
+                node.put("originalXml", xml);
+                String payload = objectMapper.writeValueAsString(node);
                 kafkaPublisher.publishPacs002Request(puid, payload);
             } catch (Exception e) {
                 log.warn("[KAFKA] Failed to publish pacs002 request PUID={}, err={}", puid, e.getMessage());

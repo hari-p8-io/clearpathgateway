@@ -25,7 +25,7 @@ You can work from the repository root. For portability, use repo-relative paths 
 - curl, nc (or PowerShell Test-NetConnection on Windows)
 
 ## Local infrastructure (Docker Compose)
-Services started from `/Users/avinash/CursorProjects/clearpathgateway/docker-compose.yml`:
+Services started from `./docker-compose.yml`:
 - Zookeeper: 2181
 - Kafka broker: 9092 (PLAINTEXT)
 - ActiveMQ Classic: 61616 (JMS), 8161 (Web console)
@@ -39,7 +39,7 @@ docker compose -f ./docker-compose.yml up -d zookeeper kafka activemq spanner-em
 
 Verify:
 ```bash
-# Kafka port
+# Kafka port (host listener)
 nc -zv localhost 29092
 # Windows (PowerShell):
 # Test-NetConnection -ComputerName localhost -Port 29092 | Format-List -Property TcpTestSucceeded
@@ -73,10 +73,10 @@ mvn -q -pl ./services/fast-router-service -DskipTests clean package
 Run the app (from repo root):
 ```bash
 # Option A (recommended during local dev)
-mvn -q -pl ./services/fast-router-service \
-  -Dspring-boot.run.profiles=local \
-  -Dspring-boot.run.jvmArguments="-DSPANNER_EMULATOR_HOST=localhost:9010 -DSPRING_CLOUD_GCP_PROJECT_ID=local-project" \
-  spring-boot:run \
+SPRING_PROFILES_ACTIVE=local \
+SPRING_CLOUD_GCP_PROJECT_ID=local-project \
+SPANNER_EMULATOR_HOST=localhost:9010 \
+mvn -q -pl ./services/fast-router-service spring-boot:run \
   > /tmp/router.jar.log 2>&1 & echo $!
 
 # Option B (if you prefer the JAR)
@@ -94,6 +94,7 @@ curl -s http://localhost:8080/actuator/health
 
 ## Configuration reference
 Main config file: `services/fast-router-service/src/main/resources/application.yml`
+- Local profile overrides: `application-local.yml` (enable with `SPRING_PROFILES_ACTIVE=local`). Ensure it sets `spring.kafka.bootstrap-servers: localhost:29092`.
 - ActiveMQ
   - `spring.activemq.broker-url`: `tcp://localhost:61616`
   - `spring.activemq.user` / `spring.activemq.password`: `admin` / `admin`
@@ -183,7 +184,7 @@ curl -s http://localhost:8080/actuator/health
 ## Tests
 Run unit tests for this module:
 ```bash
-cd /Users/avinash/CursorProjects/clearpathgateway
+cd ${REPO_ROOT:-.}
 mvn -q -pl services/fast-router-service test
 ```
 
@@ -212,8 +213,7 @@ lsof -iTCP:8080 -sTCP:LISTEN -n -P
 kill <pid>
 
 # Stop infra
-cd /Users/avinash/CursorProjects/clearpathgateway
-docker compose -f docker-compose.yml down
+docker compose -f ./docker-compose.yml down
 ```
 
 ---

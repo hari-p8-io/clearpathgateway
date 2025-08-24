@@ -51,7 +51,7 @@ test('valid flow persists unified JSON (Spanner) end-to-end', async () => {
       if (rows.length > 0) { found = true; break; }
     } catch (e: any) {
       const msg = String(e?.message || e);
-      if (msg.includes('Table not found: UnifiedMessages')) {
+      if (msg.includes('Table not found: UnifiedMessages') && process.env.SPANNER_EMULATOR_HOST) {
         // Create table on the fly (local emulator only)
         const sp = new Spanner({ projectId });
         const database = sp.instance(instanceId).database(databaseId);

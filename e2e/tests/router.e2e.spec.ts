@@ -47,25 +47,34 @@ test.describe('Fast Router Service E2E', () => {
 
     // Consume from Kafka payment-messages to confirm flow
     const brokers = (process.env.KAFKA_BROKERS || 'localhost:29092').split(',');
-    const kafka = new Kafka({ clientId: 'e2e-router', brokers });
-    const consumer = kafka.consumer({ groupId: 'e2e-router' });
+    const uniqueGroup = `e2e-router-${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+    const kafka = new Kafka({ clientId: uniqueGroup, brokers });
+    const consumer = kafka.consumer({ groupId: uniqueGroup });
     await consumer.connect();
-    await consumer.subscribe({ topic: process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages', fromBeginning: true });
-    await consumer.subscribe({ topic: process.env.EXCEPTION_TOPIC || 'exception-queue', fromBeginning: true });
-    let seen = false;
+    await consumer.subscribe({ topic: process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages', fromBeginning: false });
+    await consumer.subscribe({ topic: process.env.EXCEPTION_TOPIC || 'exception-queue', fromBeginning: false });
+    let resolved = false;
+    const timeoutId = setTimeout(() => { if (!resolved) resolved = true; }, 15000);
     await new Promise<void>((resolve) => {
       consumer.run({
         eachMessage: async ({ topic, message }) => {
-          const v = message.value?.toString() || '';
-          if (v.length === 0) return;
-          if (topic.includes('payment-messages') && v.includes('messageType') && v.includes('puid')) { seen = true; resolve(); }
-          if (topic.includes('exception-queue') && v.startsWith('<')) { seen = true; resolve(); }
+          if (!message.value) return;
+          const raw = message.value.toString();
+          try {
+            const obj = JSON.parse(raw);
+            if (topic === (process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages') && obj && obj.messageType && obj.puid) {
+              if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(); }
+            }
+          } catch {
+            if (topic === (process.env.EXCEPTION_TOPIC || 'exception-queue') && raw.startsWith('<')) {
+              if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(); }
+            }
+          }
         },
       });
-      setTimeout(resolve, 15000);
     });
     await consumer.disconnect();
-    expect(seen).toBeTruthy();
+    expect(resolved).toBeTruthy();
   });
 });
 

@@ -9,6 +9,8 @@ export function spannerClient(projectId: string, instanceId: string, databaseId:
       const [rows] = await database.run({ sql, params });
       return rows.map(r => r.toJSON());
     },
-    close: async () => database.close()
+    close: async () => {
+      try { await database.close(); } finally { await spanner.close(); }
+    }
   };
 }
