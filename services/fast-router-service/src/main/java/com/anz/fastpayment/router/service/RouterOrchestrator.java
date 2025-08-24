@@ -71,8 +71,16 @@ public class RouterOrchestrator {
         log.info("[PROC] Starting processing for inbound message");
         String puid = puidGenerator.nextPuid();
         log.info("[PUID] Generated PUID={}", puid);
+        if (xml == null || xml.trim().isEmpty()) {
+            log.error("[PROC] Blank XML received; aborting. PUID={}", puid);
+            return;
+        }
         String messageType = typeDetector.detectType(xml);
         log.info("[DETECT] Detected messageType={}", messageType);
+        if (messageType == null || messageType.trim().isEmpty()) {
+            log.error("[PROC] Could not detect messageType; aborting. PUID={}", puid);
+            return;
+        }
 
         // Best-effort persist RECEIVED
         try {
@@ -131,7 +139,9 @@ public class RouterOrchestrator {
         // Dedup placeholder (currently non-blocking)
         try {
             String uniqueId = uniqueIdExtractor.extractUniqueId(xml, messageType);
-            if (duplicateChecker.isDuplicateAndRecord(messageType, uniqueId, xml)) {
+            if (uniqueId == null || uniqueId.trim().isEmpty()) {
+                log.info("[DEDUP] Skipping dedup for PUID={} due to missing uniqueId", puid);
+            } else if (duplicateChecker.isDuplicateAndRecord(messageType, uniqueId, xml)) {
                 log.info("[DEDUP] Skipping duplicate message for PUID={} (uniqueId={})", puid, uniqueId);
                 return;
             }

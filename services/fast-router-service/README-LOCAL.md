@@ -128,7 +128,7 @@ Local-only topic auto-creation is gated by `@Profile("local")` in `KafkaTopicCon
 On startup (local profile), `SpannerLocalSchema` will auto-create:
 - Instance: `payment-gateway-local` (emulator config)
 - Database: `router-db`
-- Table: `InboundMessages`
+- Tables: `InboundMessages`, `UnifiedMessages`, `RouterEvents`
 
 ## Send a sample message (ActiveMQ)
 Using ActiveMQ REST API (auth via env vars):
@@ -789,6 +789,7 @@ These examples illustrate the typical unified JSON structure produced by the tra
 - Router emits a payment event JSON to `${app.kafka.topics.payment-events}` and stores a copy in `RouterEvents` (local emulator).
 
 Tables auto-created in local profile:
+- `InboundMessages(puid STRING(16) PK, channel_id STRING(64), message_type STRING(64), received_at TIMESTAMP, raw_xml STRING(MAX), status STRING(32), error STRING(MAX))`
 - `UnifiedMessages(puid STRING(16) PK, message_type STRING(64), created_at TIMESTAMP, json STRING(MAX))`
 - `RouterEvents(puid STRING(16) PK, topic STRING(128), created_at TIMESTAMP, json STRING(MAX))`
 

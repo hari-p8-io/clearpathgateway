@@ -53,9 +53,7 @@ test.describe('Fast Router Service E2E', () => {
     await consumer.connect();
     await consumer.subscribe({ topic: process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages', fromBeginning: false });
     await consumer.subscribe({ topic: process.env.EXCEPTION_TOPIC || 'exception-queue', fromBeginning: false });
-    let resolved = false;
-    const timeoutId = setTimeout(() => { if (!resolved) resolved = true; }, 15000);
-    await new Promise<void>((resolve) => {
+    const waitForMessage = new Promise<boolean>((resolve) => {
       consumer.run({
         eachMessage: async ({ topic, message }) => {
           if (!message.value) return;
@@ -63,18 +61,19 @@ test.describe('Fast Router Service E2E', () => {
           try {
             const obj = JSON.parse(raw);
             if (topic === (process.env.PAYMENT_MESSAGES_TOPIC || 'payment-messages') && obj && obj.messageType && obj.puid) {
-              if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(); }
+              resolve(true);
             }
           } catch {
-            if (topic === (process.env.EXCEPTION_TOPIC || 'exception-queue') && raw.startsWith('<')) {
-              if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(); }
-            }
+            // ignore parse errors; we only assert payment-messages JSON path here
           }
         },
       });
     });
+    const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 15000));
+    const ok = await Promise.race([waitForMessage, timeout]);
+    await consumer.stop();
     await consumer.disconnect();
-    expect(resolved).toBeTruthy();
+    expect(ok).toBeTruthy();
   });
 });
 
