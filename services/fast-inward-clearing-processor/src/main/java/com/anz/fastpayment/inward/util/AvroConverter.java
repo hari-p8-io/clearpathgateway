@@ -46,11 +46,13 @@ public class AvroConverter {
             transactionMessage.setTransactionType(unifiedMessage.getTransactionType());
             transactionMessage.setPriority(unifiedMessage.getPriority());
             
-            // Parse timestamp string to LocalDateTime
+            // Parse timestamp from Instant to LocalDateTime
             if (unifiedMessage.getTimestamp() != null) {
                 try {
-                    LocalDateTime timestamp = LocalDateTime.parse(unifiedMessage.getTimestamp(), TIMESTAMP_FORMATTER);
-                    transactionMessage.setTimestamp(timestamp);
+                    // Convert Instant to LocalDateTime
+                    Instant timestamp = unifiedMessage.getTimestamp();
+                    LocalDateTime localDateTime = LocalDateTime.ofInstant(timestamp, java.time.ZoneOffset.UTC);
+                    transactionMessage.setTimestamp(localDateTime);
                 } catch (Exception e) {
                     logger.warn("Could not parse timestamp: {}", unifiedMessage.getTimestamp());
                     transactionMessage.setTimestamp(LocalDateTime.now());
@@ -150,7 +152,7 @@ public class AvroConverter {
      */
     public static UnifiedPaymentMessage createUnifiedPaymentMessage(
             String transactionId, double amount, String currency, String senderAccount,
-            String receiverAccount, String transactionType, String priority, String timestamp,
+            String receiverAccount, String transactionType, String priority, Instant timestamp,
             String componentName, String uuid, String channel, String direction, String domainName) {
         
         try {
@@ -365,7 +367,7 @@ public class AvroConverter {
             "0987654321",
             "CTI",
             "HIGH",
-            Instant.now().toString(),
+            Instant.now(),
             "PSPAPFAFAST",
             "UUID-" + System.currentTimeMillis(),
             "G3I",

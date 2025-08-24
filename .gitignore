@@ -49,7 +49,6 @@ Thumbs.db
 
 # Docker
 .dockerignore
-docker-compose.override.yml
 
 # Temporary files
 *.tmp
@@ -98,8 +97,7 @@ playwright/playwright/.cache/
 
 
 # Docker local overrides
-docker-compose.override.yml
-docker-compose.*.yml
+/docker-compose.*.yml
 !docker-compose.yml
 
 # Local configuration overrides

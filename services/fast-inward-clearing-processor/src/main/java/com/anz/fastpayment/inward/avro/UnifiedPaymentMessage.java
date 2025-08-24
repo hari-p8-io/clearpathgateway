@@ -15,13 +15,16 @@ import org.apache.avro.message.SchemaStore;
 /** Simplified Unified Payment Message for Fast Payment System */
 @org.apache.avro.specific.AvroGenerated
 public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 2783155963092609572L;
+  private static final long serialVersionUID = 7186329850997605734L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UnifiedPaymentMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Simplified Unified Payment Message for Fast Payment System\",\"fields\":[{\"name\":\"transactionId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique transaction identifier\"},{\"name\":\"amount\",\"type\":\"double\",\"doc\":\"Transaction amount\"},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code (e.g., SGD)\"},{\"name\":\"senderAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Sender account number\"},{\"name\":\"receiverAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Receiver account number\"},{\"name\":\"transactionType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of transaction (CTI, DDI, etc.)\"},{\"name\":\"priority\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction priority (HIGH, NORMAL, LOW)\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction timestamp in ISO format\"},{\"name\":\"componentName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Component name (e.g., PSPAPFAFAST)\"},{\"name\":\"uuid\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique identifier for the message\"},{\"name\":\"channel\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Channel identifier (e.g., G3I)\"},{\"name\":\"direction\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Direction (I for Inward, O for Outward)\"},{\"name\":\"domainName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Domain name (e.g., PAYMENTS)\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UnifiedPaymentMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Simplified Unified Payment Message for Fast Payment System\",\"fields\":[{\"name\":\"transactionId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique transaction identifier\"},{\"name\":\"amount\",\"type\":\"double\",\"doc\":\"Transaction amount\"},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code (e.g., SGD)\"},{\"name\":\"senderAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Sender account number\"},{\"name\":\"receiverAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Receiver account number\"},{\"name\":\"transactionType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of transaction (CTI, DDI, etc.)\"},{\"name\":\"priority\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction priority (HIGH, NORMAL, LOW)\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"},\"doc\":\"Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)\"},{\"name\":\"componentName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Component name (e.g., PSPAPFAFAST)\"},{\"name\":\"uuid\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique identifier for the message\"},{\"name\":\"channel\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Channel identifier (e.g., G3I)\"},{\"name\":\"direction\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Direction (I for Inward, O for Outward)\"},{\"name\":\"domainName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Domain name (e.g., PAYMENTS)\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
+  static {
+    MODEL$.addLogicalTypeConversion(new org.apache.avro.data.TimeConversions.TimestampMillisConversion());
+  }
 
   private static final BinaryMessageEncoder<UnifiedPaymentMessage> ENCODER =
       new BinaryMessageEncoder<>(MODEL$, SCHEMA$);
@@ -88,8 +91,8 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
   private java.lang.String transactionType;
   /** Transaction priority (HIGH, NORMAL, LOW) */
   private java.lang.String priority;
-  /** Transaction timestamp in ISO format */
-  private java.lang.String timestamp;
+  /** Transaction timestamp in epoch milliseconds (Unix timestamp * 1000) */
+  private java.time.Instant timestamp;
   /** Component name (e.g., PSPAPFAFAST) */
   private java.lang.String componentName;
   /** Unique identifier for the message */
@@ -117,14 +120,14 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
    * @param receiverAccount Receiver account number
    * @param transactionType Type of transaction (CTI, DDI, etc.)
    * @param priority Transaction priority (HIGH, NORMAL, LOW)
-   * @param timestamp Transaction timestamp in ISO format
+   * @param timestamp Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
    * @param componentName Component name (e.g., PSPAPFAFAST)
    * @param uuid Unique identifier for the message
    * @param channel Channel identifier (e.g., G3I)
    * @param direction Direction (I for Inward, O for Outward)
    * @param domainName Domain name (e.g., PAYMENTS)
    */
-  public UnifiedPaymentMessage(java.lang.String transactionId, java.lang.Double amount, java.lang.String currency, java.lang.String senderAccount, java.lang.String receiverAccount, java.lang.String transactionType, java.lang.String priority, java.lang.String timestamp, java.lang.String componentName, java.lang.String uuid, java.lang.String channel, java.lang.String direction, java.lang.String domainName) {
+  public UnifiedPaymentMessage(java.lang.String transactionId, java.lang.Double amount, java.lang.String currency, java.lang.String senderAccount, java.lang.String receiverAccount, java.lang.String transactionType, java.lang.String priority, java.time.Instant timestamp, java.lang.String componentName, java.lang.String uuid, java.lang.String channel, java.lang.String direction, java.lang.String domainName) {
     this.transactionId = transactionId;
     this.amount = amount;
     this.currency = currency;
@@ -132,7 +135,7 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     this.receiverAccount = receiverAccount;
     this.transactionType = transactionType;
     this.priority = priority;
-    this.timestamp = timestamp;
+    this.timestamp = timestamp.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
     this.componentName = componentName;
     this.uuid = uuid;
     this.channel = channel;
@@ -167,6 +170,29 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     }
   }
 
+  private static final org.apache.avro.Conversion<?>[] conversions =
+      new org.apache.avro.Conversion<?>[] {
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      new org.apache.avro.data.TimeConversions.TimestampMillisConversion(),
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+  };
+
+  @Override
+  public org.apache.avro.Conversion<?> getConversion(int field) {
+    return conversions[field];
+  }
+
   // Used by DatumReader.  Applications should not call.
   @Override
   @SuppressWarnings(value="unchecked")
@@ -179,7 +205,7 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     case 4: receiverAccount = value$ != null ? value$.toString() : null; break;
     case 5: transactionType = value$ != null ? value$.toString() : null; break;
     case 6: priority = value$ != null ? value$.toString() : null; break;
-    case 7: timestamp = value$ != null ? value$.toString() : null; break;
+    case 7: timestamp = (java.time.Instant)value$; break;
     case 8: componentName = value$ != null ? value$.toString() : null; break;
     case 9: uuid = value$ != null ? value$.toString() : null; break;
     case 10: channel = value$ != null ? value$.toString() : null; break;
@@ -317,20 +343,20 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
 
   /**
    * Gets the value of the 'timestamp' field.
-   * @return Transaction timestamp in ISO format
+   * @return Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
    */
-  public java.lang.String getTimestamp() {
+  public java.time.Instant getTimestamp() {
     return timestamp;
   }
 
 
   /**
    * Sets the value of the 'timestamp' field.
-   * Transaction timestamp in ISO format
+   * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
    * @param value the value to set.
    */
-  public void setTimestamp(java.lang.String value) {
-    this.timestamp = value;
+  public void setTimestamp(java.time.Instant value) {
+    this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
   }
 
   /**
@@ -478,8 +504,8 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     private java.lang.String transactionType;
     /** Transaction priority (HIGH, NORMAL, LOW) */
     private java.lang.String priority;
-    /** Transaction timestamp in ISO format */
-    private java.lang.String timestamp;
+    /** Transaction timestamp in epoch milliseconds (Unix timestamp * 1000) */
+    private java.time.Instant timestamp;
     /** Component name (e.g., PSPAPFAFAST) */
     private java.lang.String componentName;
     /** Unique identifier for the message */
@@ -925,30 +951,30 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
 
     /**
       * Gets the value of the 'timestamp' field.
-      * Transaction timestamp in ISO format
+      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
       * @return The value.
       */
-    public java.lang.String getTimestamp() {
+    public java.time.Instant getTimestamp() {
       return timestamp;
     }
 
 
     /**
       * Sets the value of the 'timestamp' field.
-      * Transaction timestamp in ISO format
+      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
       * @param value The value of 'timestamp'.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setTimestamp(java.lang.String value) {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setTimestamp(java.time.Instant value) {
       validate(fields()[7], value);
-      this.timestamp = value;
+      this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
       fieldSetFlags()[7] = true;
       return this;
     }
 
     /**
       * Checks whether the 'timestamp' field has been set.
-      * Transaction timestamp in ISO format
+      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
       * @return True if the 'timestamp' field has been set, false otherwise.
       */
     public boolean hasTimestamp() {
@@ -958,11 +984,10 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
 
     /**
       * Clears the value of the 'timestamp' field.
-      * Transaction timestamp in ISO format
+      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearTimestamp() {
-      timestamp = null;
       fieldSetFlags()[7] = false;
       return this;
     }
@@ -1199,7 +1224,7 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
         record.receiverAccount = fieldSetFlags()[4] ? this.receiverAccount : (java.lang.String) defaultValue(fields()[4]);
         record.transactionType = fieldSetFlags()[5] ? this.transactionType : (java.lang.String) defaultValue(fields()[5]);
         record.priority = fieldSetFlags()[6] ? this.priority : (java.lang.String) defaultValue(fields()[6]);
-        record.timestamp = fieldSetFlags()[7] ? this.timestamp : (java.lang.String) defaultValue(fields()[7]);
+        record.timestamp = fieldSetFlags()[7] ? this.timestamp : (java.time.Instant) defaultValue(fields()[7]);
         record.componentName = fieldSetFlags()[8] ? this.componentName : (java.lang.String) defaultValue(fields()[8]);
         record.uuid = fieldSetFlags()[9] ? this.uuid : (java.lang.String) defaultValue(fields()[9]);
         record.channel = fieldSetFlags()[10] ? this.channel : (java.lang.String) defaultValue(fields()[10]);
@@ -1232,131 +1257,6 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     READER$.read(this, SpecificData.getDecoder(in));
   }
 
-  @Override protected boolean hasCustomCoders() { return true; }
-
-  @Override public void customEncode(org.apache.avro.io.Encoder out)
-    throws java.io.IOException
-  {
-    out.writeString(this.transactionId);
-
-    out.writeDouble(this.amount);
-
-    out.writeString(this.currency);
-
-    out.writeString(this.senderAccount);
-
-    out.writeString(this.receiverAccount);
-
-    out.writeString(this.transactionType);
-
-    out.writeString(this.priority);
-
-    out.writeString(this.timestamp);
-
-    out.writeString(this.componentName);
-
-    out.writeString(this.uuid);
-
-    out.writeString(this.channel);
-
-    out.writeString(this.direction);
-
-    out.writeString(this.domainName);
-
-  }
-
-  @Override public void customDecode(org.apache.avro.io.ResolvingDecoder in)
-    throws java.io.IOException
-  {
-    org.apache.avro.Schema.Field[] fieldOrder = in.readFieldOrderIfDiff();
-    if (fieldOrder == null) {
-      this.transactionId = in.readString();
-
-      this.amount = in.readDouble();
-
-      this.currency = in.readString();
-
-      this.senderAccount = in.readString();
-
-      this.receiverAccount = in.readString();
-
-      this.transactionType = in.readString();
-
-      this.priority = in.readString();
-
-      this.timestamp = in.readString();
-
-      this.componentName = in.readString();
-
-      this.uuid = in.readString();
-
-      this.channel = in.readString();
-
-      this.direction = in.readString();
-
-      this.domainName = in.readString();
-
-    } else {
-      for (int i = 0; i < 13; i++) {
-        switch (fieldOrder[i].pos()) {
-        case 0:
-          this.transactionId = in.readString();
-          break;
-
-        case 1:
-          this.amount = in.readDouble();
-          break;
-
-        case 2:
-          this.currency = in.readString();
-          break;
-
-        case 3:
-          this.senderAccount = in.readString();
-          break;
-
-        case 4:
-          this.receiverAccount = in.readString();
-          break;
-
-        case 5:
-          this.transactionType = in.readString();
-          break;
-
-        case 6:
-          this.priority = in.readString();
-          break;
-
-        case 7:
-          this.timestamp = in.readString();
-          break;
-
-        case 8:
-          this.componentName = in.readString();
-          break;
-
-        case 9:
-          this.uuid = in.readString();
-          break;
-
-        case 10:
-          this.channel = in.readString();
-          break;
-
-        case 11:
-          this.direction = in.readString();
-          break;
-
-        case 12:
-          this.domainName = in.readString();
-          break;
-
-        default:
-          throw new java.io.IOException("Corrupt ResolvingDecoder.");
-        }
-      }
-    }
-  }
 }
 
 

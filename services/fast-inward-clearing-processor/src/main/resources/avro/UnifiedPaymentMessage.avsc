@@ -41,8 +41,11 @@
     },
     {
       "name": "timestamp",
-      "type": "string",
-      "doc": "Transaction timestamp in ISO format"
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)"
     },
     {
       "name": "componentName",

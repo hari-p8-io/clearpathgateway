@@ -1,20 +1,8 @@
 spring:
   application:
-    name: fast-inward-clearing-processor
+    name: fast-outward-clearing-processor
   profiles:
     active: local
-  cloud:
-    gcp:
-      core:
-        enabled: true
-        project-id: test-project
-      spanner:
-        enabled: true
-        instance-id: test-instance
-        database: test-database
-        emulator:
-          enabled: true
-          host: localhost:9010
   
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
@@ -24,14 +12,14 @@ spring:
       retries: 3
       acks: all
       properties:
-        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
     consumer:
       group-id: ${spring.application.name}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       auto-offset-reset: earliest
       properties:
-        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
         specific.avro.reader: false
 
   data:
@@ -59,13 +47,13 @@ management:
 
 # Application Configuration
 app:
-  name: Fast Inward Clearing Processor
+  name: Fast Outward Clearing Processor
   version: 21.0.0-apeafast-SNAPSHOT
   
   # Kafka Topic Configuration
   kafka:
     topics:
-      input: transactions.incoming
+      input: transactions.outgoing
       output: transactions.processed
       dlq: transactions.dlq
     consumer:
@@ -77,7 +65,7 @@ app:
       retries: 3
       enable-idempotence: true
     schema-registry:
-      url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+      url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
   
   # Business Rules Configuration
   business-rules:
@@ -90,54 +78,56 @@ app:
   
   # Processing Configuration
   processing:
-    node-id: inward-processor-01
+    node-id: outward-processor-01
   
   # SLA Configuration
   sla:
-    timeout-seconds: ${SLA_TIMEOUT_SECONDS:4.5}
-    warning-threshold-seconds: 3.0
+    timeout-seconds: ${SLA_TIMEOUT_SECONDS:2.0}
+    warning-threshold-seconds: 1.5
     
   # External service endpoints
   external:
-    vam-endpoint: ${VAM_ENDPOINT:http://localhost:8445/vam}
-    midanz-endpoint: ${MIDANZ_ENDPOINT:http://localhost:8446/midanz}
     liquidity-service-url: ${LIQUIDITY_SERVICE_URL:http://fast-liquidity-service:8080}
-    sender-service-url: ${SENDER_SERVICE_URL:http://fast-sender-service:8080}
-    
-  # Circuit breaker configuration
-  circuit-breaker:
-    failure-rate-threshold: 50
-    wait-duration-in-open-state: 30s
-    sliding-window-size: 10
 
 logging:
   level:
     com.anz.fastpayment: DEBUG
-    org.springframework.statemachine: INFO
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 ---
 spring:
   config:
     activate:
-      on-profile: local
-  cloud:
-    gcp:
-      spanner:
-        instance-id: ${SPANNER_INSTANCE:payment-gateway-local}
-        database: ${SPANNER_DATABASE:inward-processor-db}
-        emulator:
-          enabled: true
+      on-profile: docker
+  
+  data:
+    redis:
+      host: redis
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    producer:
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+    consumer:
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
 
 ---
 spring:
   config:
     activate:
-      on-profile: gcp
-  cloud:
-    gcp:
-      project-id: ${GCP_PROJECT_ID:anz-fastpayment-sg}
-      spanner:
-        instance-id: ${SPANNER_INSTANCE:payment-gateway}
-        database: ${SPANNER_DATABASE:inward-processor-db}
+      on-profile: production
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL}
+    consumer:
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL}

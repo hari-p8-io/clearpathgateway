@@ -124,7 +124,8 @@ DATABASE_USERNAME=dev_user
 DATABASE_PASSWORD=dev_password
 
 # Kafka Configuration
-KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+SCHEMA_REGISTRY_URL=http://schema-registry:8081
 
 # Redis Configuration
 REDIS_HOST=redis

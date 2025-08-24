@@ -128,7 +128,7 @@ metadata:
   name: kafka-config
   namespace: fast-payment
 data:
-  bootstrap-servers: "kafka-broker:9092"
+  bootstrap-servers: "${KAFKA_BOOTSTRAP_SERVERS}"
 ---
 apiVersion: v1
 kind: ConfigMap
