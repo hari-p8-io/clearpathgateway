@@ -17,7 +17,7 @@ docker-compose up -d
 
 **Services:**
 - Zookeeper (port 2181)
-- Kafka (port 9092) 
+- Kafka (port 9092)
 - Schema Registry (port 8081)
 
 ## 📦 **Maven Dependencies**

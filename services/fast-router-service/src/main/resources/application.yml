@@ -3,12 +3,12 @@ spring:
     name: fast-router-service
   profiles:
     active: local
-  
+
   # Enable Virtual Threads for Java 21
   threads:
     virtual:
       enabled: true
-  
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
@@ -54,9 +54,9 @@ management:
       show-details: always
     metrics:
       enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -66,18 +66,18 @@ management:
 app:
   name: Fast Router Service
   version: 21.0.0-apeafast-SNAPSHOT
-  
+
   # Message processing configuration
   router:
     timeout-ms: ${MESSAGE_TIMEOUT_MS:4500}
     duplicate-cache-ttl-minutes: ${DUPLICATE_CACHE_TTL_MINUTES:60}
     max-retry-attempts: 3
-    
+
   # External service endpoints
   external:
     cpg-endpoint: ${CPG_ENDPOINT:http://localhost:8444/cpg}
     g3-host-endpoint: ${G3_HOST_ENDPOINT:http://localhost:8443/g3host}
-    
+
   # Kafka topics
   kafka:
     topics:

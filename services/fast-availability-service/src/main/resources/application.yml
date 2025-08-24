@@ -3,7 +3,7 @@ spring:
     name: fast-availability-service
   profiles:
     active: local
-  
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
@@ -49,34 +49,30 @@ management:
 app:
   name: Fast Availability Service
   version: 21.0.0-apeafast-SNAPSHOT
-  
+
   # Kafka Topic Configuration
   kafka:
     topics:
       input: availability.requests
       output: availability.responses
       dlq: availability.dlq
-    consumer:
-      max-retries: 3
-      retry-delay: 1000
-      concurrency: 3
+
     producer:
       acks: all
       retries: 3
-      enable-idempotence: true
     schema-registry:
       url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
-  
+
   # Availability Configuration
   availability:
     cache-ttl-minutes: 5
     max-retry-attempts: 3
     retry-delay-ms: 1000
-  
+
   # Processing Configuration
   processing:
     node-id: availability-service-01
-  
+
   # SLA Configuration
   sla:
     timeout-seconds: ${SLA_TIMEOUT_SECONDS:1.0}
@@ -96,31 +92,55 @@ spring:
   config:
     activate:
       on-profile: docker
-  
+
   data:
     redis:
       host: redis
-  
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+        enable.idempotence: true
     consumer:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+    listener:
+      concurrency: 3
+      ack-mode: manual
+      type: single
+      # Retry configuration
+      retry:
+        enabled: true
+        initial-interval: 1s
+        max-attempts: 3
+        multiplier: 2.0
+        max-interval: 10s
 
 ---
 spring:
   config:
     activate:
       on-profile: production
-  
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL}
+        enable.idempotence: true
     consumer:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL}
+    listener:
+      concurrency: 3
+      ack-mode: manual
+      type: single
+      # Retry configuration
+      retry:
+        enabled: true
+        initial-interval: 1s
+        max-attempts: 3
+        multiplier: 2.0
+        max-interval: 10s

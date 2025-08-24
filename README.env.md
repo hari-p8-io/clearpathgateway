@@ -16,6 +16,35 @@ This document describes the environment variables used by the Clear Path Gateway
 - **Example**: `http://localhost:8081` (for local development)
 - **Used by**: All services that produce/consume Avro messages
 
+### SCHEMA_REGISTRY_USERNAME
+- **Description**: Username for Schema Registry authentication (required for production Confluent deployments)
+- **Default**: None (no authentication for local development)
+- **Example**: `prod_user`
+- **Used by**: All services that produce/consume Avro messages
+- **Note**: Set in deployment secrets/configuration store, do not hardcode in code
+
+### SCHEMA_REGISTRY_PASSWORD
+- **Description**: Password for Schema Registry authentication (required for production Confluent deployments)
+- **Default**: None (no authentication for local development)
+- **Example**: `********` (stored securely in secrets)
+- **Used by**: All services that produce/consume Avro messages
+- **Note**: Set in deployment secrets/configuration store, do not hardcode in code
+
+> **⚠️ Schema Registry Authentication Important**:
+> - **Local Development**: No authentication required, uses default Docker Compose setup
+> - **Production Confluent**: **MUST** set `SCHEMA_REGISTRY_USERNAME` and `SCHEMA_REGISTRY_PASSWORD`
+> - **Security**: Store credentials in Kubernetes secrets, HashiCorp Vault, or equivalent secret management system
+> - **Never hardcode** authentication credentials in code, configuration files, or commit them to version control
+>
+> **Configuration Example**:
+> ```yaml
+> spring:
+>   kafka:
+>     properties:
+>       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+>       schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
+> ```
+
 ## Service Configuration
 
 ### SPRING_PROFILES_ACTIVE
@@ -60,8 +89,28 @@ This document describes the environment variables used by the Clear Path Gateway
 
 ### FAST_LIQUIDITY_SERVICE_URL
 - **Description**: URL for the Fast Liquidity Service
-- **Default**: `http://fast-liquidity-service:8080`
+- **Default**: `http://fast-liquidity-service:8084`
 - **Used by**: Services that require liquidity checks
+
+### FAST_INWARD_PROCESSOR_URL
+- **Description**: URL for the Fast Inward Clearing Processor
+- **Default**: `http://fast-inward-clearing-processor:8081`
+- **Used by**: Services that communicate with the inward processor
+
+### FAST_OUTWARD_PROCESSOR_URL
+- **Description**: URL for the Fast Outward Clearing Processor
+- **Default**: `http://fast-outward-clearing-processor:8082`
+- **Used by**: Services that communicate with the outward processor
+
+### FAST_SENDER_SERVICE_URL
+- **Description**: URL for the Fast Sender Service
+- **Default**: `http://fast-sender-service:8083`
+- **Used by**: Services that communicate with the sender service
+
+### FAST_AVAILABILITY_SERVICE_URL
+- **Description**: URL for the Fast Availability Service
+- **Default**: `http://fast-availability-service:8085`
+- **Used by**: Services that communicate with the availability service
 
 ### G3_HOST_ENDPOINT
 - **Description**: G3 Host system endpoint
@@ -117,6 +166,14 @@ export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 export SCHEMA_REGISTRY_URL=http://localhost:8081
 export REDIS_HOST=localhost
 export DATABASE_URL=jdbc:postgresql://localhost:5432/payment_gateway
+
+# Service URLs for local development
+export FAST_ROUTER_SERVICE_URL=http://localhost:8080
+export FAST_LIQUIDITY_SERVICE_URL=http://localhost:8084
+export FAST_INWARD_PROCESSOR_URL=http://localhost:8081
+export FAST_OUTWARD_PROCESSOR_URL=http://localhost:8082
+export FAST_SENDER_SERVICE_URL=http://localhost:8083
+export FAST_AVAILABILITY_SERVICE_URL=http://localhost:8085
 ```
 
 ### Docker Compose
@@ -125,12 +182,22 @@ export KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 export SCHEMA_REGISTRY_URL=http://schema-registry:8081
 export REDIS_HOST=redis
 export DATABASE_URL=jdbc:postgresql://postgres:5432/payment_gateway
+
+# Service URLs for Docker Compose
+export FAST_ROUTER_SERVICE_URL=http://fast-router-service:8080
+export FAST_LIQUIDITY_SERVICE_URL=http://fast-liquidity-service:8084
+export FAST_INWARD_PROCESSOR_URL=http://fast-inward-clearing-processor:8081
+export FAST_OUTWARD_PROCESSOR_URL=http://fast-outward-clearing-processor:8082
+export FAST_SENDER_SERVICE_URL=http://fast-sender-service:8083
+export FAST_AVAILABILITY_SERVICE_URL=http://fast-availability-service:8085
 ```
 
 ### Production
 ```bash
 export KAFKA_BOOTSTRAP_SERVERS=kafka-cluster:9092
 export SCHEMA_REGISTRY_URL=https://schema-registry.company.com
+export SCHEMA_REGISTRY_USERNAME=prod_user
+export SCHEMA_REGISTRY_PASSWORD=********
 export REDIS_HOST=redis-cluster.company.com
 export DATABASE_URL=jdbc:postgresql://db-cluster.company.com:5432/payment_gateway
 ```
@@ -150,3 +217,5 @@ The environment variables are configured in:
 - Local development requires setting appropriate localhost values
 - Production deployments should override all sensitive configuration values
 - Schema Registry URL is required for all services that handle Avro messages
+- **Schema Registry Authentication**: Production Confluent deployments require `SCHEMA_REGISTRY_USERNAME` and `SCHEMA_REGISTRY_PASSWORD` to be set in deployment secrets/configuration stores. Never hardcode these values in code or configuration files.
+- **Service Port Mapping**: Docker Compose maps container port 8080 to different host ports for each service to avoid conflicts. Use the documented host ports for external access.

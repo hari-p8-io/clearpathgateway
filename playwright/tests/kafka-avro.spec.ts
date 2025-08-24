@@ -64,10 +64,10 @@ test.describe('Kafka + Avro Integration Tests', () => {
   test('should connect to Kafka successfully', async () => {
     const admin = kafka.admin();
     await admin.connect();
-    
+
     const metadata = await admin.fetchTopicMetadata();
     expect(metadata.topics).toBeDefined();
-    
+
     await admin.disconnect();
   });
 
@@ -100,7 +100,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
     // Encode message using Schema Registry
     const encodedMessage = await schemaRegistry.encode(registeredSchema.id, testMessage);
     expect(encodedMessage).toBeInstanceOf(Buffer);
-    
+
     // Verify the encoded message starts with magic byte and schema ID
     expect(encodedMessage[0]).toBe(0); // Magic byte
     expect(encodedMessage.readUInt32BE(1)).toBe(registeredSchema.id); // Schema ID
@@ -119,9 +119,9 @@ test.describe('Kafka + Avro Integration Tests', () => {
     // Consume and decode message
     let consumedMessage: any = null;
     let messageReceived = false;
-    
+
     await consumer.subscribe({ topic: 'transactions.incoming', fromBeginning: true });
-    
+
     const consumePromise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Timeout waiting for message consumption'));
@@ -151,7 +151,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
     } catch (error: unknown) {
       console.log('Consumption timeout, verifying production instead');
     }
-    
+
     // Verify the message if we got it
     if (consumedMessage) {
       expect(consumedMessage.id).toBe('TEST-001');
@@ -173,7 +173,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
   test('should handle schema evolution and compatibility', async () => {
     // Register initial schema
     const initialRegisteredSchema = await schemaRegistry.register(testMessageSchema, { subject: 'transactions.incoming-value' });
-    
+
     // Create evolved schema (add new field)
     const evolvedSchema = {
       ...testMessageSchema,
@@ -198,7 +198,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
 
     // Encode with old schema
     const encodedOldMessage = await schemaRegistry.encode(initialRegisteredSchema.id, oldMessage);
-    
+
     // Decode with the same schema (this is what actually works)
     const decodedOldMessage = await schemaRegistry.decode(encodedOldMessage);
     expect(decodedOldMessage.id).toBe('EVOLVED-001');
@@ -216,21 +216,21 @@ test.describe('Kafka + Avro Integration Tests', () => {
 
     // Encode with new schema
     const encodedNewMessage = await schemaRegistry.encode(evolvedRegisteredSchema.id, newMessage);
-    
+
     // Decode with the same evolved schema
     const decodedNewMessage = await schemaRegistry.decode(encodedNewMessage);
     expect(decodedNewMessage.id).toBe('EVOLVED-002');
     expect(decodedNewMessage.amount).toBe(300.25);
     expect(decodedNewMessage.currency).toBe('EUR');
     expect(decodedNewMessage.status).toBe('PENDING');
-    
+
     console.log('✅ Schema evolution test successful');
   });
 
   test('should handle large messages with Schema Registry', async () => {
     // Register large message schema
     const registeredSchema = await schemaRegistry.register(largeMessageSchema, { subject: 'transactions.incoming-value' });
-    
+
     // Create large message with all required fields
     const largeMessage = {
       id: 'LARGE-001',
@@ -248,7 +248,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
     // Encode large message
     const encodedMessage = await schemaRegistry.encode(registeredSchema.id, largeMessage);
     expect(encodedMessage).toBeInstanceOf(Buffer);
-    
+
     // Verify magic byte and schema ID
     expect(encodedMessage[0]).toBe(0);
     expect(encodedMessage.readUInt32BE(1)).toBe(registeredSchema.id);
@@ -267,7 +267,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
     const offsets = await admin.fetchTopicOffsets('transactions.incoming');
     expect(offsets).toBeDefined();
     await admin.disconnect();
-    
+
     console.log('Large message produced successfully');
   });
 
@@ -304,7 +304,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
   test('should test end-to-end message flow with Schema Registry', async () => {
     // Register schema
     const registeredSchema = await schemaRegistry.register(testMessageSchema, { subject: 'transactions.incoming-value' });
-    
+
     // Create and encode message
     const message = {
       id: 'E2E-001',
@@ -314,7 +314,7 @@ test.describe('Kafka + Avro Integration Tests', () => {
     };
 
     const encodedMessage = await schemaRegistry.encode(registeredSchema.id, message);
-    
+
     // Produce message
     await producer.send({
       topic: 'transactions.incoming',
@@ -328,9 +328,9 @@ test.describe('Kafka + Avro Integration Tests', () => {
 
     // Consume and verify
     let consumedMessage: any = null;
-    
+
     await consumer.subscribe({ topic: 'transactions.incoming', fromBeginning: true });
-    
+
     const consumePromise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('E2E test timeout'));
@@ -355,17 +355,17 @@ test.describe('Kafka + Avro Integration Tests', () => {
 
     try {
       await consumePromise;
-      
+
       // Verify end-to-end flow
       expect(consumedMessage).toBeDefined();
       expect(consumedMessage.id).toBe('E2E-001');
       expect(consumedMessage.amount).toBe(500.00);
       expect(consumedMessage.currency).toBe('SGD');
-      
+
       console.log('✅ End-to-end message flow successful');
     } catch (error: unknown) {
       console.log('E2E test timeout, verifying production instead');
-      
+
       // Verify production
       const admin = kafka.admin();
       await admin.connect();

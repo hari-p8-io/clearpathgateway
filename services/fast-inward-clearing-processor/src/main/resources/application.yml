@@ -15,7 +15,7 @@ spring:
         emulator:
           enabled: true
           host: localhost:9010
-  
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
@@ -25,6 +25,7 @@ spring:
       acks: all
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
     consumer:
       group-id: ${spring.application.name}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -32,6 +33,7 @@ spring:
       auto-offset-reset: earliest
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
         specific.avro.reader: false
 
   data:
@@ -61,49 +63,47 @@ management:
 app:
   name: Fast Inward Clearing Processor
   version: 21.0.0-apeafast-SNAPSHOT
-  
+
   # Kafka Topic Configuration
   kafka:
     topics:
       input: transactions.incoming
       output: transactions.processed
       dlq: transactions.dlq
-    consumer:
-      max-retries: 3
-      retry-delay: 1000
-      concurrency: 3
+
     producer:
       acks: all
       retries: 3
-      enable-idempotence: true
     schema-registry:
       url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
-  
+      username: ${SCHEMA_REGISTRY_USERNAME:}
+      password: ${SCHEMA_REGISTRY_PASSWORD:}
+
   # Business Rules Configuration
   business-rules:
     max-amount: SGD 1000000
     high-risk-countries: XX,YY,ZZ
-  
+
   # Idempotency Configuration
   idempotency:
     ttl-hours: 24
-  
+
   # Processing Configuration
   processing:
     node-id: inward-processor-01
-  
+
   # SLA Configuration
   sla:
     timeout-seconds: ${SLA_TIMEOUT_SECONDS:4.5}
     warning-threshold-seconds: 3.0
-    
+
   # External service endpoints
   external:
     vam-endpoint: ${VAM_ENDPOINT:http://localhost:8445/vam}
     midanz-endpoint: ${MIDANZ_ENDPOINT:http://localhost:8446/midanz}
-    liquidity-service-url: ${LIQUIDITY_SERVICE_URL:http://fast-liquidity-service:8080}
-    sender-service-url: ${SENDER_SERVICE_URL:http://fast-sender-service:8080}
-    
+    liquidity-service-url: ${LIQUIDITY_SERVICE_URL:http://fast-liquidity-service:8084}
+    sender-service-url: ${SENDER_SERVICE_URL:http://fast-sender-service:8083}
+
   # Circuit breaker configuration
   circuit-breaker:
     failure-rate-threshold: 50
@@ -117,11 +117,28 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] - %msg%n"
 
+
+
 ---
 spring:
   config:
     activate:
       on-profile: local
+  kafka:
+    producer:
+      properties:
+        enable.idempotence: true
+    listener:
+      concurrency: 3
+      ack-mode: manual
+      type: single
+      # Retry configuration
+      retry:
+        enabled: true
+        initial-interval: 1s
+        max-attempts: 3
+        multiplier: 2.0
+        max-interval: 10s
   cloud:
     gcp:
       spanner:
@@ -135,6 +152,21 @@ spring:
   config:
     activate:
       on-profile: gcp
+  kafka:
+    producer:
+      properties:
+        enable.idempotence: true
+    listener:
+      concurrency: 3
+      ack-mode: manual
+      type: single
+      # Retry configuration
+      retry:
+        enabled: true
+        initial-interval: 1s
+        max-attempts: 3
+        multiplier: 2.0
+        max-interval: 10s
   cloud:
     gcp:
       project-id: ${GCP_PROJECT_ID:anz-fastpayment-sg}
