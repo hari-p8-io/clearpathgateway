@@ -85,3 +85,30 @@ coverage/
 # Backup files
 *.bak
 *.backup
+
+# Playwright specific
+playwright/test-results/
+playwright/playwright-report/
+playwright/.cache/
+playwright/playwright/.cache/
+
+# Package lock files (optional - some teams prefer to commit these)
+# playwright/package-lock.json
+
+
+
+# Docker local overrides
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+
+# Local configuration overrides
+application-local.yml
+application-local.properties
+application-dev.yml
+application-dev.properties
+
+# Local development files
+*.local
+local.*
+dev.*

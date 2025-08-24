@@ -1,0 +1,73 @@
+{
+  "namespace": "com.anz.fastpayment.inward.avro",
+  "type": "record",
+  "name": "UnifiedPaymentMessage",
+  "doc": "Simplified Unified Payment Message for Fast Payment System",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": "string",
+      "doc": "Unique transaction identifier"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Transaction amount"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency code (e.g., SGD)"
+    },
+    {
+      "name": "senderAccount",
+      "type": "string",
+      "doc": "Sender account number"
+    },
+    {
+      "name": "receiverAccount",
+      "type": "string",
+      "doc": "Receiver account number"
+    },
+    {
+      "name": "transactionType",
+      "type": "string",
+      "doc": "Type of transaction (CTI, DDI, etc.)"
+    },
+    {
+      "name": "priority",
+      "type": "string",
+      "doc": "Transaction priority (HIGH, NORMAL, LOW)"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "Transaction timestamp in ISO format"
+    },
+    {
+      "name": "componentName",
+      "type": "string",
+      "doc": "Component name (e.g., PSPAPFAFAST)"
+    },
+    {
+      "name": "uuid",
+      "type": "string",
+      "doc": "Unique identifier for the message"
+    },
+    {
+      "name": "channel",
+      "type": "string",
+      "doc": "Channel identifier (e.g., G3I)"
+    },
+    {
+      "name": "direction",
+      "type": "string",
+      "doc": "Direction (I for Inward, O for Outward)"
+    },
+    {
+      "name": "domainName",
+      "type": "string",
+      "doc": "Domain name (e.g., PAYMENTS)"
+    }
+  ]
+}

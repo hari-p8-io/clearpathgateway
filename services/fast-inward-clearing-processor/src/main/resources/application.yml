@@ -3,27 +3,42 @@ spring:
     name: fast-inward-clearing-processor
   profiles:
     active: local
+  cloud:
+    gcp:
+      core:
+        enabled: true
+        project-id: test-project
+      spanner:
+        enabled: true
+        instance-id: test-instance
+        database: test-database
+        emulator:
+          enabled: true
+          host: localhost:9010
   
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       retries: 3
       acks: all
+      properties:
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
     consumer:
       group-id: ${spring.application.name}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       auto-offset-reset: earliest
       properties:
-        spring.json.trusted.packages: "com.anz.fastpayment.*"
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        specific.avro.reader: false
 
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      timeout: 2000ms
+      timeout: 2000
 
 server:
   port: 8080
@@ -37,15 +52,45 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
 
 # Application Configuration
 app:
   name: Fast Inward Clearing Processor
   version: 21.0.0-apeafast-SNAPSHOT
+  
+  # Kafka Topic Configuration
+  kafka:
+    topics:
+      input: transactions.incoming
+      output: transactions.processed
+      dlq: transactions.dlq
+    consumer:
+      max-retries: 3
+      retry-delay: 1000
+      concurrency: 3
+    producer:
+      acks: all
+      retries: 3
+      enable-idempotence: true
+    schema-registry:
+      url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+  
+  # Business Rules Configuration
+  business-rules:
+    max-amount: SGD 1000000
+    high-risk-countries: XX,YY,ZZ
+  
+  # Idempotency Configuration
+  idempotency:
+    ttl-hours: 24
+  
+  # Processing Configuration
+  processing:
+    node-id: inward-processor-01
   
   # SLA Configuration
   sla:
