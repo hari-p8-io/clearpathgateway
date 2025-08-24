@@ -1,6 +1,8 @@
 package com.anz.fastpayment.sender.config;
 
 import com.google.cloud.spring.data.spanner.core.admin.SpannerDatabaseAdminTemplate;
+import com.google.cloud.spanner.ErrorCode;
+import com.google.cloud.spanner.SpannerException;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +32,7 @@ public class SpannerLocalSchema {
     @PostConstruct
     public void ensureTables() {
         try {
-            // Ensure database exists (idempotent)
-            try {
-                adminTemplate.executeDdlStrings(java.util.Collections.singletonList(""), true);
-            } catch (Exception ignore) { }
+            // Build DDL list only when non-empty
             String ddl = "CREATE TABLE Pacs002Messages (" +
                     " puid STRING(16) NOT NULL,\n" +
                     " unique_id STRING(64),\n" +
@@ -44,11 +43,10 @@ public class SpannerLocalSchema {
             adminTemplate.executeDdlStrings(Collections.singletonList(ddl), true);
             log.info("Created table Pacs002Messages in Spanner emulator");
         } catch (Exception ce) {
-            String msg = ce.getMessage() == null ? "" : ce.getMessage();
-            if (msg.contains("ALREADY_EXISTS") || msg.contains("AlreadyExists") || msg.contains("already exists")) {
+            if (ce instanceof SpannerException se && se.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
                 log.info("Pacs002Messages table already exists; skipping create");
             } else {
-                log.warn("Spanner emulator init warning: {}", ce.getMessage());
+                log.warn("Spanner emulator init warning", ce);
             }
         }
     }

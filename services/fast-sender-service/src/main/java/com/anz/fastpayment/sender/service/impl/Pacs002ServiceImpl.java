@@ -15,6 +15,14 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.Document;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class Pacs002ServiceImpl implements Pacs002Service {
@@ -102,7 +110,7 @@ public class Pacs002ServiceImpl implements Pacs002Service {
 
     private String buildPacs002RejectXml(Pacs002Request req) {
         String now = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        String msgId = "P002-" + req.getPuid();
+        String msgId = "P002-" + escape(req.getPuid());
         String orgMsgId = extractOrMsgIdFallback(req);
         String orgEndToEnd = req.getUniqueId() != null ? escape(req.getUniqueId()) : "";
         String reason = req.getError() != null ? escape(req.getError()) : "Validation failure";
@@ -129,7 +137,29 @@ public class Pacs002ServiceImpl implements Pacs002Service {
     }
 
     private String extractOrMsgIdFallback(Pacs002Request req) {
-        // Best-effort: if message id can be derived from original XML, do it later; for now, use PUID
+        try {
+            String original = req.getOriginalXml();
+            if (original == null || original.isBlank()) {
+                return req.getPuid();
+            }
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setExpandEntityReferences(false);
+            dbf.setNamespaceAware(true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(new ByteArrayInputStream(original.getBytes(StandardCharsets.UTF_8)));
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            // pacs.002 namespaces; search any OrgnlMsgId
+            String expr = "//*[local-name()='OrgnlMsgId']/text()";
+            String val = (String) xPath.evaluate(expr, doc, XPathConstants.STRING);
+            if (val != null && !val.isBlank()) {
+                return escape(val.trim());
+            }
+        } catch (Exception e) {
+            log.warn("[XML] Failed to extract OrgnlMsgId from originalXml; falling back to PUID: {}", e.getMessage());
+        }
         return req.getPuid();
     }
 
@@ -138,18 +168,24 @@ public class Pacs002ServiceImpl implements Pacs002Service {
     }
 
     private String buildEventJson(Pacs002Request req) {
-        String now = java.time.format.DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.now());
-        String statusId = "SR-" + req.getPuid();
-        String reason = req.getError() == null ? "Validation failure" : req.getError();
-        return "{" +
-                "\"messageType\":\"PACS_002\"," +
-                "\"messageId\":\"" + escape(statusId) + "\"," +
-                "\"creationDateTime\":\"" + now + "\"," +
-                "\"statusReports\":[{" +
-                    "\"statusId\":\"" + escape(statusId) + "\"," +
-                    "\"originalEndToEndId\":\"" + (req.getUniqueId() == null ? "" : escape(req.getUniqueId())) + "\"," +
-                    "\"transactionStatus\":\"RJCT\"," +
-                    "\"statusReason\":\"" + escape(reason) + "\"}]}";
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.Map<String, Object> root = new java.util.LinkedHashMap<>();
+            root.put("messageType", "PACS_002");
+            String statusId = "SR-" + req.getPuid();
+            root.put("messageId", statusId);
+            root.put("creationDateTime", java.time.format.DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.now()));
+            java.util.Map<String, Object> report = new java.util.LinkedHashMap<>();
+            report.put("statusId", statusId);
+            report.put("originalEndToEndId", req.getUniqueId() == null ? "" : req.getUniqueId());
+            report.put("transactionStatus", "RJCT");
+            report.put("statusReason", req.getError() == null ? "Validation failure" : req.getError());
+            root.put("statusReports", java.util.List.of(report));
+            return om.writeValueAsString(root);
+        } catch (Exception e) {
+            log.warn("[JSON] Failed to build event JSON: {}", e.getMessage());
+            return "{}";
+        }
     }
 
     private String preview(String s, int maxChars) {
