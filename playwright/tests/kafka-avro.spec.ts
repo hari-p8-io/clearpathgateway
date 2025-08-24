@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { Kafka } from 'kafkajs';
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 
-test.describe('Kafka + Avro Integration Tests', () => {
+test.describe.serial('Kafka + Avro Integration Tests', () => {
   let kafka: Kafka;
   let producer: any;
   let consumer: any;
@@ -38,13 +38,13 @@ test.describe('Kafka + Avro Integration Tests', () => {
   test.beforeAll(async () => {
     // Initialize Schema Registry client
     schemaRegistry = new SchemaRegistry({
-      host: 'http://localhost:8081'
+      host: process.env.SCHEMA_REGISTRY_URL || 'http://localhost:8081'
     });
 
     // Initialize Kafka client
     kafka = new Kafka({
-      clientId: 'playwright-test',
-      brokers: ['localhost:9092'],
+      clientId: process.env.KAFKA_CLIENT_ID || 'playwright-test',
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(',').map(broker => broker.trim()),
     });
 
     producer = kafka.producer();
@@ -150,6 +150,11 @@ test.describe('Kafka + Avro Integration Tests', () => {
       await consumePromise;
     } catch (error: unknown) {
       console.log('Consumption timeout, verifying production instead');
+    } finally {
+      // Ensure consumer is stopped to prevent interference with subsequent tests
+      // Note: The consumer is shared across the entire test suite, so we only stop
+      // consumption here, not disconnect the connection
+      await consumer.stop();
     }
 
     // Verify the message if we got it
@@ -162,11 +167,14 @@ test.describe('Kafka + Avro Integration Tests', () => {
     } else {
       // Verify production via admin API
       const admin = kafka.admin();
-      await admin.connect();
-      const offsets = await admin.fetchTopicOffsets('transactions.incoming');
-      expect(offsets).toBeDefined();
-      await admin.disconnect();
-      console.log('Message production verified via offsets');
+      try {
+        await admin.connect();
+        const offsets = await admin.fetchTopicOffsets('transactions.incoming');
+        expect(offsets).toBeDefined();
+        console.log('Message production verified via offsets');
+      } finally {
+        await admin.disconnect();
+      }
     }
   });
 
@@ -368,10 +376,18 @@ test.describe('Kafka + Avro Integration Tests', () => {
 
       // Verify production
       const admin = kafka.admin();
-      await admin.connect();
-      const offsets = await admin.fetchTopicOffsets('transactions.incoming');
-      expect(offsets).toBeDefined();
-      await admin.disconnect();
+      try {
+        await admin.connect();
+        const offsets = await admin.fetchTopicOffsets('transactions.incoming');
+        expect(offsets).toBeDefined();
+      } finally {
+        await admin.disconnect();
+      }
+    } finally {
+      // Ensure consumer is stopped to prevent interference with subsequent tests
+      // Note: The consumer is shared across the entire test suite, so we only stop
+      // consumption here, not disconnect the connection
+      await consumer.stop();
     }
   });
 });

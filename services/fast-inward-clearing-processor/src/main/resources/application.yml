@@ -34,7 +34,7 @@ spring:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
         schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
-        specific.avro.reader: false
+        specific.avro.reader: true
 
   data:
     redis:

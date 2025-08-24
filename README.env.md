@@ -30,20 +30,52 @@ This document describes the environment variables used by the Clear Path Gateway
 - **Used by**: All services that produce/consume Avro messages
 - **Note**: Set in deployment secrets/configuration store, do not hardcode in code
 
+### SCHEMA_REGISTRY_BASIC_AUTH
+- **Description**: Combined username:password for Schema Registry authentication (alternative to separate variables)
+- **Default**: None (no authentication for local development)
+- **Example**: `prod_user:secure_password_123`
+- **Used by**: All services that produce/consume Avro messages
+- **Note**: When both `SCHEMA_REGISTRY_BASIC_AUTH` and separate username/password variables are present, the combined variable takes precedence
+
+### SCHEMA_REGISTRY_AUTH_CREDENTIALS_SOURCE
+- **Description**: Source type for Schema Registry authentication credentials (required for Confluent deployments)
+- **Default**: `USER_INFO` (when authentication is enabled)
+- **Example**: `USER_INFO`
+- **Used by**: All services that produce/consume Avro messages
+- **Note**: This property must be set to `USER_INFO` for basic authentication to work with Confluent Schema Registry
+
 > **⚠️ Schema Registry Authentication Important**:
 > - **Local Development**: No authentication required, uses default Docker Compose setup
 > - **Production Confluent**: **MUST** set `SCHEMA_REGISTRY_USERNAME` and `SCHEMA_REGISTRY_PASSWORD`
 > - **Security**: Store credentials in Kubernetes secrets, HashiCorp Vault, or equivalent secret management system
 > - **Never hardcode** authentication credentials in code, configuration files, or commit them to version control
 >
-> **Configuration Example**:
+> **Configuration Examples**:
+> 
+> **Option 1: Separate Username/Password Variables (Recommended)**
 > ```yaml
 > spring:
 >   kafka:
 >     properties:
 >       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+>       schema.registry.basic.auth.credentials.source: USER_INFO
 >       schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
 > ```
+> 
+> **Option 2: Single Combined Authentication Variable**
+> ```yaml
+> spring:
+>   kafka:
+>     properties:
+>       schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+>       schema.registry.basic.auth.credentials.source: USER_INFO
+>       schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_BASIC_AUTH:}
+> ```
+> 
+> **Environment Variable Precedence**:
+> - **Combined Variable**: `SCHEMA_REGISTRY_BASIC_AUTH` (e.g., `username:password`)
+> - **Separate Variables**: `SCHEMA_REGISTRY_USERNAME` and `SCHEMA_REGISTRY_PASSWORD`
+> - **Precedence**: When both are present, the **combined variable takes precedence** for simplicity
 
 ## Service Configuration
 
@@ -196,8 +228,17 @@ export FAST_AVAILABILITY_SERVICE_URL=http://fast-availability-service:8085
 ```bash
 export KAFKA_BOOTSTRAP_SERVERS=kafka-cluster:9092
 export SCHEMA_REGISTRY_URL=https://schema-registry.company.com
+
+# Option 1: Separate username/password variables
 export SCHEMA_REGISTRY_USERNAME=prod_user
 export SCHEMA_REGISTRY_PASSWORD=********
+
+# Option 2: Combined authentication variable (takes precedence if both are set)
+export SCHEMA_REGISTRY_BASIC_AUTH=prod_user:secure_password_123
+
+# Required for Confluent Schema Registry authentication
+export SCHEMA_REGISTRY_AUTH_CREDENTIALS_SOURCE=USER_INFO
+
 export REDIS_HOST=redis-cluster.company.com
 export DATABASE_URL=jdbc:postgresql://db-cluster.company.com:5432/payment_gateway
 ```
@@ -217,5 +258,5 @@ The environment variables are configured in:
 - Local development requires setting appropriate localhost values
 - Production deployments should override all sensitive configuration values
 - Schema Registry URL is required for all services that handle Avro messages
-- **Schema Registry Authentication**: Production Confluent deployments require `SCHEMA_REGISTRY_USERNAME` and `SCHEMA_REGISTRY_PASSWORD` to be set in deployment secrets/configuration stores. Never hardcode these values in code or configuration files.
+- **Schema Registry Authentication**: Production Confluent deployments require authentication credentials and the `SCHEMA_REGISTRY_AUTH_CREDENTIALS_SOURCE=USER_INFO` property. Use either separate `SCHEMA_REGISTRY_USERNAME`/`SCHEMA_REGISTRY_PASSWORD` variables or a combined `SCHEMA_REGISTRY_BASIC_AUTH` variable. When both are present, the combined variable takes precedence. Never hardcode these values in code or configuration files.
 - **Service Port Mapping**: Docker Compose maps container port 8080 to different host ports for each service to avoid conflicts. Use the documented host ports for external access.

@@ -20,7 +20,7 @@ spring:
       auto-offset-reset: earliest
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
-        specific.avro.reader: false
+        specific.avro.reader: true
 
   data:
     redis:
