@@ -12,19 +12,16 @@ import org.apache.avro.message.BinaryMessageEncoder;
 import org.apache.avro.message.BinaryMessageDecoder;
 import org.apache.avro.message.SchemaStore;
 
-/** Simplified Unified Payment Message for Fast Payment System */
+/** Complex Unified Payment Message for Fast Payment System with Header, Body, and Processing Context */
 @org.apache.avro.specific.AvroGenerated
 public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 7186329850997605734L;
+  private static final long serialVersionUID = -9032470680774846856L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UnifiedPaymentMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Simplified Unified Payment Message for Fast Payment System\",\"fields\":[{\"name\":\"transactionId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique transaction identifier\"},{\"name\":\"amount\",\"type\":\"double\",\"doc\":\"Transaction amount\"},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code (e.g., SGD)\"},{\"name\":\"senderAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Sender account number\"},{\"name\":\"receiverAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Receiver account number\"},{\"name\":\"transactionType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of transaction (CTI, DDI, etc.)\"},{\"name\":\"priority\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction priority (HIGH, NORMAL, LOW)\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"},\"doc\":\"Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)\"},{\"name\":\"componentName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Component name (e.g., PSPAPFAFAST)\"},{\"name\":\"uuid\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique identifier for the message\"},{\"name\":\"channel\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Channel identifier (e.g., G3I)\"},{\"name\":\"direction\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Direction (I for Inward, O for Outward)\"},{\"name\":\"domainName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Domain name (e.g., PAYMENTS)\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"UnifiedPaymentMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Complex Unified Payment Message for Fast Payment System with Header, Body, and Processing Context\",\"fields\":[{\"name\":\"Header\",\"type\":{\"type\":\"record\",\"name\":\"MessageHeader\",\"fields\":[{\"name\":\"ComponentName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Component name (e.g., PSPAPFAFAST)\"},{\"name\":\"UUID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique identifier for the message\"},{\"name\":\"EventInfo\",\"type\":{\"type\":\"record\",\"name\":\"EventInformation\",\"fields\":[{\"name\":\"EventCode\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Event code (e.g., P.PSP.STS.M.OP_RPI.100)\"},{\"name\":\"EventDescription\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Description of the event\"},{\"name\":\"EventID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique event identifier\"},{\"name\":\"EventType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of event (e.g., PE)\"},{\"name\":\"EventProducer\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Producer of the event\"},{\"name\":\"EventTS\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Event timestamp\"},{\"name\":\"EventTopics\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Kafka topics for the event\"},{\"name\":\"SystemId\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"doc\":\"System identifier\"},{\"name\":\"Events\",\"type\":{\"type\":\"record\",\"name\":\"EventCollection\",\"fields\":[{\"name\":\"Event\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"EventDetail\",\"fields\":[{\"name\":\"EventCode\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"EventID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}}}]}},{\"name\":\"EventVersion\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]}]}},{\"name\":\"ReplyToQueue\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Reply queue name\"},{\"name\":\"ReqMap\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]},{\"name\":\"MUID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Message unique identifier\"},{\"name\":\"Channel\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Channel identifier (e.g., G3I)\"},{\"name\":\"Direction\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Direction (I for Inward, O for Outward)\"},{\"name\":\"RcvdTS\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Received timestamp\"},{\"name\":\"DomainName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Domain name (e.g., PAYMENTS)\"},{\"name\":\"DomainType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Domain type (e.g., PAYMENT)\"}]}},{\"name\":\"Body\",\"type\":{\"type\":\"record\",\"name\":\"MessageBody\",\"fields\":[{\"name\":\"PmtAddRq\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"PaymentAddRequest\",\"fields\":[{\"name\":\"RqUID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Request unique identifier\"},{\"name\":\"MsgHdr\",\"type\":{\"type\":\"record\",\"name\":\"PaymentMessageHeader\",\"fields\":[{\"name\":\"ClientDt\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"ClientName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PartyId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Version\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"PayHdr\",\"type\":{\"type\":\"record\",\"name\":\"PaymentHeader\",\"fields\":[{\"name\":\"PODsID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PaymentID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Payment identifier\"},{\"name\":\"ThirdPartyPayID\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PaymentTRN\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PaymentRetRef\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"ProcDate\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"FromFIData\",\"type\":{\"type\":\"record\",\"name\":\"FromFinancialInstitution\",\"fields\":[{\"name\":\"Country\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"FromCust\",\"type\":{\"type\":\"record\",\"name\":\"FromCustomer\",\"fields\":[{\"name\":\"Name\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"FromAcct\",\"type\":{\"type\":\"record\",\"name\":\"FromAccount\",\"fields\":[{\"name\":\"AcctId\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"doc\":\"Account identifier\",\"default\":null},{\"name\":\"AcctSys\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"AcctGrp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Name\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PmtAuthMethod\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Narrative\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"CurCode\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code\"},{\"name\":\"Amount\",\"type\":\"double\",\"doc\":\"Transaction amount (legacy field - use AmountMinor for precision)\"},{\"name\":\"AmountMinor\",\"type\":\"long\",\"doc\":\"Transaction amount in minor units (e.g., cents for USD) for precise monetary representation\",\"default\":0},{\"name\":\"AcctUse\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"ToFIData\",\"type\":{\"type\":\"record\",\"name\":\"ToFinancialInstitution\",\"fields\":[{\"name\":\"Country\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"Clearing\",\"type\":{\"type\":\"record\",\"name\":\"ClearingInfo\",\"fields\":[{\"name\":\"ClearPref\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"ToBene\",\"type\":{\"type\":\"record\",\"name\":\"ToBeneficiary\",\"fields\":[{\"name\":\"Name\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Country\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Message\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"ToAcct\",\"type\":{\"type\":\"record\",\"name\":\"ToAccount\",\"fields\":[{\"name\":\"AcctId\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"doc\":\"Account identifier\",\"default\":null},{\"name\":\"CurCode\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code\"},{\"name\":\"Amount\",\"type\":\"double\",\"doc\":\"Transaction amount (legacy field - use AmountMinor for precision)\"},{\"name\":\"AmountMinor\",\"type\":\"long\",\"doc\":\"Transaction amount in minor units (e.g., cents for USD) for precise monetary representation\",\"default\":0},{\"name\":\"Narrative\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"AcctUse\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"Fees\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}}]}}}]}},{\"name\":\"Procctxt\",\"type\":{\"type\":\"record\",\"name\":\"ProcessingContext\",\"fields\":[{\"name\":\"sideEffect\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"softFail\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"PmtDtls\",\"type\":{\"type\":\"record\",\"name\":\"PaymentDetails\",\"fields\":[{\"name\":\"PmtCtxt\",\"type\":{\"type\":\"record\",\"name\":\"PaymentContext\",\"fields\":[{\"name\":\"PuId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"IntnSrc\",\"type\":{\"type\":\"record\",\"name\":\"IntentionSource\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"value\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}}]}},{\"name\":\"ProcCtryCd\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"InstdClrgPref\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"InstdMoPCat\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"PmtCtgry\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Payment category (e.g., DD for Direct Debit)\"},{\"name\":\"actClrMethod\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"actlMtdOfPmtCtgry\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"FIDCIdentifier\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"FICCIdentifier\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"VAM\",\"type\":{\"type\":\"string\",","\"avro.java.string\":\"String\"}},{\"name\":\"derivedDRAccountNo\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"derivedDRAccountSys\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"derivedDRBookCode\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}}]}},{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"MessageInstruction\",\"fields\":[{\"name\":\"instruction\",\"type\":{\"type\":\"record\",\"name\":\"Instruction\",\"fields\":[{\"name\":\"MsgDef\",\"type\":{\"type\":\"record\",\"name\":\"MessageDefinition\",\"fields\":[{\"name\":\"MsgType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Schema\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"MsgCtxt\",\"type\":{\"type\":\"record\",\"name\":\"MessageContext\",\"fields\":[{\"name\":\"OrigMsgTyp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"InstdClrgPref\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"InstdMoPCat\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Site\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"BaseAmt\",\"type\":[\"null\",\"double\"],\"doc\":\"Base amount (legacy field - use BaseAmtMinor for precision)\",\"default\":null},{\"name\":\"BaseAmtMinor\",\"type\":[\"null\",\"long\"],\"doc\":\"Base amount in minor units (e.g., cents for USD) for precise monetary representation\",\"default\":null},{\"name\":\"BaseCcy\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"SenderBIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"ProcCtryCd\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Department\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"MsgId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"Direction\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"MsgAddRq\",\"type\":{\"type\":\"record\",\"name\":\"MessageAddRequest\",\"fields\":[{\"name\":\"OrigMsg\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"MsgDtls\",\"type\":{\"type\":\"record\",\"name\":\"MessageDetails\",\"fields\":[{\"name\":\"DrctDbtTxInf\",\"type\":{\"type\":\"record\",\"name\":\"DirectDebitTransactionInfo\",\"fields\":[{\"name\":\"PmtId\",\"type\":{\"type\":\"record\",\"name\":\"PaymentId\",\"fields\":[{\"name\":\"InstrId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"TxId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"EndToEndId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"ClrSysRef\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"IntrBkSttlmAmt\",\"type\":\"double\",\"doc\":\"Inter-bank settlement amount (legacy field - use IntrBkSttlmAmtMinor for precision)\"},{\"name\":\"IntrBkSttlmAmtMinor\",\"type\":\"long\",\"doc\":\"Inter-bank settlement amount in minor units (e.g., cents for USD) for precise monetary representation\",\"default\":0},{\"name\":\"IntrBkSttlmCCY\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"IntrBkSttlmDt\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"InstgAgt\",\"type\":{\"type\":\"record\",\"name\":\"InstructingAgent\",\"fields\":[{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"InstdAgt\",\"type\":{\"type\":\"record\",\"name\":\"InstructedAgent\",\"fields\":[{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"Dbtr\",\"type\":{\"type\":\"record\",\"name\":\"Debtor\",\"fields\":[{\"name\":\"Nm\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"DbtrAcct\",\"type\":{\"type\":\"record\",\"name\":\"DebtorAccount\",\"fields\":[{\"name\":\"AcctId\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"default\":null}]}},{\"name\":\"DbtrAgt\",\"type\":{\"type\":\"record\",\"name\":\"DebtorAgent\",\"fields\":[{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"CdtrAgt\",\"type\":{\"type\":\"record\",\"name\":\"CreditorAgent\",\"fields\":[{\"name\":\"BIC\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"Cdtr\",\"type\":{\"type\":\"record\",\"name\":\"Creditor\",\"fields\":[{\"name\":\"Nm\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"CdtrAcct\",\"type\":{\"type\":\"record\",\"name\":\"CreditorAccount\",\"fields\":[{\"name\":\"AcctId\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"default\":null}]}},{\"name\":\"Purp\",\"type\":{\"type\":\"record\",\"name\":\"Purpose\",\"fields\":[{\"name\":\"Cd\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"RmtInf\",\"type\":{\"type\":\"record\",\"name\":\"RemittanceInformation\",\"fields\":[{\"name\":\"Ustrd\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}},{\"name\":\"DrctDbtTx\",\"type\":{\"type\":\"record\",\"name\":\"DirectDebitTransaction\",\"fields\":[{\"name\":\"MndtRltdInf\",\"type\":{\"type\":\"record\",\"name\":\"MandateRelatedInformation\",\"fields\":[{\"name\":\"MndtId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}}]}}]}}]}}]}}]}}]}}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
-  static {
-    MODEL$.addLogicalTypeConversion(new org.apache.avro.data.TimeConversions.TimestampMillisConversion());
-  }
 
   private static final BinaryMessageEncoder<UnifiedPaymentMessage> ENCODER =
       new BinaryMessageEncoder<>(MODEL$, SCHEMA$);
@@ -77,32 +74,10 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     return DECODER.decode(b);
   }
 
-  /** Unique transaction identifier */
-  private java.lang.String transactionId;
-  /** Transaction amount */
-  private double amount;
-  /** Currency code (e.g., SGD) */
-  private java.lang.String currency;
-  /** Sender account number */
-  private java.lang.String senderAccount;
-  /** Receiver account number */
-  private java.lang.String receiverAccount;
-  /** Type of transaction (CTI, DDI, etc.) */
-  private java.lang.String transactionType;
-  /** Transaction priority (HIGH, NORMAL, LOW) */
-  private java.lang.String priority;
-  /** Transaction timestamp in epoch milliseconds (Unix timestamp * 1000) */
-  private java.time.Instant timestamp;
-  /** Component name (e.g., PSPAPFAFAST) */
-  private java.lang.String componentName;
-  /** Unique identifier for the message */
-  private java.lang.String uuid;
-  /** Channel identifier (e.g., G3I) */
-  private java.lang.String channel;
-  /** Direction (I for Inward, O for Outward) */
-  private java.lang.String direction;
-  /** Domain name (e.g., PAYMENTS) */
-  private java.lang.String domainName;
+  private com.anz.fastpayment.inward.avro.MessageHeader Header;
+  private com.anz.fastpayment.inward.avro.MessageBody Body;
+  private com.anz.fastpayment.inward.avro.ProcessingContext Procctxt;
+  private java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> messages;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -113,34 +88,16 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
 
   /**
    * All-args constructor.
-   * @param transactionId Unique transaction identifier
-   * @param amount Transaction amount
-   * @param currency Currency code (e.g., SGD)
-   * @param senderAccount Sender account number
-   * @param receiverAccount Receiver account number
-   * @param transactionType Type of transaction (CTI, DDI, etc.)
-   * @param priority Transaction priority (HIGH, NORMAL, LOW)
-   * @param timestamp Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-   * @param componentName Component name (e.g., PSPAPFAFAST)
-   * @param uuid Unique identifier for the message
-   * @param channel Channel identifier (e.g., G3I)
-   * @param direction Direction (I for Inward, O for Outward)
-   * @param domainName Domain name (e.g., PAYMENTS)
+   * @param Header The new value for Header
+   * @param Body The new value for Body
+   * @param Procctxt The new value for Procctxt
+   * @param messages The new value for messages
    */
-  public UnifiedPaymentMessage(java.lang.String transactionId, java.lang.Double amount, java.lang.String currency, java.lang.String senderAccount, java.lang.String receiverAccount, java.lang.String transactionType, java.lang.String priority, java.time.Instant timestamp, java.lang.String componentName, java.lang.String uuid, java.lang.String channel, java.lang.String direction, java.lang.String domainName) {
-    this.transactionId = transactionId;
-    this.amount = amount;
-    this.currency = currency;
-    this.senderAccount = senderAccount;
-    this.receiverAccount = receiverAccount;
-    this.transactionType = transactionType;
-    this.priority = priority;
-    this.timestamp = timestamp.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
-    this.componentName = componentName;
-    this.uuid = uuid;
-    this.channel = channel;
-    this.direction = direction;
-    this.domainName = domainName;
+  public UnifiedPaymentMessage(com.anz.fastpayment.inward.avro.MessageHeader Header, com.anz.fastpayment.inward.avro.MessageBody Body, com.anz.fastpayment.inward.avro.ProcessingContext Procctxt, java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> messages) {
+    this.Header = Header;
+    this.Body = Body;
+    this.Procctxt = Procctxt;
+    this.messages = messages;
   }
 
   @Override
@@ -153,44 +110,12 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
   @Override
   public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return transactionId;
-    case 1: return amount;
-    case 2: return currency;
-    case 3: return senderAccount;
-    case 4: return receiverAccount;
-    case 5: return transactionType;
-    case 6: return priority;
-    case 7: return timestamp;
-    case 8: return componentName;
-    case 9: return uuid;
-    case 10: return channel;
-    case 11: return direction;
-    case 12: return domainName;
+    case 0: return Header;
+    case 1: return Body;
+    case 2: return Procctxt;
+    case 3: return messages;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
-  }
-
-  private static final org.apache.avro.Conversion<?>[] conversions =
-      new org.apache.avro.Conversion<?>[] {
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      new org.apache.avro.data.TimeConversions.TimestampMillisConversion(),
-      null,
-      null,
-      null,
-      null,
-      null,
-      null
-  };
-
-  @Override
-  public org.apache.avro.Conversion<?> getConversion(int field) {
-    return conversions[field];
   }
 
   // Used by DatumReader.  Applications should not call.
@@ -198,255 +123,80 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: transactionId = value$ != null ? value$.toString() : null; break;
-    case 1: amount = (java.lang.Double)value$; break;
-    case 2: currency = value$ != null ? value$.toString() : null; break;
-    case 3: senderAccount = value$ != null ? value$.toString() : null; break;
-    case 4: receiverAccount = value$ != null ? value$.toString() : null; break;
-    case 5: transactionType = value$ != null ? value$.toString() : null; break;
-    case 6: priority = value$ != null ? value$.toString() : null; break;
-    case 7: timestamp = (java.time.Instant)value$; break;
-    case 8: componentName = value$ != null ? value$.toString() : null; break;
-    case 9: uuid = value$ != null ? value$.toString() : null; break;
-    case 10: channel = value$ != null ? value$.toString() : null; break;
-    case 11: direction = value$ != null ? value$.toString() : null; break;
-    case 12: domainName = value$ != null ? value$.toString() : null; break;
+    case 0: Header = (com.anz.fastpayment.inward.avro.MessageHeader)value$; break;
+    case 1: Body = (com.anz.fastpayment.inward.avro.MessageBody)value$; break;
+    case 2: Procctxt = (com.anz.fastpayment.inward.avro.ProcessingContext)value$; break;
+    case 3: messages = (java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction>)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
 
   /**
-   * Gets the value of the 'transactionId' field.
-   * @return Unique transaction identifier
+   * Gets the value of the 'Header' field.
+   * @return The value of the 'Header' field.
    */
-  public java.lang.String getTransactionId() {
-    return transactionId;
+  public com.anz.fastpayment.inward.avro.MessageHeader getHeader() {
+    return Header;
   }
 
 
   /**
-   * Sets the value of the 'transactionId' field.
-   * Unique transaction identifier
+   * Sets the value of the 'Header' field.
    * @param value the value to set.
    */
-  public void setTransactionId(java.lang.String value) {
-    this.transactionId = value;
+  public void setHeader(com.anz.fastpayment.inward.avro.MessageHeader value) {
+    this.Header = value;
   }
 
   /**
-   * Gets the value of the 'amount' field.
-   * @return Transaction amount
+   * Gets the value of the 'Body' field.
+   * @return The value of the 'Body' field.
    */
-  public double getAmount() {
-    return amount;
+  public com.anz.fastpayment.inward.avro.MessageBody getBody() {
+    return Body;
   }
 
 
   /**
-   * Sets the value of the 'amount' field.
-   * Transaction amount
+   * Sets the value of the 'Body' field.
    * @param value the value to set.
    */
-  public void setAmount(double value) {
-    this.amount = value;
+  public void setBody(com.anz.fastpayment.inward.avro.MessageBody value) {
+    this.Body = value;
   }
 
   /**
-   * Gets the value of the 'currency' field.
-   * @return Currency code (e.g., SGD)
+   * Gets the value of the 'Procctxt' field.
+   * @return The value of the 'Procctxt' field.
    */
-  public java.lang.String getCurrency() {
-    return currency;
+  public com.anz.fastpayment.inward.avro.ProcessingContext getProcctxt() {
+    return Procctxt;
   }
 
 
   /**
-   * Sets the value of the 'currency' field.
-   * Currency code (e.g., SGD)
+   * Sets the value of the 'Procctxt' field.
    * @param value the value to set.
    */
-  public void setCurrency(java.lang.String value) {
-    this.currency = value;
+  public void setProcctxt(com.anz.fastpayment.inward.avro.ProcessingContext value) {
+    this.Procctxt = value;
   }
 
   /**
-   * Gets the value of the 'senderAccount' field.
-   * @return Sender account number
+   * Gets the value of the 'messages' field.
+   * @return The value of the 'messages' field.
    */
-  public java.lang.String getSenderAccount() {
-    return senderAccount;
+  public java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> getMessages() {
+    return messages;
   }
 
 
   /**
-   * Sets the value of the 'senderAccount' field.
-   * Sender account number
+   * Sets the value of the 'messages' field.
    * @param value the value to set.
    */
-  public void setSenderAccount(java.lang.String value) {
-    this.senderAccount = value;
-  }
-
-  /**
-   * Gets the value of the 'receiverAccount' field.
-   * @return Receiver account number
-   */
-  public java.lang.String getReceiverAccount() {
-    return receiverAccount;
-  }
-
-
-  /**
-   * Sets the value of the 'receiverAccount' field.
-   * Receiver account number
-   * @param value the value to set.
-   */
-  public void setReceiverAccount(java.lang.String value) {
-    this.receiverAccount = value;
-  }
-
-  /**
-   * Gets the value of the 'transactionType' field.
-   * @return Type of transaction (CTI, DDI, etc.)
-   */
-  public java.lang.String getTransactionType() {
-    return transactionType;
-  }
-
-
-  /**
-   * Sets the value of the 'transactionType' field.
-   * Type of transaction (CTI, DDI, etc.)
-   * @param value the value to set.
-   */
-  public void setTransactionType(java.lang.String value) {
-    this.transactionType = value;
-  }
-
-  /**
-   * Gets the value of the 'priority' field.
-   * @return Transaction priority (HIGH, NORMAL, LOW)
-   */
-  public java.lang.String getPriority() {
-    return priority;
-  }
-
-
-  /**
-   * Sets the value of the 'priority' field.
-   * Transaction priority (HIGH, NORMAL, LOW)
-   * @param value the value to set.
-   */
-  public void setPriority(java.lang.String value) {
-    this.priority = value;
-  }
-
-  /**
-   * Gets the value of the 'timestamp' field.
-   * @return Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-   */
-  public java.time.Instant getTimestamp() {
-    return timestamp;
-  }
-
-
-  /**
-   * Sets the value of the 'timestamp' field.
-   * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-   * @param value the value to set.
-   */
-  public void setTimestamp(java.time.Instant value) {
-    this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
-  }
-
-  /**
-   * Gets the value of the 'componentName' field.
-   * @return Component name (e.g., PSPAPFAFAST)
-   */
-  public java.lang.String getComponentName() {
-    return componentName;
-  }
-
-
-  /**
-   * Sets the value of the 'componentName' field.
-   * Component name (e.g., PSPAPFAFAST)
-   * @param value the value to set.
-   */
-  public void setComponentName(java.lang.String value) {
-    this.componentName = value;
-  }
-
-  /**
-   * Gets the value of the 'uuid' field.
-   * @return Unique identifier for the message
-   */
-  public java.lang.String getUuid() {
-    return uuid;
-  }
-
-
-  /**
-   * Sets the value of the 'uuid' field.
-   * Unique identifier for the message
-   * @param value the value to set.
-   */
-  public void setUuid(java.lang.String value) {
-    this.uuid = value;
-  }
-
-  /**
-   * Gets the value of the 'channel' field.
-   * @return Channel identifier (e.g., G3I)
-   */
-  public java.lang.String getChannel() {
-    return channel;
-  }
-
-
-  /**
-   * Sets the value of the 'channel' field.
-   * Channel identifier (e.g., G3I)
-   * @param value the value to set.
-   */
-  public void setChannel(java.lang.String value) {
-    this.channel = value;
-  }
-
-  /**
-   * Gets the value of the 'direction' field.
-   * @return Direction (I for Inward, O for Outward)
-   */
-  public java.lang.String getDirection() {
-    return direction;
-  }
-
-
-  /**
-   * Sets the value of the 'direction' field.
-   * Direction (I for Inward, O for Outward)
-   * @param value the value to set.
-   */
-  public void setDirection(java.lang.String value) {
-    this.direction = value;
-  }
-
-  /**
-   * Gets the value of the 'domainName' field.
-   * @return Domain name (e.g., PAYMENTS)
-   */
-  public java.lang.String getDomainName() {
-    return domainName;
-  }
-
-
-  /**
-   * Sets the value of the 'domainName' field.
-   * Domain name (e.g., PAYMENTS)
-   * @param value the value to set.
-   */
-  public void setDomainName(java.lang.String value) {
-    this.domainName = value;
+  public void setMessages(java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> value) {
+    this.messages = value;
   }
 
   /**
@@ -490,32 +240,13 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<UnifiedPaymentMessage>
     implements org.apache.avro.data.RecordBuilder<UnifiedPaymentMessage> {
 
-    /** Unique transaction identifier */
-    private java.lang.String transactionId;
-    /** Transaction amount */
-    private double amount;
-    /** Currency code (e.g., SGD) */
-    private java.lang.String currency;
-    /** Sender account number */
-    private java.lang.String senderAccount;
-    /** Receiver account number */
-    private java.lang.String receiverAccount;
-    /** Type of transaction (CTI, DDI, etc.) */
-    private java.lang.String transactionType;
-    /** Transaction priority (HIGH, NORMAL, LOW) */
-    private java.lang.String priority;
-    /** Transaction timestamp in epoch milliseconds (Unix timestamp * 1000) */
-    private java.time.Instant timestamp;
-    /** Component name (e.g., PSPAPFAFAST) */
-    private java.lang.String componentName;
-    /** Unique identifier for the message */
-    private java.lang.String uuid;
-    /** Channel identifier (e.g., G3I) */
-    private java.lang.String channel;
-    /** Direction (I for Inward, O for Outward) */
-    private java.lang.String direction;
-    /** Domain name (e.g., PAYMENTS) */
-    private java.lang.String domainName;
+    private com.anz.fastpayment.inward.avro.MessageHeader Header;
+    private com.anz.fastpayment.inward.avro.MessageHeader.Builder HeaderBuilder;
+    private com.anz.fastpayment.inward.avro.MessageBody Body;
+    private com.anz.fastpayment.inward.avro.MessageBody.Builder BodyBuilder;
+    private com.anz.fastpayment.inward.avro.ProcessingContext Procctxt;
+    private com.anz.fastpayment.inward.avro.ProcessingContext.Builder ProcctxtBuilder;
+    private java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> messages;
 
     /** Creates a new Builder */
     private Builder() {
@@ -528,57 +259,30 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
      */
     private Builder(com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.transactionId)) {
-        this.transactionId = data().deepCopy(fields()[0].schema(), other.transactionId);
+      if (isValidValue(fields()[0], other.Header)) {
+        this.Header = data().deepCopy(fields()[0].schema(), other.Header);
         fieldSetFlags()[0] = other.fieldSetFlags()[0];
       }
-      if (isValidValue(fields()[1], other.amount)) {
-        this.amount = data().deepCopy(fields()[1].schema(), other.amount);
+      if (other.hasHeaderBuilder()) {
+        this.HeaderBuilder = com.anz.fastpayment.inward.avro.MessageHeader.newBuilder(other.getHeaderBuilder());
+      }
+      if (isValidValue(fields()[1], other.Body)) {
+        this.Body = data().deepCopy(fields()[1].schema(), other.Body);
         fieldSetFlags()[1] = other.fieldSetFlags()[1];
       }
-      if (isValidValue(fields()[2], other.currency)) {
-        this.currency = data().deepCopy(fields()[2].schema(), other.currency);
+      if (other.hasBodyBuilder()) {
+        this.BodyBuilder = com.anz.fastpayment.inward.avro.MessageBody.newBuilder(other.getBodyBuilder());
+      }
+      if (isValidValue(fields()[2], other.Procctxt)) {
+        this.Procctxt = data().deepCopy(fields()[2].schema(), other.Procctxt);
         fieldSetFlags()[2] = other.fieldSetFlags()[2];
       }
-      if (isValidValue(fields()[3], other.senderAccount)) {
-        this.senderAccount = data().deepCopy(fields()[3].schema(), other.senderAccount);
+      if (other.hasProcctxtBuilder()) {
+        this.ProcctxtBuilder = com.anz.fastpayment.inward.avro.ProcessingContext.newBuilder(other.getProcctxtBuilder());
+      }
+      if (isValidValue(fields()[3], other.messages)) {
+        this.messages = data().deepCopy(fields()[3].schema(), other.messages);
         fieldSetFlags()[3] = other.fieldSetFlags()[3];
-      }
-      if (isValidValue(fields()[4], other.receiverAccount)) {
-        this.receiverAccount = data().deepCopy(fields()[4].schema(), other.receiverAccount);
-        fieldSetFlags()[4] = other.fieldSetFlags()[4];
-      }
-      if (isValidValue(fields()[5], other.transactionType)) {
-        this.transactionType = data().deepCopy(fields()[5].schema(), other.transactionType);
-        fieldSetFlags()[5] = other.fieldSetFlags()[5];
-      }
-      if (isValidValue(fields()[6], other.priority)) {
-        this.priority = data().deepCopy(fields()[6].schema(), other.priority);
-        fieldSetFlags()[6] = other.fieldSetFlags()[6];
-      }
-      if (isValidValue(fields()[7], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[7].schema(), other.timestamp);
-        fieldSetFlags()[7] = other.fieldSetFlags()[7];
-      }
-      if (isValidValue(fields()[8], other.componentName)) {
-        this.componentName = data().deepCopy(fields()[8].schema(), other.componentName);
-        fieldSetFlags()[8] = other.fieldSetFlags()[8];
-      }
-      if (isValidValue(fields()[9], other.uuid)) {
-        this.uuid = data().deepCopy(fields()[9].schema(), other.uuid);
-        fieldSetFlags()[9] = other.fieldSetFlags()[9];
-      }
-      if (isValidValue(fields()[10], other.channel)) {
-        this.channel = data().deepCopy(fields()[10].schema(), other.channel);
-        fieldSetFlags()[10] = other.fieldSetFlags()[10];
-      }
-      if (isValidValue(fields()[11], other.direction)) {
-        this.direction = data().deepCopy(fields()[11].schema(), other.direction);
-        fieldSetFlags()[11] = other.fieldSetFlags()[11];
-      }
-      if (isValidValue(fields()[12], other.domainName)) {
-        this.domainName = data().deepCopy(fields()[12].schema(), other.domainName);
-        fieldSetFlags()[12] = other.fieldSetFlags()[12];
       }
     }
 
@@ -588,627 +292,292 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
      */
     private Builder(com.anz.fastpayment.inward.avro.UnifiedPaymentMessage other) {
       super(SCHEMA$, MODEL$);
-      if (isValidValue(fields()[0], other.transactionId)) {
-        this.transactionId = data().deepCopy(fields()[0].schema(), other.transactionId);
+      if (isValidValue(fields()[0], other.Header)) {
+        this.Header = data().deepCopy(fields()[0].schema(), other.Header);
         fieldSetFlags()[0] = true;
       }
-      if (isValidValue(fields()[1], other.amount)) {
-        this.amount = data().deepCopy(fields()[1].schema(), other.amount);
+      this.HeaderBuilder = null;
+      if (isValidValue(fields()[1], other.Body)) {
+        this.Body = data().deepCopy(fields()[1].schema(), other.Body);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.currency)) {
-        this.currency = data().deepCopy(fields()[2].schema(), other.currency);
+      this.BodyBuilder = null;
+      if (isValidValue(fields()[2], other.Procctxt)) {
+        this.Procctxt = data().deepCopy(fields()[2].schema(), other.Procctxt);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.senderAccount)) {
-        this.senderAccount = data().deepCopy(fields()[3].schema(), other.senderAccount);
+      this.ProcctxtBuilder = null;
+      if (isValidValue(fields()[3], other.messages)) {
+        this.messages = data().deepCopy(fields()[3].schema(), other.messages);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.receiverAccount)) {
-        this.receiverAccount = data().deepCopy(fields()[4].schema(), other.receiverAccount);
-        fieldSetFlags()[4] = true;
-      }
-      if (isValidValue(fields()[5], other.transactionType)) {
-        this.transactionType = data().deepCopy(fields()[5].schema(), other.transactionType);
-        fieldSetFlags()[5] = true;
-      }
-      if (isValidValue(fields()[6], other.priority)) {
-        this.priority = data().deepCopy(fields()[6].schema(), other.priority);
-        fieldSetFlags()[6] = true;
-      }
-      if (isValidValue(fields()[7], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[7].schema(), other.timestamp);
-        fieldSetFlags()[7] = true;
-      }
-      if (isValidValue(fields()[8], other.componentName)) {
-        this.componentName = data().deepCopy(fields()[8].schema(), other.componentName);
-        fieldSetFlags()[8] = true;
-      }
-      if (isValidValue(fields()[9], other.uuid)) {
-        this.uuid = data().deepCopy(fields()[9].schema(), other.uuid);
-        fieldSetFlags()[9] = true;
-      }
-      if (isValidValue(fields()[10], other.channel)) {
-        this.channel = data().deepCopy(fields()[10].schema(), other.channel);
-        fieldSetFlags()[10] = true;
-      }
-      if (isValidValue(fields()[11], other.direction)) {
-        this.direction = data().deepCopy(fields()[11].schema(), other.direction);
-        fieldSetFlags()[11] = true;
-      }
-      if (isValidValue(fields()[12], other.domainName)) {
-        this.domainName = data().deepCopy(fields()[12].schema(), other.domainName);
-        fieldSetFlags()[12] = true;
-      }
     }
 
     /**
-      * Gets the value of the 'transactionId' field.
-      * Unique transaction identifier
+      * Gets the value of the 'Header' field.
       * @return The value.
       */
-    public java.lang.String getTransactionId() {
-      return transactionId;
+    public com.anz.fastpayment.inward.avro.MessageHeader getHeader() {
+      return Header;
     }
 
 
     /**
-      * Sets the value of the 'transactionId' field.
-      * Unique transaction identifier
-      * @param value The value of 'transactionId'.
+      * Sets the value of the 'Header' field.
+      * @param value The value of 'Header'.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setTransactionId(java.lang.String value) {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setHeader(com.anz.fastpayment.inward.avro.MessageHeader value) {
       validate(fields()[0], value);
-      this.transactionId = value;
+      this.HeaderBuilder = null;
+      this.Header = value;
       fieldSetFlags()[0] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'transactionId' field has been set.
-      * Unique transaction identifier
-      * @return True if the 'transactionId' field has been set, false otherwise.
+      * Checks whether the 'Header' field has been set.
+      * @return True if the 'Header' field has been set, false otherwise.
       */
-    public boolean hasTransactionId() {
+    public boolean hasHeader() {
       return fieldSetFlags()[0];
     }
 
+    /**
+     * Gets the Builder instance for the 'Header' field and creates one if it doesn't exist yet.
+     * @return This builder.
+     */
+    public com.anz.fastpayment.inward.avro.MessageHeader.Builder getHeaderBuilder() {
+      if (HeaderBuilder == null) {
+        if (hasHeader()) {
+          setHeaderBuilder(com.anz.fastpayment.inward.avro.MessageHeader.newBuilder(Header));
+        } else {
+          setHeaderBuilder(com.anz.fastpayment.inward.avro.MessageHeader.newBuilder());
+        }
+      }
+      return HeaderBuilder;
+    }
 
     /**
-      * Clears the value of the 'transactionId' field.
-      * Unique transaction identifier
+     * Sets the Builder instance for the 'Header' field
+     * @param value The builder instance that must be set.
+     * @return This builder.
+     */
+
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setHeaderBuilder(com.anz.fastpayment.inward.avro.MessageHeader.Builder value) {
+      clearHeader();
+      HeaderBuilder = value;
+      return this;
+    }
+
+    /**
+     * Checks whether the 'Header' field has an active Builder instance
+     * @return True if the 'Header' field has an active Builder instance
+     */
+    public boolean hasHeaderBuilder() {
+      return HeaderBuilder != null;
+    }
+
+    /**
+      * Clears the value of the 'Header' field.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearTransactionId() {
-      transactionId = null;
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearHeader() {
+      Header = null;
+      HeaderBuilder = null;
       fieldSetFlags()[0] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'amount' field.
-      * Transaction amount
+      * Gets the value of the 'Body' field.
       * @return The value.
       */
-    public double getAmount() {
-      return amount;
+    public com.anz.fastpayment.inward.avro.MessageBody getBody() {
+      return Body;
     }
 
 
     /**
-      * Sets the value of the 'amount' field.
-      * Transaction amount
-      * @param value The value of 'amount'.
+      * Sets the value of the 'Body' field.
+      * @param value The value of 'Body'.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setAmount(double value) {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setBody(com.anz.fastpayment.inward.avro.MessageBody value) {
       validate(fields()[1], value);
-      this.amount = value;
+      this.BodyBuilder = null;
+      this.Body = value;
       fieldSetFlags()[1] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'amount' field has been set.
-      * Transaction amount
-      * @return True if the 'amount' field has been set, false otherwise.
+      * Checks whether the 'Body' field has been set.
+      * @return True if the 'Body' field has been set, false otherwise.
       */
-    public boolean hasAmount() {
+    public boolean hasBody() {
       return fieldSetFlags()[1];
     }
 
+    /**
+     * Gets the Builder instance for the 'Body' field and creates one if it doesn't exist yet.
+     * @return This builder.
+     */
+    public com.anz.fastpayment.inward.avro.MessageBody.Builder getBodyBuilder() {
+      if (BodyBuilder == null) {
+        if (hasBody()) {
+          setBodyBuilder(com.anz.fastpayment.inward.avro.MessageBody.newBuilder(Body));
+        } else {
+          setBodyBuilder(com.anz.fastpayment.inward.avro.MessageBody.newBuilder());
+        }
+      }
+      return BodyBuilder;
+    }
 
     /**
-      * Clears the value of the 'amount' field.
-      * Transaction amount
+     * Sets the Builder instance for the 'Body' field
+     * @param value The builder instance that must be set.
+     * @return This builder.
+     */
+
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setBodyBuilder(com.anz.fastpayment.inward.avro.MessageBody.Builder value) {
+      clearBody();
+      BodyBuilder = value;
+      return this;
+    }
+
+    /**
+     * Checks whether the 'Body' field has an active Builder instance
+     * @return True if the 'Body' field has an active Builder instance
+     */
+    public boolean hasBodyBuilder() {
+      return BodyBuilder != null;
+    }
+
+    /**
+      * Clears the value of the 'Body' field.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearAmount() {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearBody() {
+      Body = null;
+      BodyBuilder = null;
       fieldSetFlags()[1] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'currency' field.
-      * Currency code (e.g., SGD)
+      * Gets the value of the 'Procctxt' field.
       * @return The value.
       */
-    public java.lang.String getCurrency() {
-      return currency;
+    public com.anz.fastpayment.inward.avro.ProcessingContext getProcctxt() {
+      return Procctxt;
     }
 
 
     /**
-      * Sets the value of the 'currency' field.
-      * Currency code (e.g., SGD)
-      * @param value The value of 'currency'.
+      * Sets the value of the 'Procctxt' field.
+      * @param value The value of 'Procctxt'.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setCurrency(java.lang.String value) {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setProcctxt(com.anz.fastpayment.inward.avro.ProcessingContext value) {
       validate(fields()[2], value);
-      this.currency = value;
+      this.ProcctxtBuilder = null;
+      this.Procctxt = value;
       fieldSetFlags()[2] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'currency' field has been set.
-      * Currency code (e.g., SGD)
-      * @return True if the 'currency' field has been set, false otherwise.
+      * Checks whether the 'Procctxt' field has been set.
+      * @return True if the 'Procctxt' field has been set, false otherwise.
       */
-    public boolean hasCurrency() {
+    public boolean hasProcctxt() {
       return fieldSetFlags()[2];
     }
 
+    /**
+     * Gets the Builder instance for the 'Procctxt' field and creates one if it doesn't exist yet.
+     * @return This builder.
+     */
+    public com.anz.fastpayment.inward.avro.ProcessingContext.Builder getProcctxtBuilder() {
+      if (ProcctxtBuilder == null) {
+        if (hasProcctxt()) {
+          setProcctxtBuilder(com.anz.fastpayment.inward.avro.ProcessingContext.newBuilder(Procctxt));
+        } else {
+          setProcctxtBuilder(com.anz.fastpayment.inward.avro.ProcessingContext.newBuilder());
+        }
+      }
+      return ProcctxtBuilder;
+    }
 
     /**
-      * Clears the value of the 'currency' field.
-      * Currency code (e.g., SGD)
+     * Sets the Builder instance for the 'Procctxt' field
+     * @param value The builder instance that must be set.
+     * @return This builder.
+     */
+
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setProcctxtBuilder(com.anz.fastpayment.inward.avro.ProcessingContext.Builder value) {
+      clearProcctxt();
+      ProcctxtBuilder = value;
+      return this;
+    }
+
+    /**
+     * Checks whether the 'Procctxt' field has an active Builder instance
+     * @return True if the 'Procctxt' field has an active Builder instance
+     */
+    public boolean hasProcctxtBuilder() {
+      return ProcctxtBuilder != null;
+    }
+
+    /**
+      * Clears the value of the 'Procctxt' field.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearCurrency() {
-      currency = null;
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearProcctxt() {
+      Procctxt = null;
+      ProcctxtBuilder = null;
       fieldSetFlags()[2] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'senderAccount' field.
-      * Sender account number
+      * Gets the value of the 'messages' field.
       * @return The value.
       */
-    public java.lang.String getSenderAccount() {
-      return senderAccount;
+    public java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> getMessages() {
+      return messages;
     }
 
 
     /**
-      * Sets the value of the 'senderAccount' field.
-      * Sender account number
-      * @param value The value of 'senderAccount'.
+      * Sets the value of the 'messages' field.
+      * @param value The value of 'messages'.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setSenderAccount(java.lang.String value) {
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setMessages(java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> value) {
       validate(fields()[3], value);
-      this.senderAccount = value;
+      this.messages = value;
       fieldSetFlags()[3] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'senderAccount' field has been set.
-      * Sender account number
-      * @return True if the 'senderAccount' field has been set, false otherwise.
+      * Checks whether the 'messages' field has been set.
+      * @return True if the 'messages' field has been set, false otherwise.
       */
-    public boolean hasSenderAccount() {
+    public boolean hasMessages() {
       return fieldSetFlags()[3];
     }
 
 
     /**
-      * Clears the value of the 'senderAccount' field.
-      * Sender account number
+      * Clears the value of the 'messages' field.
       * @return This builder.
       */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearSenderAccount() {
-      senderAccount = null;
+    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearMessages() {
+      messages = null;
       fieldSetFlags()[3] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'receiverAccount' field.
-      * Receiver account number
-      * @return The value.
-      */
-    public java.lang.String getReceiverAccount() {
-      return receiverAccount;
-    }
-
-
-    /**
-      * Sets the value of the 'receiverAccount' field.
-      * Receiver account number
-      * @param value The value of 'receiverAccount'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setReceiverAccount(java.lang.String value) {
-      validate(fields()[4], value);
-      this.receiverAccount = value;
-      fieldSetFlags()[4] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'receiverAccount' field has been set.
-      * Receiver account number
-      * @return True if the 'receiverAccount' field has been set, false otherwise.
-      */
-    public boolean hasReceiverAccount() {
-      return fieldSetFlags()[4];
-    }
-
-
-    /**
-      * Clears the value of the 'receiverAccount' field.
-      * Receiver account number
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearReceiverAccount() {
-      receiverAccount = null;
-      fieldSetFlags()[4] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'transactionType' field.
-      * Type of transaction (CTI, DDI, etc.)
-      * @return The value.
-      */
-    public java.lang.String getTransactionType() {
-      return transactionType;
-    }
-
-
-    /**
-      * Sets the value of the 'transactionType' field.
-      * Type of transaction (CTI, DDI, etc.)
-      * @param value The value of 'transactionType'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setTransactionType(java.lang.String value) {
-      validate(fields()[5], value);
-      this.transactionType = value;
-      fieldSetFlags()[5] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'transactionType' field has been set.
-      * Type of transaction (CTI, DDI, etc.)
-      * @return True if the 'transactionType' field has been set, false otherwise.
-      */
-    public boolean hasTransactionType() {
-      return fieldSetFlags()[5];
-    }
-
-
-    /**
-      * Clears the value of the 'transactionType' field.
-      * Type of transaction (CTI, DDI, etc.)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearTransactionType() {
-      transactionType = null;
-      fieldSetFlags()[5] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'priority' field.
-      * Transaction priority (HIGH, NORMAL, LOW)
-      * @return The value.
-      */
-    public java.lang.String getPriority() {
-      return priority;
-    }
-
-
-    /**
-      * Sets the value of the 'priority' field.
-      * Transaction priority (HIGH, NORMAL, LOW)
-      * @param value The value of 'priority'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setPriority(java.lang.String value) {
-      validate(fields()[6], value);
-      this.priority = value;
-      fieldSetFlags()[6] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'priority' field has been set.
-      * Transaction priority (HIGH, NORMAL, LOW)
-      * @return True if the 'priority' field has been set, false otherwise.
-      */
-    public boolean hasPriority() {
-      return fieldSetFlags()[6];
-    }
-
-
-    /**
-      * Clears the value of the 'priority' field.
-      * Transaction priority (HIGH, NORMAL, LOW)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearPriority() {
-      priority = null;
-      fieldSetFlags()[6] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'timestamp' field.
-      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-      * @return The value.
-      */
-    public java.time.Instant getTimestamp() {
-      return timestamp;
-    }
-
-
-    /**
-      * Sets the value of the 'timestamp' field.
-      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-      * @param value The value of 'timestamp'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setTimestamp(java.time.Instant value) {
-      validate(fields()[7], value);
-      this.timestamp = value.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
-      fieldSetFlags()[7] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'timestamp' field has been set.
-      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-      * @return True if the 'timestamp' field has been set, false otherwise.
-      */
-    public boolean hasTimestamp() {
-      return fieldSetFlags()[7];
-    }
-
-
-    /**
-      * Clears the value of the 'timestamp' field.
-      * Transaction timestamp in epoch milliseconds (Unix timestamp * 1000)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearTimestamp() {
-      fieldSetFlags()[7] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'componentName' field.
-      * Component name (e.g., PSPAPFAFAST)
-      * @return The value.
-      */
-    public java.lang.String getComponentName() {
-      return componentName;
-    }
-
-
-    /**
-      * Sets the value of the 'componentName' field.
-      * Component name (e.g., PSPAPFAFAST)
-      * @param value The value of 'componentName'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setComponentName(java.lang.String value) {
-      validate(fields()[8], value);
-      this.componentName = value;
-      fieldSetFlags()[8] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'componentName' field has been set.
-      * Component name (e.g., PSPAPFAFAST)
-      * @return True if the 'componentName' field has been set, false otherwise.
-      */
-    public boolean hasComponentName() {
-      return fieldSetFlags()[8];
-    }
-
-
-    /**
-      * Clears the value of the 'componentName' field.
-      * Component name (e.g., PSPAPFAFAST)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearComponentName() {
-      componentName = null;
-      fieldSetFlags()[8] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'uuid' field.
-      * Unique identifier for the message
-      * @return The value.
-      */
-    public java.lang.String getUuid() {
-      return uuid;
-    }
-
-
-    /**
-      * Sets the value of the 'uuid' field.
-      * Unique identifier for the message
-      * @param value The value of 'uuid'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setUuid(java.lang.String value) {
-      validate(fields()[9], value);
-      this.uuid = value;
-      fieldSetFlags()[9] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'uuid' field has been set.
-      * Unique identifier for the message
-      * @return True if the 'uuid' field has been set, false otherwise.
-      */
-    public boolean hasUuid() {
-      return fieldSetFlags()[9];
-    }
-
-
-    /**
-      * Clears the value of the 'uuid' field.
-      * Unique identifier for the message
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearUuid() {
-      uuid = null;
-      fieldSetFlags()[9] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'channel' field.
-      * Channel identifier (e.g., G3I)
-      * @return The value.
-      */
-    public java.lang.String getChannel() {
-      return channel;
-    }
-
-
-    /**
-      * Sets the value of the 'channel' field.
-      * Channel identifier (e.g., G3I)
-      * @param value The value of 'channel'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setChannel(java.lang.String value) {
-      validate(fields()[10], value);
-      this.channel = value;
-      fieldSetFlags()[10] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'channel' field has been set.
-      * Channel identifier (e.g., G3I)
-      * @return True if the 'channel' field has been set, false otherwise.
-      */
-    public boolean hasChannel() {
-      return fieldSetFlags()[10];
-    }
-
-
-    /**
-      * Clears the value of the 'channel' field.
-      * Channel identifier (e.g., G3I)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearChannel() {
-      channel = null;
-      fieldSetFlags()[10] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'direction' field.
-      * Direction (I for Inward, O for Outward)
-      * @return The value.
-      */
-    public java.lang.String getDirection() {
-      return direction;
-    }
-
-
-    /**
-      * Sets the value of the 'direction' field.
-      * Direction (I for Inward, O for Outward)
-      * @param value The value of 'direction'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setDirection(java.lang.String value) {
-      validate(fields()[11], value);
-      this.direction = value;
-      fieldSetFlags()[11] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'direction' field has been set.
-      * Direction (I for Inward, O for Outward)
-      * @return True if the 'direction' field has been set, false otherwise.
-      */
-    public boolean hasDirection() {
-      return fieldSetFlags()[11];
-    }
-
-
-    /**
-      * Clears the value of the 'direction' field.
-      * Direction (I for Inward, O for Outward)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearDirection() {
-      direction = null;
-      fieldSetFlags()[11] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'domainName' field.
-      * Domain name (e.g., PAYMENTS)
-      * @return The value.
-      */
-    public java.lang.String getDomainName() {
-      return domainName;
-    }
-
-
-    /**
-      * Sets the value of the 'domainName' field.
-      * Domain name (e.g., PAYMENTS)
-      * @param value The value of 'domainName'.
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder setDomainName(java.lang.String value) {
-      validate(fields()[12], value);
-      this.domainName = value;
-      fieldSetFlags()[12] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'domainName' field has been set.
-      * Domain name (e.g., PAYMENTS)
-      * @return True if the 'domainName' field has been set, false otherwise.
-      */
-    public boolean hasDomainName() {
-      return fieldSetFlags()[12];
-    }
-
-
-    /**
-      * Clears the value of the 'domainName' field.
-      * Domain name (e.g., PAYMENTS)
-      * @return This builder.
-      */
-    public com.anz.fastpayment.inward.avro.UnifiedPaymentMessage.Builder clearDomainName() {
-      domainName = null;
-      fieldSetFlags()[12] = false;
       return this;
     }
 
@@ -1217,19 +586,37 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     public UnifiedPaymentMessage build() {
       try {
         UnifiedPaymentMessage record = new UnifiedPaymentMessage();
-        record.transactionId = fieldSetFlags()[0] ? this.transactionId : (java.lang.String) defaultValue(fields()[0]);
-        record.amount = fieldSetFlags()[1] ? this.amount : (java.lang.Double) defaultValue(fields()[1]);
-        record.currency = fieldSetFlags()[2] ? this.currency : (java.lang.String) defaultValue(fields()[2]);
-        record.senderAccount = fieldSetFlags()[3] ? this.senderAccount : (java.lang.String) defaultValue(fields()[3]);
-        record.receiverAccount = fieldSetFlags()[4] ? this.receiverAccount : (java.lang.String) defaultValue(fields()[4]);
-        record.transactionType = fieldSetFlags()[5] ? this.transactionType : (java.lang.String) defaultValue(fields()[5]);
-        record.priority = fieldSetFlags()[6] ? this.priority : (java.lang.String) defaultValue(fields()[6]);
-        record.timestamp = fieldSetFlags()[7] ? this.timestamp : (java.time.Instant) defaultValue(fields()[7]);
-        record.componentName = fieldSetFlags()[8] ? this.componentName : (java.lang.String) defaultValue(fields()[8]);
-        record.uuid = fieldSetFlags()[9] ? this.uuid : (java.lang.String) defaultValue(fields()[9]);
-        record.channel = fieldSetFlags()[10] ? this.channel : (java.lang.String) defaultValue(fields()[10]);
-        record.direction = fieldSetFlags()[11] ? this.direction : (java.lang.String) defaultValue(fields()[11]);
-        record.domainName = fieldSetFlags()[12] ? this.domainName : (java.lang.String) defaultValue(fields()[12]);
+        if (HeaderBuilder != null) {
+          try {
+            record.Header = this.HeaderBuilder.build();
+          } catch (org.apache.avro.AvroMissingFieldException e) {
+            e.addParentField(record.getSchema().getField("Header"));
+            throw e;
+          }
+        } else {
+          record.Header = fieldSetFlags()[0] ? this.Header : (com.anz.fastpayment.inward.avro.MessageHeader) defaultValue(fields()[0]);
+        }
+        if (BodyBuilder != null) {
+          try {
+            record.Body = this.BodyBuilder.build();
+          } catch (org.apache.avro.AvroMissingFieldException e) {
+            e.addParentField(record.getSchema().getField("Body"));
+            throw e;
+          }
+        } else {
+          record.Body = fieldSetFlags()[1] ? this.Body : (com.anz.fastpayment.inward.avro.MessageBody) defaultValue(fields()[1]);
+        }
+        if (ProcctxtBuilder != null) {
+          try {
+            record.Procctxt = this.ProcctxtBuilder.build();
+          } catch (org.apache.avro.AvroMissingFieldException e) {
+            e.addParentField(record.getSchema().getField("Procctxt"));
+            throw e;
+          }
+        } else {
+          record.Procctxt = fieldSetFlags()[2] ? this.Procctxt : (com.anz.fastpayment.inward.avro.ProcessingContext) defaultValue(fields()[2]);
+        }
+        record.messages = fieldSetFlags()[3] ? this.messages : (java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction>) defaultValue(fields()[3]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -1257,6 +644,135 @@ public class UnifiedPaymentMessage extends org.apache.avro.specific.SpecificReco
     READER$.read(this, SpecificData.getDecoder(in));
   }
 
+  @Override protected boolean hasCustomCoders() { return true; }
+
+  @Override public void customEncode(org.apache.avro.io.Encoder out)
+    throws java.io.IOException
+  {
+    if (this.Header == null) {
+      throw new IllegalStateException("Header cannot be null for UnifiedPaymentMessage encoding");
+    }
+    this.Header.customEncode(out);
+
+    if (this.Body == null) {
+      throw new IllegalStateException("Body cannot be null for UnifiedPaymentMessage encoding");
+    }
+    this.Body.customEncode(out);
+
+    if (this.Procctxt == null) {
+      throw new IllegalStateException("Procctxt cannot be null for UnifiedPaymentMessage encoding");
+    }
+    this.Procctxt.customEncode(out);
+
+    if (this.messages == null) {
+      throw new IllegalStateException("messages cannot be null for UnifiedPaymentMessage encoding");
+    }
+    long size0 = this.messages.size();
+    out.writeArrayStart();
+    out.setItemCount(size0);
+    long actualSize0 = 0;
+    for (com.anz.fastpayment.inward.avro.MessageInstruction e0: this.messages) {
+      if (e0 == null) {
+        throw new IllegalStateException("Array element cannot be null for UnifiedPaymentMessage.messages encoding");
+      }
+      actualSize0++;
+      out.startItem();
+      e0.customEncode(out);
+    }
+    out.writeArrayEnd();
+    if (actualSize0 != size0)
+      throw new java.util.ConcurrentModificationException("Array-size written was " + size0 + ", but element count was " + actualSize0 + ".");
+
+  }
+
+  @Override public void customDecode(org.apache.avro.io.ResolvingDecoder in)
+    throws java.io.IOException
+  {
+    org.apache.avro.Schema.Field[] fieldOrder = in.readFieldOrderIfDiff();
+    if (fieldOrder == null) {
+      if (this.Header == null) {
+        this.Header = new com.anz.fastpayment.inward.avro.MessageHeader();
+      }
+      this.Header.customDecode(in);
+
+      if (this.Body == null) {
+        this.Body = new com.anz.fastpayment.inward.avro.MessageBody();
+      }
+      this.Body.customDecode(in);
+
+      if (this.Procctxt == null) {
+        this.Procctxt = new com.anz.fastpayment.inward.avro.ProcessingContext();
+      }
+      this.Procctxt.customDecode(in);
+
+      long size0 = in.readArrayStart();
+      java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> a0 = this.messages;
+      if (a0 == null) {
+        a0 = new SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction>((int)size0, SCHEMA$.getField("messages").schema());
+        this.messages = a0;
+      } else a0.clear();
+      SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction> ga0 = (a0 instanceof SpecificData.Array ? (SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction>)a0 : null);
+      for ( ; 0 < size0; size0 = in.arrayNext()) {
+        for ( ; size0 != 0; size0--) {
+          com.anz.fastpayment.inward.avro.MessageInstruction e0 = (ga0 != null ? ga0.peek() : null);
+          if (e0 == null) {
+            e0 = new com.anz.fastpayment.inward.avro.MessageInstruction();
+          }
+          e0.customDecode(in);
+          a0.add(e0);
+        }
+      }
+
+    } else {
+      for (int i = 0; i < 4; i++) {
+        switch (fieldOrder[i].pos()) {
+        case 0:
+          if (this.Header == null) {
+            this.Header = new com.anz.fastpayment.inward.avro.MessageHeader();
+          }
+          this.Header.customDecode(in);
+          break;
+
+        case 1:
+          if (this.Body == null) {
+            this.Body = new com.anz.fastpayment.inward.avro.MessageBody();
+          }
+          this.Body.customDecode(in);
+          break;
+
+        case 2:
+          if (this.Procctxt == null) {
+            this.Procctxt = new com.anz.fastpayment.inward.avro.ProcessingContext();
+          }
+          this.Procctxt.customDecode(in);
+          break;
+
+        case 3:
+          long size0 = in.readArrayStart();
+          java.util.List<com.anz.fastpayment.inward.avro.MessageInstruction> a0 = this.messages;
+          if (a0 == null) {
+            a0 = new SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction>((int)size0, SCHEMA$.getField("messages").schema());
+            this.messages = a0;
+          } else a0.clear();
+          SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction> ga0 = (a0 instanceof SpecificData.Array ? (SpecificData.Array<com.anz.fastpayment.inward.avro.MessageInstruction>)a0 : null);
+          for ( ; 0 < size0; size0 = in.arrayNext()) {
+            for ( ; size0 != 0; size0--) {
+              com.anz.fastpayment.inward.avro.MessageInstruction e0 = (ga0 != null ? ga0.peek() : null);
+              if (e0 == null) {
+                e0 = new com.anz.fastpayment.inward.avro.MessageInstruction();
+              }
+              e0.customDecode(in);
+              a0.add(e0);
+            }
+          }
+          break;
+
+        default:
+          throw new java.io.IOException("Corrupt ResolvingDecoder.");
+        }
+      }
+    }
+  }
 }
 
 

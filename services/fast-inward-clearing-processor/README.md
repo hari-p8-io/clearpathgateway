@@ -5,15 +5,17 @@ A Kafka-based clearing processor service that handles CTI (Credit Transfer Inwar
 ## Features
 
 - **Kafka Integration**: Consumes messages from input topics and produces to output topics
-- **Avro Serialization**: Supports Avro message format for efficient data serialization
-- **Transaction Processing**: Complete transaction lifecycle management
+- **Complex Avro Serialization**: Supports nested event structures with Header, Body, and Processing Context
+- **Advanced Transaction Processing**: Complete transaction lifecycle management with complex data extraction
+- **Intelligent Data Mapping**: Extracts payment data from nested structures (Header.UUID, Body.PmtAddRq, Procctxt.PmtDtls)
 - **Validation**: Comprehensive field validation and business rule enforcement
 - **Enrichment**: Adds metadata, timestamps, and processing information
-- **Business Rules**: Configurable business logic and compliance checks
+- **Business Rules**: Configurable business logic and compliance checks with enhanced payment category support
 - **Idempotency**: Redis-based duplicate transaction prevention
 - **Error Handling**: Retry logic with Dead Letter Queue (DLQ) support
 - **Monitoring**: Health checks, metrics, and observability endpoints
 - **Containerization**: Docker and Kubernetes deployment support
+- **ISO20022 Compliance**: Support for complex payment message structures
 
 ## Architecture
 
@@ -44,10 +46,11 @@ Input Topic (transactions.incoming)
 
 ### Models
 
-- **TransactionMessage**: Input transaction representation
+- **TransactionMessage**: Input transaction representation (extracted from complex nested structure)
 - **ProcessedTransactionMessage**: Enriched and processed transaction
 - **BusinessRuleResults**: Business rule validation results
 - **EnrichmentData**: Additional metadata and processing information
+- **Complex Event Support**: Header, Body, Processing Context, and ISO20022 message structures
 
 ### Configuration
 

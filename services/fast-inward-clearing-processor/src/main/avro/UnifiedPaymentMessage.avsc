@@ -291,14 +291,8 @@
                         },
                         {
                           "name": "Amount",
-                          "type": "double",
-                          "doc": "Transaction amount (legacy field - use AmountMinor for precision)"
-                        },
-                        {
-                          "name": "AmountMinor",
-                          "type": "long",
-                          "doc": "Transaction amount in minor units (e.g., cents for USD) for precise monetary representation",
-                          "default": 0
+                          "type": "string",
+                          "doc": "Transaction amount as string to preserve precision"
                         },
                         {
                           "name": "AcctUse",
@@ -377,14 +371,8 @@
                         },
                         {
                           "name": "Amount",
-                          "type": "double",
-                          "doc": "Transaction amount (legacy field - use AmountMinor for precision)"
-                        },
-                        {
-                          "name": "AmountMinor",
-                          "type": "long",
-                          "doc": "Transaction amount in minor units (e.g., cents for USD) for precise monetary representation",
-                          "default": 0
+                          "type": "string",
+                          "doc": "Transaction amount as string to preserve precision"
                         },
                         {
                           "name": "Narrative",
@@ -578,14 +566,7 @@
                         {
                           "name": "BaseAmt",
                           "type": ["null", "double"],
-                          "default": null,
-                          "doc": "Base amount (legacy field - use BaseAmtMinor for precision)"
-                        },
-                        {
-                          "name": "BaseAmtMinor",
-                          "type": ["null", "long"],
-                          "default": null,
-                          "doc": "Base amount in minor units (e.g., cents for USD) for precise monetary representation"
+                          "default": null
                         },
                         {
                           "name": "BaseCcy",
@@ -663,14 +644,8 @@
                                     },
                                     {
                                       "name": "IntrBkSttlmAmt",
-                                      "type": "double",
-                                      "doc": "Inter-bank settlement amount (legacy field - use IntrBkSttlmAmtMinor for precision)"
-                                    },
-                                    {
-                                      "name": "IntrBkSttlmAmtMinor",
-                                      "type": "long",
-                                      "doc": "Inter-bank settlement amount in minor units (e.g., cents for USD) for precise monetary representation",
-                                      "default": 0
+                                      "type": "string",
+                                      "doc": "Interbank settlement amount as string to preserve precision"
                                     },
                                     {
                                       "name": "IntrBkSttlmCCY",

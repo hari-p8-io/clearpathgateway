@@ -26,6 +26,7 @@ spring:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
         schema.registry.basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME:}:${SCHEMA_REGISTRY_PASSWORD:}
+        basic.auth.credentials.source: USER_INFO
     consumer:
       group-id: ${spring.application.name}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

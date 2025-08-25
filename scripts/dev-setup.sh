@@ -231,7 +231,7 @@ start_services() {
     echo "🚀 Starting services..."
 
     # Start infrastructure services first
-    docker-compose up -d zookeeper kafka redis postgres spanner-emulator
+    docker-compose up -d zookeeper kafka redis postgres spanner-emulator schema-registry
 
     # Wait for infrastructure to be ready
     echo "⏳ Waiting for infrastructure services to be ready..."
@@ -249,6 +249,7 @@ start_services() {
     echo "✅ Infrastructure and monitoring services started"
     echo ""
     echo "🌐 Available services:"
+    echo "   - Schema Registry: http://localhost:8081"
     echo "   - Kafka UI: http://localhost:8090"
     echo "   - Redis Commander: http://localhost:8091"
     echo "   - Prometheus: http://localhost:9090"

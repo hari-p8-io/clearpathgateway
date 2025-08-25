@@ -129,30 +129,8 @@ public class ClearingProcessorServiceImpl implements ClearingProcessorService {
     }
 
     private com.anz.fastpayment.inward.avro.ProcessedTransactionMessage convertToAvroProcessedMessage(ProcessedTransactionMessage pojoMessage) {
-        try {
-            com.anz.fastpayment.inward.avro.ProcessedTransactionMessage avroMessage = new com.anz.fastpayment.inward.avro.ProcessedTransactionMessage();
-            
-            // Set basic fields
-            avroMessage.setTransactionId(pojoMessage.getTransactionId());
-            avroMessage.setAmount(pojoMessage.getAmount() != null ? pojoMessage.getAmount().doubleValue() : 0.0);
-            avroMessage.setCurrency(pojoMessage.getCurrency());
-            avroMessage.setSenderAccount(pojoMessage.getSenderAccount());
-            avroMessage.setReceiverAccount(pojoMessage.getReceiverAccount());
-            avroMessage.setTransactionType(pojoMessage.getTransactionType());
-            avroMessage.setPriority(pojoMessage.getPriority());
-            avroMessage.setTimestamp(pojoMessage.getOriginalTimestamp() != null ? pojoMessage.getOriginalTimestamp().toString() : null);
-            avroMessage.setProcessingTimestamp(pojoMessage.getProcessingTimestamp() != null ? pojoMessage.getProcessingTimestamp().toString() : null);
-            avroMessage.setProcessingNodeId(pojoMessage.getProcessingNodeId());
-            avroMessage.setStatus(pojoMessage.getStatus());
-            avroMessage.setValidationPassed(true); // Default to true for now
-            avroMessage.setBusinessRulesPassed(true); // Default to true for now
-            avroMessage.setErrorMessage(null); // No error by default
-            
-            return avroMessage;
-        } catch (Exception e) {
-            logger.error("Error converting POJO to Avro message", e);
-            throw new RuntimeException("Failed to convert POJO to Avro message", e);
-        }
+        // Use the updated AvroConverter utility method
+        return AvroConverter.convertToAvroProcessedMessage(pojoMessage);
     }
 
     private ProcessedTransactionMessage convertFromAvroProcessedMessage(com.anz.fastpayment.inward.avro.ProcessedTransactionMessage avroMessage) {
@@ -161,7 +139,7 @@ public class ClearingProcessorServiceImpl implements ClearingProcessorService {
             
             // Set basic fields
             pojoMessage.setTransactionId(avroMessage.getTransactionId());
-            pojoMessage.setAmount(BigDecimal.valueOf(avroMessage.getAmount()));
+            pojoMessage.setAmount(avroMessage.getAmount() != null ? new BigDecimal(avroMessage.getAmount()) : BigDecimal.ZERO);
             pojoMessage.setCurrency(avroMessage.getCurrency());
             pojoMessage.setSenderAccount(avroMessage.getSenderAccount());
             pojoMessage.setReceiverAccount(avroMessage.getReceiverAccount());

@@ -11,58 +11,62 @@
     },
     {
       "name": "amount",
-      "type": "double",
-      "doc": "Transaction amount (legacy field - use amountMinor for precision)"
-    },
-    {
-      "name": "amountMinor",
-      "type": "long",
-      "doc": "Transaction amount in minor units (e.g., cents for USD) for precise monetary representation",
-      "default": 0
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Transaction amount as string to preserve precision"
     },
     {
       "name": "currency",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Currency code"
     },
     {
       "name": "senderAccount",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Sender account number"
     },
     {
       "name": "receiverAccount",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Receiver account number"
     },
     {
       "name": "transactionType",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Type of transaction"
     },
     {
       "name": "priority",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Transaction priority"
     },
     {
       "name": "timestamp",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Original transaction timestamp"
     },
     {
       "name": "processingTimestamp",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "When the transaction was processed"
     },
     {
       "name": "processingNodeId",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "ID of the processing node"
     },
     {
       "name": "status",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null,
       "doc": "Processing status (SUCCESS, FAILED, PENDING)"
     },
     {

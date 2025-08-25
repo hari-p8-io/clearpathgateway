@@ -14,6 +14,7 @@ import java.time.Instant;
 
 /**
  * Utility class for converting between Avro SpecificRecord and POJO objects
+ * Updated to handle complex nested payment message structure
  */
 public class AvroConverter {
 
@@ -22,6 +23,7 @@ public class AvroConverter {
 
     /**
      * Convert Avro UnifiedPaymentMessage to TransactionMessage POJO
+     * Updated to extract data from complex nested structure
      * 
      * @param avroRecord The Avro UnifiedPaymentMessage
      * @return TransactionMessage POJO
@@ -37,37 +39,287 @@ public class AvroConverter {
             
             TransactionMessage transactionMessage = new TransactionMessage();
             
-            // Extract all fields from the Avro message
-            transactionMessage.setTransactionId(unifiedMessage.getTransactionId());
-            transactionMessage.setAmount(BigDecimal.valueOf(unifiedMessage.getAmount()));
-            transactionMessage.setCurrency(unifiedMessage.getCurrency());
-            transactionMessage.setSenderAccount(unifiedMessage.getSenderAccount());
-            transactionMessage.setReceiverAccount(unifiedMessage.getReceiverAccount());
-            transactionMessage.setTransactionType(unifiedMessage.getTransactionType());
-            transactionMessage.setPriority(unifiedMessage.getPriority());
+            // Extract transaction ID from Header.UUID or Body.PmtAddRq[0].RqUID
+            String transactionId = extractTransactionId(unifiedMessage);
+            transactionMessage.setTransactionId(transactionId);
             
-            // Parse timestamp from Instant to LocalDateTime
-            if (unifiedMessage.getTimestamp() != null) {
-                try {
-                    // Convert Instant to LocalDateTime
-                    Instant timestamp = unifiedMessage.getTimestamp();
-                    LocalDateTime localDateTime = LocalDateTime.ofInstant(timestamp, java.time.ZoneOffset.UTC);
-                    transactionMessage.setTimestamp(localDateTime);
-                } catch (Exception e) {
-                    logger.warn("Could not parse timestamp: {}", unifiedMessage.getTimestamp());
-                    transactionMessage.setTimestamp(LocalDateTime.now());
+            // Extract amount and currency from Body.PmtAddRq[0].FromAcct
+            if (unifiedMessage.getBody() != null && 
+                unifiedMessage.getBody().getPmtAddRq() != null && 
+                unifiedMessage.getBody().getPmtAddRq().size() > 0) {
+                
+                var firstPaymentRequest = unifiedMessage.getBody().getPmtAddRq().get(0);
+                
+                // Extract amount and currency from FromAcct
+                if (firstPaymentRequest.getFromAcct() != null) {
+                    var fromAcct = firstPaymentRequest.getFromAcct();
+                    // Amount is now string, so convert to BigDecimal safely
+                    if (fromAcct.getAmount() != null) {
+                        transactionMessage.setAmount(new BigDecimal(fromAcct.getAmount()));
+                    }
+                    if (fromAcct.getCurCode() != null) {
+                        transactionMessage.setCurrency(fromAcct.getCurCode().toString());
+                    }
+                    if (fromAcct.getAcctId() != null) {
+                        transactionMessage.setSenderAccount(fromAcct.getAcctId().toString());
+                    }
+                }
+                
+                // Extract receiver account from ToAcct
+                if (firstPaymentRequest.getToAcct() != null) {
+                    var toAcct = firstPaymentRequest.getToAcct();
+                    if (toAcct.getAcctId() != null) {
+                        transactionMessage.setReceiverAccount(toAcct.getAcctId().toString());
+                    }
+                }
+                
+                // Extract transaction type from Procctxt.PmtDtls.PmtCtgry
+                String transactionType = extractTransactionType(unifiedMessage);
+                if (transactionType != null) {
+                    transactionMessage.setTransactionType(transactionType);
+                }
+                
+                // Extract priority (could be derived from amount or other factors)
+                String priority = determinePriority(unifiedMessage);
+                transactionMessage.setPriority(priority);
+                
+                // Extract timestamp from Header.EventInfo.EventTS or Header.RcvdTS
+                LocalDateTime timestamp = extractTimestamp(unifiedMessage);
+                if (timestamp != null) {
+                    transactionMessage.setTimestamp(timestamp);
+                }
+                
+                // Extract description from FromAcct.Narrative or ToAcct.Narrative
+                String description = extractDescription(unifiedMessage);
+                if (description != null) {
+                    transactionMessage.setDescription(description);
+                }
+                
+                // Extract reference from PayHdr.PaymentID or PayHdr.ThirdPartyPayID
+                String reference = extractReference(unifiedMessage);
+                if (reference != null) {
+                    transactionMessage.setReference(reference);
                 }
             }
             
-            logger.debug("Successfully converted Avro UnifiedPaymentMessage to TransactionMessage: {}", 
+            logger.debug("Successfully converted complex Avro UnifiedPaymentMessage to TransactionMessage: {}", 
                        transactionMessage.getTransactionId());
             
             return transactionMessage;
             
         } catch (Exception e) {
-            logger.error("Error converting Avro record to TransactionMessage", e);
-            throw new RuntimeException("Failed to convert Avro record to TransactionMessage", e);
+            logger.error("Error converting complex Avro record to TransactionMessage", e);
+            throw new RuntimeException("Failed to convert complex Avro record to TransactionMessage", e);
         }
+    }
+
+    /**
+     * Extract transaction ID from various possible locations in the message
+     */
+    private static String extractTransactionId(UnifiedPaymentMessage message) {
+        // Try Header.UUID first
+        if (message.getHeader() != null && message.getHeader().getUUID() != null) {
+            return message.getHeader().getUUID().toString();
+        }
+        
+        // Try Body.PmtAddRq[0].RqUID
+        if (message.getBody() != null && 
+            message.getBody().getPmtAddRq() != null && 
+            message.getBody().getPmtAddRq().size() > 0) {
+            
+            var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
+            if (firstPaymentRequest.getRqUID() != null) {
+                return firstPaymentRequest.getRqUID().toString();
+            }
+            
+            // Try PayHdr.PaymentID
+            if (firstPaymentRequest.getPayHdr() != null && 
+                firstPaymentRequest.getPayHdr().getPaymentID() != null) {
+                return firstPaymentRequest.getPayHdr().getPaymentID().toString();
+            }
+        }
+        
+        // Fallback to generated UUID
+        return java.util.UUID.randomUUID().toString();
+    }
+
+    /**
+     * Extract transaction type from processing context
+     */
+    private static String extractTransactionType(UnifiedPaymentMessage message) {
+        if (message.getProcctxt() != null && 
+            message.getProcctxt().getPmtDtls() != null && 
+            message.getProcctxt().getPmtDtls().getPmtCtgry() != null) {
+            
+            String category = message.getProcctxt().getPmtDtls().getPmtCtgry().toString();
+            
+            // Map payment categories to transaction types
+            switch (category) {
+                case "DD":
+                    return "DDI"; // Direct Debit Inward
+                case "CT":
+                    return "CTI"; // Credit Transfer Inward
+                default:
+                    return category;
+            }
+        }
+        return "UNKNOWN";
+    }
+
+    /**
+     * Determine priority based on amount and other factors
+     */
+    private static String determinePriority(UnifiedPaymentMessage message) {
+        try {
+            if (message.getBody() != null && 
+                message.getBody().getPmtAddRq() != null && 
+                message.getBody().getPmtAddRq().size() > 0) {
+                
+                var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
+                if (firstPaymentRequest.getFromAcct() != null) {
+                    
+                    String amountStr = firstPaymentRequest.getFromAcct().getAmount();
+                    if (amountStr != null) {
+                        try {
+                            BigDecimal amount = new BigDecimal(amountStr);
+                            
+                            // Simple priority logic based on amount
+                            if (amount.compareTo(new BigDecimal("100000")) >= 0) {
+                                return "HIGH";
+                            } else if (amount.compareTo(new BigDecimal("10000")) >= 0) {
+                                return "NORMAL";
+                            } else {
+                                return "LOW";
+                            }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Could not parse amount string: {}", amountStr, e);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not determine priority, using default", e);
+        }
+        
+        return "NORMAL";
+    }
+
+    /**
+     * Extract timestamp from various possible locations
+     */
+    private static LocalDateTime extractTimestamp(UnifiedPaymentMessage message) {
+        try {
+            // Try Header.EventInfo.EventTS first
+            if (message.getHeader() != null && 
+                message.getHeader().getEventInfo() != null && 
+                message.getHeader().getEventInfo().getEventTS() != null) {
+                
+                String eventTS = message.getHeader().getEventInfo().getEventTS().toString();
+                return LocalDateTime.parse(eventTS, TIMESTAMP_FORMATTER);
+            }
+            
+            // Try Header.RcvdTS
+            if (message.getHeader() != null && 
+                message.getHeader().getRcvdTS() != null) {
+                
+                String rcvdTS = message.getHeader().getRcvdTS().toString();
+                return LocalDateTime.parse(rcvdTS, TIMESTAMP_FORMATTER);
+            }
+            
+            // Try Body.PmtAddRq[0].MsgHdr.ClientDt
+            if (message.getBody() != null && 
+                message.getBody().getPmtAddRq() != null && 
+                message.getBody().getPmtAddRq().size() > 0) {
+                
+                var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
+                if (firstPaymentRequest.getMsgHdr() != null && 
+                    firstPaymentRequest.getMsgHdr().getClientDt() != null) {
+                    
+                    String clientDt = firstPaymentRequest.getMsgHdr().getClientDt().toString();
+                    return LocalDateTime.parse(clientDt, TIMESTAMP_FORMATTER);
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.warn("Could not parse timestamp from message, using current time", e);
+        }
+        
+        return LocalDateTime.now();
+    }
+
+    /**
+     * Extract description from narrative fields
+     */
+    private static String extractDescription(UnifiedPaymentMessage message) {
+        try {
+            if (message.getBody() != null && 
+                message.getBody().getPmtAddRq() != null && 
+                message.getBody().getPmtAddRq().size() > 0) {
+                
+                var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
+                
+                // Try FromAcct.Narrative first
+                if (firstPaymentRequest.getFromAcct() != null && 
+                    firstPaymentRequest.getFromAcct().getNarrative() != null) {
+                    return firstPaymentRequest.getFromAcct().getNarrative().toString();
+                }
+                
+                // Try ToAcct.Narrative
+                if (firstPaymentRequest.getToAcct() != null && 
+                    firstPaymentRequest.getToAcct().getNarrative() != null) {
+                    return firstPaymentRequest.getToAcct().getNarrative().toString();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract description", e);
+        }
+        
+        return null;
+    }
+
+    /**
+     * Extract reference from payment header
+     */
+    private static String extractReference(UnifiedPaymentMessage message) {
+        try {
+            if (message.getBody() != null && 
+                message.getBody().getPmtAddRq() != null && 
+                message.getBody().getPmtAddRq().size() > 0) {
+                
+                var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
+                
+                // Try PayHdr.ThirdPartyPayID first
+                if (firstPaymentRequest.getPayHdr() != null && 
+                    firstPaymentRequest.getPayHdr().getThirdPartyPayID() != null) {
+                    return firstPaymentRequest.getPayHdr().getThirdPartyPayID().toString();
+                }
+                
+                // Try PayHdr.PaymentID
+                if (firstPaymentRequest.getPayHdr() != null && 
+                    firstPaymentRequest.getPayHdr().getPaymentID() != null) {
+                    return firstPaymentRequest.getPayHdr().getPaymentID().toString();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract reference", e);
+        }
+        
+        return null;
+    }
+
+    /**
+     * Extract transaction ID from Avro message for error handling
+     */
+    public static String extractTransactionId(GenericRecord avroMessage) {
+        try {
+            if (avroMessage instanceof UnifiedPaymentMessage) {
+                UnifiedPaymentMessage message = (UnifiedPaymentMessage) avroMessage;
+                return extractTransactionId(message);
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract transaction ID from Avro message", e);
+        }
+        return "UNKNOWN";
     }
 
     /**
@@ -87,7 +339,7 @@ public class AvroConverter {
             
             // Set all fields from the POJO
             avroMessage.setTransactionId(processedMessage.getTransactionId());
-            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().doubleValue() : 0.0);
+            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().toString() : "0.00");
             avroMessage.setCurrency(processedMessage.getCurrency());
             avroMessage.setSenderAccount(processedMessage.getSenderAccount());
             avroMessage.setReceiverAccount(processedMessage.getReceiverAccount());
@@ -98,28 +350,20 @@ public class AvroConverter {
             if (processedMessage.getOriginalTimestamp() != null) {
                 avroMessage.setTimestamp(processedMessage.getOriginalTimestamp().format(TIMESTAMP_FORMATTER));
             }
+            
             if (processedMessage.getProcessingTimestamp() != null) {
                 avroMessage.setProcessingTimestamp(processedMessage.getProcessingTimestamp().format(TIMESTAMP_FORMATTER));
             }
             
-            avroMessage.setProcessingNodeId(processedMessage.getProcessingNodeId());
+            // Set additional fields
             avroMessage.setStatus(processedMessage.getStatus());
+            avroMessage.setProcessingNodeId(processedMessage.getProcessingNodeId());
             
-            // Set validation and business rules results
-            if (processedMessage.getBusinessRuleResults() != null) {
-                // Use overallStatus to determine if validation and business rules passed
-                String overallStatus = processedMessage.getBusinessRuleResults().getOverallStatus();
-                avroMessage.setValidationPassed("PASSED".equals(overallStatus));
-                avroMessage.setBusinessRulesPassed("PASSED".equals(overallStatus));
-            } else {
-                avroMessage.setValidationPassed(false);
-                avroMessage.setBusinessRulesPassed(false);
-            }
-            
-            // Set error message if status indicates failure
-            if ("FAILED".equals(processedMessage.getStatus())) {
-                avroMessage.setErrorMessage("Processing failed");
-            }
+            // Note: These fields may not exist in the current Avro schema
+            // Comment them out until the schema is updated
+            // avroMessage.setBusinessRuleResults(processedMessage.getBusinessRuleResults());
+            // avroMessage.setRiskScore(processedMessage.getRiskScore());
+            // avroMessage.setErrorMessage(processedMessage.getErrorMessage());
             
             logger.debug("Successfully converted ProcessedTransactionMessage POJO to Avro: {}", 
                        processedMessage.getTransactionId());
@@ -127,276 +371,62 @@ public class AvroConverter {
             return avroMessage;
             
         } catch (Exception e) {
-            logger.error("Error converting ProcessedTransactionMessage to Avro record", e);
-            throw new RuntimeException("Failed to convert ProcessedTransactionMessage to Avro record", e);
+            logger.error("Error converting ProcessedTransactionMessage POJO to Avro", e);
+            throw new RuntimeException("Failed to convert ProcessedTransactionMessage POJO to Avro", e);
         }
     }
 
     /**
-     * Create a new Avro UnifiedPaymentMessage from individual fields
+     * Convert ProcessedTransactionMessage POJO to Avro ProcessedTransactionMessage
      * 
-     * @param transactionId Unique transaction identifier
-     * @param amount Transaction amount
-     * @param currency Currency code
-     * @param senderAccount Sender account number
-     * @param receiverAccount Receiver account number
-     * @param transactionType Type of transaction
-     * @param priority Transaction priority
-     * @param timestamp Transaction timestamp
-     * @param componentName Component name
-     * @param uuid Unique identifier
-     * @param channel Channel identifier
-     * @param direction Direction (I for Inward, O for Outward)
-     * @param domainName Domain name
-     * @return Avro UnifiedPaymentMessage
-     */
-    public static UnifiedPaymentMessage createUnifiedPaymentMessage(
-            String transactionId, double amount, String currency, String senderAccount,
-            String receiverAccount, String transactionType, String priority, Instant timestamp,
-            String componentName, String uuid, String channel, String direction, String domainName) {
-        
-        try {
-            UnifiedPaymentMessage message = new UnifiedPaymentMessage();
-            message.setTransactionId(transactionId);
-            message.setAmount(amount);
-            message.setCurrency(currency);
-            message.setSenderAccount(senderAccount);
-            message.setReceiverAccount(receiverAccount);
-            message.setTransactionType(transactionType);
-            message.setPriority(priority);
-            message.setTimestamp(timestamp);
-            message.setComponentName(componentName);
-            message.setUuid(uuid);
-            message.setChannel(channel);
-            message.setDirection(direction);
-            message.setDomainName(domainName);
-            
-            logger.debug("Created new Avro UnifiedPaymentMessage: {}", transactionId);
-            return message;
-            
-        } catch (Exception e) {
-            logger.error("Error creating UnifiedPaymentMessage", e);
-            throw new RuntimeException("Failed to create UnifiedPaymentMessage", e);
-        }
-    }
-
-    /**
-     * Create a new Avro ProcessedTransactionMessage from individual fields
-     * 
-     * @param transactionId Unique transaction identifier
-     * @param amount Transaction amount
-     * @param currency Currency code
-     * @param senderAccount Sender account number
-     * @param receiverAccount Receiver account number
-     * @param transactionType Type of transaction
-     * @param priority Transaction priority
-     * @param timestamp Original transaction timestamp
-     * @param processingTimestamp When the transaction was processed
-     * @param processingNodeId ID of the processing node
-     * @param status Processing status
-     * @param validationPassed Whether validation passed
-     * @param businessRulesPassed Whether business rules passed
-     * @param errorMessage Error message if processing failed
+     * @param processedMessage The ProcessedTransactionMessage POJO
      * @return Avro ProcessedTransactionMessage
      */
-    public static com.anz.fastpayment.inward.avro.ProcessedTransactionMessage createProcessedTransactionMessage(
-            String transactionId, double amount, String currency, String senderAccount,
-            String receiverAccount, String transactionType, String priority, String timestamp,
-            String processingTimestamp, String processingNodeId, String status,
-            boolean validationPassed, boolean businessRulesPassed, String errorMessage) {
-        
+    public static com.anz.fastpayment.inward.avro.ProcessedTransactionMessage convertToAvroProcessedMessage(ProcessedTransactionMessage processedMessage) {
+        if (processedMessage == null) {
+            return null;
+        }
+
         try {
-            com.anz.fastpayment.inward.avro.ProcessedTransactionMessage message = new com.anz.fastpayment.inward.avro.ProcessedTransactionMessage();
-            message.setTransactionId(transactionId);
-            message.setAmount(amount);
-            message.setCurrency(currency);
-            message.setSenderAccount(senderAccount);
-            message.setReceiverAccount(receiverAccount);
-            message.setTransactionType(transactionType);
-            message.setPriority(priority);
-            message.setTimestamp(timestamp);
-            message.setProcessingTimestamp(processingTimestamp);
-            message.setProcessingNodeId(processingNodeId);
-            message.setStatus(status);
-            message.setValidationPassed(validationPassed);
-            message.setBusinessRulesPassed(businessRulesPassed);
-            message.setErrorMessage(errorMessage);
+            // Create Avro ProcessedTransactionMessage using the generated class
+            com.anz.fastpayment.inward.avro.ProcessedTransactionMessage avroMessage = new com.anz.fastpayment.inward.avro.ProcessedTransactionMessage();
             
-            logger.debug("Created new Avro ProcessedTransactionMessage: {}", transactionId);
-            return message;
+            // Set all fields from the POJO
+            avroMessage.setTransactionId(processedMessage.getTransactionId());
+            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().toString() : "0.00");
+            avroMessage.setCurrency(processedMessage.getCurrency());
+            avroMessage.setSenderAccount(processedMessage.getSenderAccount());
+            avroMessage.setReceiverAccount(processedMessage.getReceiverAccount());
+            avroMessage.setTransactionType(processedMessage.getTransactionType());
+            avroMessage.setPriority(processedMessage.getPriority());
             
-        } catch (Exception e) {
-            logger.error("Error creating ProcessedTransactionMessage", e);
-            throw new RuntimeException("Failed to create ProcessedTransactionMessage", e);
-        }
-    }
-
-    /**
-     * Extract transaction ID from Avro message
-     * 
-     * @param avroRecord The Avro GenericRecord
-     * @return Transaction ID as string
-     */
-    public static String extractTransactionId(GenericRecord avroRecord) {
-        if (avroRecord == null) {
-            return null;
-        }
-
-        try {
-            if (avroRecord instanceof UnifiedPaymentMessage) {
-                UnifiedPaymentMessage message = (UnifiedPaymentMessage) avroRecord;
-                return message.getTransactionId();
-            } else if (avroRecord instanceof com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) {
-                com.anz.fastpayment.inward.avro.ProcessedTransactionMessage message = (com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) avroRecord;
-                return message.getTransactionId();
-            } else {
-                // Fallback to generic record access
-                Object transactionId = avroRecord.get("transactionId");
-                return transactionId != null ? transactionId.toString() : null;
-            }
-        } catch (Exception e) {
-            logger.warn("Could not extract transaction ID from Avro message", e);
-            return null;
-        }
-    }
-
-    /**
-     * Extract amount from Avro message
-     * 
-     * @param avroRecord The Avro GenericRecord
-     * @return Amount as double
-     */
-    public static Double extractAmount(GenericRecord avroRecord) {
-        if (avroRecord == null) {
-            return null;
-        }
-
-        try {
-            if (avroRecord instanceof UnifiedPaymentMessage) {
-                UnifiedPaymentMessage message = (UnifiedPaymentMessage) avroRecord;
-                return message.getAmount();
-            } else if (avroRecord instanceof com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) {
-                com.anz.fastpayment.inward.avro.ProcessedTransactionMessage message = (com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) avroRecord;
-                return message.getAmount();
-            } else {
-                // Fallback to generic record access
-                Object amount = avroRecord.get("amount");
-                if (amount instanceof Number) {
-                    return ((Number) amount).doubleValue();
-                }
-                return null;
-            }
-        } catch (Exception e) {
-            logger.warn("Could not extract amount from Avro message", e);
-            return null;
-        }
-    }
-
-    /**
-     * Extract currency from Avro message
-     * 
-     * @param avroRecord The Avro GenericRecord
-     * @return Currency as string
-     */
-    public static String extractCurrency(GenericRecord avroRecord) {
-        if (avroRecord == null) {
-            return null;
-        }
-
-        try {
-            if (avroRecord instanceof UnifiedPaymentMessage) {
-                UnifiedPaymentMessage message = (UnifiedPaymentMessage) avroRecord;
-                return message.getCurrency();
-            } else if (avroRecord instanceof com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) {
-                com.anz.fastpayment.inward.avro.ProcessedTransactionMessage message = (com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) avroRecord;
-                return message.getCurrency();
-            } else {
-                // Fallback to generic record access
-                Object currency = avroRecord.get("currency");
-                return currency != null ? currency.toString() : null;
-            }
-        } catch (Exception e) {
-            logger.warn("Could not extract currency from Avro message", e);
-            return null;
-        }
-    }
-
-    /**
-     * Validate that an Avro record conforms to the expected schema
-     * 
-     * @param avroRecord The Avro GenericRecord to validate
-     * @return true if valid, false otherwise
-     */
-    public static boolean isValidAvroRecord(GenericRecord avroRecord) {
-        if (avroRecord == null) {
-            return false;
-        }
-
-        try {
-            // Check if it's one of our expected types
-            if (avroRecord instanceof UnifiedPaymentMessage || avroRecord instanceof com.anz.fastpayment.inward.avro.ProcessedTransactionMessage) {
-                // Extract required fields to validate
-                String transactionId = extractTransactionId(avroRecord);
-                Double amount = extractAmount(avroRecord);
-                String currency = extractCurrency(avroRecord);
-                
-                // Basic validation - transaction ID and amount are required
-                return transactionId != null && !transactionId.trim().isEmpty() 
-                       && amount != null && amount > 0 
-                       && currency != null && !currency.trim().isEmpty();
+            // Handle timestamps
+            if (processedMessage.getOriginalTimestamp() != null) {
+                avroMessage.setTimestamp(processedMessage.getOriginalTimestamp().format(TIMESTAMP_FORMATTER));
             }
             
-            return false;
+            if (processedMessage.getProcessingTimestamp() != null) {
+                avroMessage.setProcessingTimestamp(processedMessage.getProcessingTimestamp().format(TIMESTAMP_FORMATTER));
+            }
+            
+            // Set additional fields
+            avroMessage.setStatus(processedMessage.getStatus());
+            avroMessage.setProcessingNodeId(processedMessage.getProcessingNodeId());
+            
+            // Note: These fields may not exist in the current Avro schema
+            // Comment them out until the schema is updated
+            // avroMessage.setBusinessRuleResults(processedMessage.getBusinessRuleResults());
+            // avroMessage.setRiskScore(processedMessage.getRiskScore());
+            // avroMessage.setErrorMessage(processedMessage.getErrorMessage());
+            
+            logger.debug("Successfully converted ProcessedTransactionMessage POJO to Avro: {}", 
+                       processedMessage.getTransactionId());
+            
+            return avroMessage;
+            
         } catch (Exception e) {
-            logger.warn("Error validating Avro record", e);
-            return false;
+            logger.error("Error converting ProcessedTransactionMessage POJO to Avro", e);
+            throw new RuntimeException("Failed to convert ProcessedTransactionMessage POJO to Avro", e);
         }
-    }
-
-    /**
-     * Create a sample UnifiedPaymentMessage for testing purposes
-     * 
-     * @return Sample UnifiedPaymentMessage
-     */
-    public static UnifiedPaymentMessage createSampleUnifiedPaymentMessage() {
-        return createUnifiedPaymentMessage(
-            "TEST-TXN-" + System.currentTimeMillis(),
-            1000.00,
-            "SGD",
-            "1234567890",
-            "0987654321",
-            "CTI",
-            "HIGH",
-            Instant.now(),
-            "PSPAPFAFAST",
-            "UUID-" + System.currentTimeMillis(),
-            "G3I",
-            "I",
-            "PAYMENTS"
-        );
-    }
-
-    /**
-     * Create a sample ProcessedTransactionMessage for testing purposes
-     * 
-     * @return Sample ProcessedTransactionMessage
-     */
-    public static com.anz.fastpayment.inward.avro.ProcessedTransactionMessage createSampleProcessedTransactionMessage() {
-        return createProcessedTransactionMessage(
-            "TEST-TXN-" + System.currentTimeMillis(),
-            1000.00,
-            "SGD",
-            "1234567890",
-            "0987654321",
-            "CTI",
-            "HIGH",
-            Instant.now().toString(),
-            Instant.now().toString(),
-            "NODE-001",
-            "SUCCESS",
-            true,
-            true,
-            null
-        );
     }
 }

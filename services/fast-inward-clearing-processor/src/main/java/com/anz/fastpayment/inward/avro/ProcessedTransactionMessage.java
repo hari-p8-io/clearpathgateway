@@ -15,10 +15,10 @@ import org.apache.avro.message.SchemaStore;
 /** Simplified Processed Transaction Message */
 @org.apache.avro.specific.AvroGenerated
 public class ProcessedTransactionMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 1036069756921261736L;
+  private static final long serialVersionUID = 1564180656587037390L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"ProcessedTransactionMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Simplified Processed Transaction Message\",\"fields\":[{\"name\":\"transactionId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique transaction identifier\"},{\"name\":\"amount\",\"type\":\"double\",\"doc\":\"Transaction amount\"},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code\"},{\"name\":\"senderAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Sender account number\"},{\"name\":\"receiverAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Receiver account number\"},{\"name\":\"transactionType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of transaction\"},{\"name\":\"priority\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction priority\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Original transaction timestamp\"},{\"name\":\"processingTimestamp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"When the transaction was processed\"},{\"name\":\"processingNodeId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"ID of the processing node\"},{\"name\":\"status\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Processing status (SUCCESS, FAILED, PENDING)\"},{\"name\":\"validationPassed\",\"type\":\"boolean\",\"doc\":\"Whether validation passed\"},{\"name\":\"businessRulesPassed\",\"type\":\"boolean\",\"doc\":\"Whether business rules passed\"},{\"name\":\"errorMessage\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"doc\":\"Error message if processing failed\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"ProcessedTransactionMessage\",\"namespace\":\"com.anz.fastpayment.inward.avro\",\"doc\":\"Simplified Processed Transaction Message\",\"fields\":[{\"name\":\"transactionId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Unique transaction identifier\"},{\"name\":\"amount\",\"type\":\"double\",\"doc\":\"Transaction amount (legacy field - use amountMinor for precision)\"},{\"name\":\"amountMinor\",\"type\":\"long\",\"doc\":\"Transaction amount in minor units (e.g., cents for USD) for precise monetary representation\",\"default\":0},{\"name\":\"currency\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Currency code\"},{\"name\":\"senderAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Sender account number\"},{\"name\":\"receiverAccount\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Receiver account number\"},{\"name\":\"transactionType\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Type of transaction\"},{\"name\":\"priority\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Transaction priority\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Original transaction timestamp\"},{\"name\":\"processingTimestamp\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"When the transaction was processed\"},{\"name\":\"processingNodeId\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"ID of the processing node\"},{\"name\":\"status\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"},\"doc\":\"Processing status (SUCCESS, FAILED, PENDING)\"},{\"name\":\"validationPassed\",\"type\":\"boolean\",\"doc\":\"Whether validation passed\"},{\"name\":\"businessRulesPassed\",\"type\":\"boolean\",\"doc\":\"Whether business rules passed\"},{\"name\":\"errorMessage\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"doc\":\"Error message if processing failed\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -76,8 +76,10 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
   /** Unique transaction identifier */
   private java.lang.String transactionId;
-  /** Transaction amount */
+  /** Transaction amount (legacy field - use amountMinor for precision) */
   private double amount;
+  /** Transaction amount in minor units (e.g., cents for USD) for precise monetary representation */
+  private long amountMinor;
   /** Currency code */
   private java.lang.String currency;
   /** Sender account number */
@@ -113,7 +115,8 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
   /**
    * All-args constructor.
    * @param transactionId Unique transaction identifier
-   * @param amount Transaction amount
+   * @param amount Transaction amount (legacy field - use amountMinor for precision)
+   * @param amountMinor Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
    * @param currency Currency code
    * @param senderAccount Sender account number
    * @param receiverAccount Receiver account number
@@ -127,9 +130,10 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
    * @param businessRulesPassed Whether business rules passed
    * @param errorMessage Error message if processing failed
    */
-  public ProcessedTransactionMessage(java.lang.String transactionId, java.lang.Double amount, java.lang.String currency, java.lang.String senderAccount, java.lang.String receiverAccount, java.lang.String transactionType, java.lang.String priority, java.lang.String timestamp, java.lang.String processingTimestamp, java.lang.String processingNodeId, java.lang.String status, java.lang.Boolean validationPassed, java.lang.Boolean businessRulesPassed, java.lang.String errorMessage) {
+  public ProcessedTransactionMessage(java.lang.String transactionId, java.lang.Double amount, java.lang.Long amountMinor, java.lang.String currency, java.lang.String senderAccount, java.lang.String receiverAccount, java.lang.String transactionType, java.lang.String priority, java.lang.String timestamp, java.lang.String processingTimestamp, java.lang.String processingNodeId, java.lang.String status, java.lang.Boolean validationPassed, java.lang.Boolean businessRulesPassed, java.lang.String errorMessage) {
     this.transactionId = transactionId;
     this.amount = amount;
+    this.amountMinor = amountMinor;
     this.currency = currency;
     this.senderAccount = senderAccount;
     this.receiverAccount = receiverAccount;
@@ -156,18 +160,19 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
     switch (field$) {
     case 0: return transactionId;
     case 1: return amount;
-    case 2: return currency;
-    case 3: return senderAccount;
-    case 4: return receiverAccount;
-    case 5: return transactionType;
-    case 6: return priority;
-    case 7: return timestamp;
-    case 8: return processingTimestamp;
-    case 9: return processingNodeId;
-    case 10: return status;
-    case 11: return validationPassed;
-    case 12: return businessRulesPassed;
-    case 13: return errorMessage;
+    case 2: return amountMinor;
+    case 3: return currency;
+    case 4: return senderAccount;
+    case 5: return receiverAccount;
+    case 6: return transactionType;
+    case 7: return priority;
+    case 8: return timestamp;
+    case 9: return processingTimestamp;
+    case 10: return processingNodeId;
+    case 11: return status;
+    case 12: return validationPassed;
+    case 13: return businessRulesPassed;
+    case 14: return errorMessage;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -179,18 +184,19 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
     switch (field$) {
     case 0: transactionId = value$ != null ? value$.toString() : null; break;
     case 1: amount = (java.lang.Double)value$; break;
-    case 2: currency = value$ != null ? value$.toString() : null; break;
-    case 3: senderAccount = value$ != null ? value$.toString() : null; break;
-    case 4: receiverAccount = value$ != null ? value$.toString() : null; break;
-    case 5: transactionType = value$ != null ? value$.toString() : null; break;
-    case 6: priority = value$ != null ? value$.toString() : null; break;
-    case 7: timestamp = value$ != null ? value$.toString() : null; break;
-    case 8: processingTimestamp = value$ != null ? value$.toString() : null; break;
-    case 9: processingNodeId = value$ != null ? value$.toString() : null; break;
-    case 10: status = value$ != null ? value$.toString() : null; break;
-    case 11: validationPassed = (java.lang.Boolean)value$; break;
-    case 12: businessRulesPassed = (java.lang.Boolean)value$; break;
-    case 13: errorMessage = value$ != null ? value$.toString() : null; break;
+    case 2: amountMinor = (java.lang.Long)value$; break;
+    case 3: currency = value$ != null ? value$.toString() : null; break;
+    case 4: senderAccount = value$ != null ? value$.toString() : null; break;
+    case 5: receiverAccount = value$ != null ? value$.toString() : null; break;
+    case 6: transactionType = value$ != null ? value$.toString() : null; break;
+    case 7: priority = value$ != null ? value$.toString() : null; break;
+    case 8: timestamp = value$ != null ? value$.toString() : null; break;
+    case 9: processingTimestamp = value$ != null ? value$.toString() : null; break;
+    case 10: processingNodeId = value$ != null ? value$.toString() : null; break;
+    case 11: status = value$ != null ? value$.toString() : null; break;
+    case 12: validationPassed = (java.lang.Boolean)value$; break;
+    case 13: businessRulesPassed = (java.lang.Boolean)value$; break;
+    case 14: errorMessage = value$ != null ? value$.toString() : null; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -215,7 +221,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
   /**
    * Gets the value of the 'amount' field.
-   * @return Transaction amount
+   * @return Transaction amount (legacy field - use amountMinor for precision)
    */
   public double getAmount() {
     return amount;
@@ -224,11 +230,29 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
   /**
    * Sets the value of the 'amount' field.
-   * Transaction amount
+   * Transaction amount (legacy field - use amountMinor for precision)
    * @param value the value to set.
    */
   public void setAmount(double value) {
     this.amount = value;
+  }
+
+  /**
+   * Gets the value of the 'amountMinor' field.
+   * @return Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+   */
+  public long getAmountMinor() {
+    return amountMinor;
+  }
+
+
+  /**
+   * Sets the value of the 'amountMinor' field.
+   * Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+   * @param value the value to set.
+   */
+  public void setAmountMinor(long value) {
+    this.amountMinor = value;
   }
 
   /**
@@ -490,8 +514,10 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
     /** Unique transaction identifier */
     private java.lang.String transactionId;
-    /** Transaction amount */
+    /** Transaction amount (legacy field - use amountMinor for precision) */
     private double amount;
+    /** Transaction amount in minor units (e.g., cents for USD) for precise monetary representation */
+    private long amountMinor;
     /** Currency code */
     private java.lang.String currency;
     /** Sender account number */
@@ -536,53 +562,57 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
         this.amount = data().deepCopy(fields()[1].schema(), other.amount);
         fieldSetFlags()[1] = other.fieldSetFlags()[1];
       }
-      if (isValidValue(fields()[2], other.currency)) {
-        this.currency = data().deepCopy(fields()[2].schema(), other.currency);
+      if (isValidValue(fields()[2], other.amountMinor)) {
+        this.amountMinor = data().deepCopy(fields()[2].schema(), other.amountMinor);
         fieldSetFlags()[2] = other.fieldSetFlags()[2];
       }
-      if (isValidValue(fields()[3], other.senderAccount)) {
-        this.senderAccount = data().deepCopy(fields()[3].schema(), other.senderAccount);
+      if (isValidValue(fields()[3], other.currency)) {
+        this.currency = data().deepCopy(fields()[3].schema(), other.currency);
         fieldSetFlags()[3] = other.fieldSetFlags()[3];
       }
-      if (isValidValue(fields()[4], other.receiverAccount)) {
-        this.receiverAccount = data().deepCopy(fields()[4].schema(), other.receiverAccount);
+      if (isValidValue(fields()[4], other.senderAccount)) {
+        this.senderAccount = data().deepCopy(fields()[4].schema(), other.senderAccount);
         fieldSetFlags()[4] = other.fieldSetFlags()[4];
       }
-      if (isValidValue(fields()[5], other.transactionType)) {
-        this.transactionType = data().deepCopy(fields()[5].schema(), other.transactionType);
+      if (isValidValue(fields()[5], other.receiverAccount)) {
+        this.receiverAccount = data().deepCopy(fields()[5].schema(), other.receiverAccount);
         fieldSetFlags()[5] = other.fieldSetFlags()[5];
       }
-      if (isValidValue(fields()[6], other.priority)) {
-        this.priority = data().deepCopy(fields()[6].schema(), other.priority);
+      if (isValidValue(fields()[6], other.transactionType)) {
+        this.transactionType = data().deepCopy(fields()[6].schema(), other.transactionType);
         fieldSetFlags()[6] = other.fieldSetFlags()[6];
       }
-      if (isValidValue(fields()[7], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[7].schema(), other.timestamp);
+      if (isValidValue(fields()[7], other.priority)) {
+        this.priority = data().deepCopy(fields()[7].schema(), other.priority);
         fieldSetFlags()[7] = other.fieldSetFlags()[7];
       }
-      if (isValidValue(fields()[8], other.processingTimestamp)) {
-        this.processingTimestamp = data().deepCopy(fields()[8].schema(), other.processingTimestamp);
+      if (isValidValue(fields()[8], other.timestamp)) {
+        this.timestamp = data().deepCopy(fields()[8].schema(), other.timestamp);
         fieldSetFlags()[8] = other.fieldSetFlags()[8];
       }
-      if (isValidValue(fields()[9], other.processingNodeId)) {
-        this.processingNodeId = data().deepCopy(fields()[9].schema(), other.processingNodeId);
+      if (isValidValue(fields()[9], other.processingTimestamp)) {
+        this.processingTimestamp = data().deepCopy(fields()[9].schema(), other.processingTimestamp);
         fieldSetFlags()[9] = other.fieldSetFlags()[9];
       }
-      if (isValidValue(fields()[10], other.status)) {
-        this.status = data().deepCopy(fields()[10].schema(), other.status);
+      if (isValidValue(fields()[10], other.processingNodeId)) {
+        this.processingNodeId = data().deepCopy(fields()[10].schema(), other.processingNodeId);
         fieldSetFlags()[10] = other.fieldSetFlags()[10];
       }
-      if (isValidValue(fields()[11], other.validationPassed)) {
-        this.validationPassed = data().deepCopy(fields()[11].schema(), other.validationPassed);
+      if (isValidValue(fields()[11], other.status)) {
+        this.status = data().deepCopy(fields()[11].schema(), other.status);
         fieldSetFlags()[11] = other.fieldSetFlags()[11];
       }
-      if (isValidValue(fields()[12], other.businessRulesPassed)) {
-        this.businessRulesPassed = data().deepCopy(fields()[12].schema(), other.businessRulesPassed);
+      if (isValidValue(fields()[12], other.validationPassed)) {
+        this.validationPassed = data().deepCopy(fields()[12].schema(), other.validationPassed);
         fieldSetFlags()[12] = other.fieldSetFlags()[12];
       }
-      if (isValidValue(fields()[13], other.errorMessage)) {
-        this.errorMessage = data().deepCopy(fields()[13].schema(), other.errorMessage);
+      if (isValidValue(fields()[13], other.businessRulesPassed)) {
+        this.businessRulesPassed = data().deepCopy(fields()[13].schema(), other.businessRulesPassed);
         fieldSetFlags()[13] = other.fieldSetFlags()[13];
+      }
+      if (isValidValue(fields()[14], other.errorMessage)) {
+        this.errorMessage = data().deepCopy(fields()[14].schema(), other.errorMessage);
+        fieldSetFlags()[14] = other.fieldSetFlags()[14];
       }
     }
 
@@ -600,53 +630,57 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
         this.amount = data().deepCopy(fields()[1].schema(), other.amount);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.currency)) {
-        this.currency = data().deepCopy(fields()[2].schema(), other.currency);
+      if (isValidValue(fields()[2], other.amountMinor)) {
+        this.amountMinor = data().deepCopy(fields()[2].schema(), other.amountMinor);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.senderAccount)) {
-        this.senderAccount = data().deepCopy(fields()[3].schema(), other.senderAccount);
+      if (isValidValue(fields()[3], other.currency)) {
+        this.currency = data().deepCopy(fields()[3].schema(), other.currency);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.receiverAccount)) {
-        this.receiverAccount = data().deepCopy(fields()[4].schema(), other.receiverAccount);
+      if (isValidValue(fields()[4], other.senderAccount)) {
+        this.senderAccount = data().deepCopy(fields()[4].schema(), other.senderAccount);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.transactionType)) {
-        this.transactionType = data().deepCopy(fields()[5].schema(), other.transactionType);
+      if (isValidValue(fields()[5], other.receiverAccount)) {
+        this.receiverAccount = data().deepCopy(fields()[5].schema(), other.receiverAccount);
         fieldSetFlags()[5] = true;
       }
-      if (isValidValue(fields()[6], other.priority)) {
-        this.priority = data().deepCopy(fields()[6].schema(), other.priority);
+      if (isValidValue(fields()[6], other.transactionType)) {
+        this.transactionType = data().deepCopy(fields()[6].schema(), other.transactionType);
         fieldSetFlags()[6] = true;
       }
-      if (isValidValue(fields()[7], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[7].schema(), other.timestamp);
+      if (isValidValue(fields()[7], other.priority)) {
+        this.priority = data().deepCopy(fields()[7].schema(), other.priority);
         fieldSetFlags()[7] = true;
       }
-      if (isValidValue(fields()[8], other.processingTimestamp)) {
-        this.processingTimestamp = data().deepCopy(fields()[8].schema(), other.processingTimestamp);
+      if (isValidValue(fields()[8], other.timestamp)) {
+        this.timestamp = data().deepCopy(fields()[8].schema(), other.timestamp);
         fieldSetFlags()[8] = true;
       }
-      if (isValidValue(fields()[9], other.processingNodeId)) {
-        this.processingNodeId = data().deepCopy(fields()[9].schema(), other.processingNodeId);
+      if (isValidValue(fields()[9], other.processingTimestamp)) {
+        this.processingTimestamp = data().deepCopy(fields()[9].schema(), other.processingTimestamp);
         fieldSetFlags()[9] = true;
       }
-      if (isValidValue(fields()[10], other.status)) {
-        this.status = data().deepCopy(fields()[10].schema(), other.status);
+      if (isValidValue(fields()[10], other.processingNodeId)) {
+        this.processingNodeId = data().deepCopy(fields()[10].schema(), other.processingNodeId);
         fieldSetFlags()[10] = true;
       }
-      if (isValidValue(fields()[11], other.validationPassed)) {
-        this.validationPassed = data().deepCopy(fields()[11].schema(), other.validationPassed);
+      if (isValidValue(fields()[11], other.status)) {
+        this.status = data().deepCopy(fields()[11].schema(), other.status);
         fieldSetFlags()[11] = true;
       }
-      if (isValidValue(fields()[12], other.businessRulesPassed)) {
-        this.businessRulesPassed = data().deepCopy(fields()[12].schema(), other.businessRulesPassed);
+      if (isValidValue(fields()[12], other.validationPassed)) {
+        this.validationPassed = data().deepCopy(fields()[12].schema(), other.validationPassed);
         fieldSetFlags()[12] = true;
       }
-      if (isValidValue(fields()[13], other.errorMessage)) {
-        this.errorMessage = data().deepCopy(fields()[13].schema(), other.errorMessage);
+      if (isValidValue(fields()[13], other.businessRulesPassed)) {
+        this.businessRulesPassed = data().deepCopy(fields()[13].schema(), other.businessRulesPassed);
         fieldSetFlags()[13] = true;
+      }
+      if (isValidValue(fields()[14], other.errorMessage)) {
+        this.errorMessage = data().deepCopy(fields()[14].schema(), other.errorMessage);
+        fieldSetFlags()[14] = true;
       }
     }
 
@@ -696,7 +730,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
     /**
       * Gets the value of the 'amount' field.
-      * Transaction amount
+      * Transaction amount (legacy field - use amountMinor for precision)
       * @return The value.
       */
     public double getAmount() {
@@ -706,7 +740,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
     /**
       * Sets the value of the 'amount' field.
-      * Transaction amount
+      * Transaction amount (legacy field - use amountMinor for precision)
       * @param value The value of 'amount'.
       * @return This builder.
       */
@@ -719,7 +753,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
     /**
       * Checks whether the 'amount' field has been set.
-      * Transaction amount
+      * Transaction amount (legacy field - use amountMinor for precision)
       * @return True if the 'amount' field has been set, false otherwise.
       */
     public boolean hasAmount() {
@@ -729,11 +763,54 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
 
     /**
       * Clears the value of the 'amount' field.
-      * Transaction amount
+      * Transaction amount (legacy field - use amountMinor for precision)
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearAmount() {
       fieldSetFlags()[1] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'amountMinor' field.
+      * Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+      * @return The value.
+      */
+    public long getAmountMinor() {
+      return amountMinor;
+    }
+
+
+    /**
+      * Sets the value of the 'amountMinor' field.
+      * Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+      * @param value The value of 'amountMinor'.
+      * @return This builder.
+      */
+    public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setAmountMinor(long value) {
+      validate(fields()[2], value);
+      this.amountMinor = value;
+      fieldSetFlags()[2] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'amountMinor' field has been set.
+      * Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+      * @return True if the 'amountMinor' field has been set, false otherwise.
+      */
+    public boolean hasAmountMinor() {
+      return fieldSetFlags()[2];
+    }
+
+
+    /**
+      * Clears the value of the 'amountMinor' field.
+      * Transaction amount in minor units (e.g., cents for USD) for precise monetary representation
+      * @return This builder.
+      */
+    public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearAmountMinor() {
+      fieldSetFlags()[2] = false;
       return this;
     }
 
@@ -754,9 +831,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setCurrency(java.lang.String value) {
-      validate(fields()[2], value);
+      validate(fields()[3], value);
       this.currency = value;
-      fieldSetFlags()[2] = true;
+      fieldSetFlags()[3] = true;
       return this;
     }
 
@@ -766,7 +843,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'currency' field has been set, false otherwise.
       */
     public boolean hasCurrency() {
-      return fieldSetFlags()[2];
+      return fieldSetFlags()[3];
     }
 
 
@@ -777,7 +854,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearCurrency() {
       currency = null;
-      fieldSetFlags()[2] = false;
+      fieldSetFlags()[3] = false;
       return this;
     }
 
@@ -798,9 +875,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setSenderAccount(java.lang.String value) {
-      validate(fields()[3], value);
+      validate(fields()[4], value);
       this.senderAccount = value;
-      fieldSetFlags()[3] = true;
+      fieldSetFlags()[4] = true;
       return this;
     }
 
@@ -810,7 +887,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'senderAccount' field has been set, false otherwise.
       */
     public boolean hasSenderAccount() {
-      return fieldSetFlags()[3];
+      return fieldSetFlags()[4];
     }
 
 
@@ -821,7 +898,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearSenderAccount() {
       senderAccount = null;
-      fieldSetFlags()[3] = false;
+      fieldSetFlags()[4] = false;
       return this;
     }
 
@@ -842,9 +919,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setReceiverAccount(java.lang.String value) {
-      validate(fields()[4], value);
+      validate(fields()[5], value);
       this.receiverAccount = value;
-      fieldSetFlags()[4] = true;
+      fieldSetFlags()[5] = true;
       return this;
     }
 
@@ -854,7 +931,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'receiverAccount' field has been set, false otherwise.
       */
     public boolean hasReceiverAccount() {
-      return fieldSetFlags()[4];
+      return fieldSetFlags()[5];
     }
 
 
@@ -865,7 +942,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearReceiverAccount() {
       receiverAccount = null;
-      fieldSetFlags()[4] = false;
+      fieldSetFlags()[5] = false;
       return this;
     }
 
@@ -886,9 +963,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setTransactionType(java.lang.String value) {
-      validate(fields()[5], value);
+      validate(fields()[6], value);
       this.transactionType = value;
-      fieldSetFlags()[5] = true;
+      fieldSetFlags()[6] = true;
       return this;
     }
 
@@ -898,7 +975,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'transactionType' field has been set, false otherwise.
       */
     public boolean hasTransactionType() {
-      return fieldSetFlags()[5];
+      return fieldSetFlags()[6];
     }
 
 
@@ -909,7 +986,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearTransactionType() {
       transactionType = null;
-      fieldSetFlags()[5] = false;
+      fieldSetFlags()[6] = false;
       return this;
     }
 
@@ -930,9 +1007,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setPriority(java.lang.String value) {
-      validate(fields()[6], value);
+      validate(fields()[7], value);
       this.priority = value;
-      fieldSetFlags()[6] = true;
+      fieldSetFlags()[7] = true;
       return this;
     }
 
@@ -942,7 +1019,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'priority' field has been set, false otherwise.
       */
     public boolean hasPriority() {
-      return fieldSetFlags()[6];
+      return fieldSetFlags()[7];
     }
 
 
@@ -953,7 +1030,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearPriority() {
       priority = null;
-      fieldSetFlags()[6] = false;
+      fieldSetFlags()[7] = false;
       return this;
     }
 
@@ -974,9 +1051,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setTimestamp(java.lang.String value) {
-      validate(fields()[7], value);
+      validate(fields()[8], value);
       this.timestamp = value;
-      fieldSetFlags()[7] = true;
+      fieldSetFlags()[8] = true;
       return this;
     }
 
@@ -986,7 +1063,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'timestamp' field has been set, false otherwise.
       */
     public boolean hasTimestamp() {
-      return fieldSetFlags()[7];
+      return fieldSetFlags()[8];
     }
 
 
@@ -997,7 +1074,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearTimestamp() {
       timestamp = null;
-      fieldSetFlags()[7] = false;
+      fieldSetFlags()[8] = false;
       return this;
     }
 
@@ -1018,9 +1095,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setProcessingTimestamp(java.lang.String value) {
-      validate(fields()[8], value);
+      validate(fields()[9], value);
       this.processingTimestamp = value;
-      fieldSetFlags()[8] = true;
+      fieldSetFlags()[9] = true;
       return this;
     }
 
@@ -1030,7 +1107,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'processingTimestamp' field has been set, false otherwise.
       */
     public boolean hasProcessingTimestamp() {
-      return fieldSetFlags()[8];
+      return fieldSetFlags()[9];
     }
 
 
@@ -1041,7 +1118,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearProcessingTimestamp() {
       processingTimestamp = null;
-      fieldSetFlags()[8] = false;
+      fieldSetFlags()[9] = false;
       return this;
     }
 
@@ -1062,9 +1139,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setProcessingNodeId(java.lang.String value) {
-      validate(fields()[9], value);
+      validate(fields()[10], value);
       this.processingNodeId = value;
-      fieldSetFlags()[9] = true;
+      fieldSetFlags()[10] = true;
       return this;
     }
 
@@ -1074,7 +1151,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'processingNodeId' field has been set, false otherwise.
       */
     public boolean hasProcessingNodeId() {
-      return fieldSetFlags()[9];
+      return fieldSetFlags()[10];
     }
 
 
@@ -1085,7 +1162,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearProcessingNodeId() {
       processingNodeId = null;
-      fieldSetFlags()[9] = false;
+      fieldSetFlags()[10] = false;
       return this;
     }
 
@@ -1106,9 +1183,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setStatus(java.lang.String value) {
-      validate(fields()[10], value);
+      validate(fields()[11], value);
       this.status = value;
-      fieldSetFlags()[10] = true;
+      fieldSetFlags()[11] = true;
       return this;
     }
 
@@ -1118,7 +1195,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'status' field has been set, false otherwise.
       */
     public boolean hasStatus() {
-      return fieldSetFlags()[10];
+      return fieldSetFlags()[11];
     }
 
 
@@ -1129,7 +1206,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearStatus() {
       status = null;
-      fieldSetFlags()[10] = false;
+      fieldSetFlags()[11] = false;
       return this;
     }
 
@@ -1150,9 +1227,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setValidationPassed(boolean value) {
-      validate(fields()[11], value);
+      validate(fields()[12], value);
       this.validationPassed = value;
-      fieldSetFlags()[11] = true;
+      fieldSetFlags()[12] = true;
       return this;
     }
 
@@ -1162,7 +1239,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'validationPassed' field has been set, false otherwise.
       */
     public boolean hasValidationPassed() {
-      return fieldSetFlags()[11];
+      return fieldSetFlags()[12];
     }
 
 
@@ -1172,7 +1249,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearValidationPassed() {
-      fieldSetFlags()[11] = false;
+      fieldSetFlags()[12] = false;
       return this;
     }
 
@@ -1193,9 +1270,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setBusinessRulesPassed(boolean value) {
-      validate(fields()[12], value);
+      validate(fields()[13], value);
       this.businessRulesPassed = value;
-      fieldSetFlags()[12] = true;
+      fieldSetFlags()[13] = true;
       return this;
     }
 
@@ -1205,7 +1282,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'businessRulesPassed' field has been set, false otherwise.
       */
     public boolean hasBusinessRulesPassed() {
-      return fieldSetFlags()[12];
+      return fieldSetFlags()[13];
     }
 
 
@@ -1215,7 +1292,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearBusinessRulesPassed() {
-      fieldSetFlags()[12] = false;
+      fieldSetFlags()[13] = false;
       return this;
     }
 
@@ -1236,9 +1313,9 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return This builder.
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder setErrorMessage(java.lang.String value) {
-      validate(fields()[13], value);
+      validate(fields()[14], value);
       this.errorMessage = value;
-      fieldSetFlags()[13] = true;
+      fieldSetFlags()[14] = true;
       return this;
     }
 
@@ -1248,7 +1325,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       * @return True if the 'errorMessage' field has been set, false otherwise.
       */
     public boolean hasErrorMessage() {
-      return fieldSetFlags()[13];
+      return fieldSetFlags()[14];
     }
 
 
@@ -1259,7 +1336,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       */
     public com.anz.fastpayment.inward.avro.ProcessedTransactionMessage.Builder clearErrorMessage() {
       errorMessage = null;
-      fieldSetFlags()[13] = false;
+      fieldSetFlags()[14] = false;
       return this;
     }
 
@@ -1270,18 +1347,19 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
         ProcessedTransactionMessage record = new ProcessedTransactionMessage();
         record.transactionId = fieldSetFlags()[0] ? this.transactionId : (java.lang.String) defaultValue(fields()[0]);
         record.amount = fieldSetFlags()[1] ? this.amount : (java.lang.Double) defaultValue(fields()[1]);
-        record.currency = fieldSetFlags()[2] ? this.currency : (java.lang.String) defaultValue(fields()[2]);
-        record.senderAccount = fieldSetFlags()[3] ? this.senderAccount : (java.lang.String) defaultValue(fields()[3]);
-        record.receiverAccount = fieldSetFlags()[4] ? this.receiverAccount : (java.lang.String) defaultValue(fields()[4]);
-        record.transactionType = fieldSetFlags()[5] ? this.transactionType : (java.lang.String) defaultValue(fields()[5]);
-        record.priority = fieldSetFlags()[6] ? this.priority : (java.lang.String) defaultValue(fields()[6]);
-        record.timestamp = fieldSetFlags()[7] ? this.timestamp : (java.lang.String) defaultValue(fields()[7]);
-        record.processingTimestamp = fieldSetFlags()[8] ? this.processingTimestamp : (java.lang.String) defaultValue(fields()[8]);
-        record.processingNodeId = fieldSetFlags()[9] ? this.processingNodeId : (java.lang.String) defaultValue(fields()[9]);
-        record.status = fieldSetFlags()[10] ? this.status : (java.lang.String) defaultValue(fields()[10]);
-        record.validationPassed = fieldSetFlags()[11] ? this.validationPassed : (java.lang.Boolean) defaultValue(fields()[11]);
-        record.businessRulesPassed = fieldSetFlags()[12] ? this.businessRulesPassed : (java.lang.Boolean) defaultValue(fields()[12]);
-        record.errorMessage = fieldSetFlags()[13] ? this.errorMessage : (java.lang.String) defaultValue(fields()[13]);
+        record.amountMinor = fieldSetFlags()[2] ? this.amountMinor : (java.lang.Long) defaultValue(fields()[2]);
+        record.currency = fieldSetFlags()[3] ? this.currency : (java.lang.String) defaultValue(fields()[3]);
+        record.senderAccount = fieldSetFlags()[4] ? this.senderAccount : (java.lang.String) defaultValue(fields()[4]);
+        record.receiverAccount = fieldSetFlags()[5] ? this.receiverAccount : (java.lang.String) defaultValue(fields()[5]);
+        record.transactionType = fieldSetFlags()[6] ? this.transactionType : (java.lang.String) defaultValue(fields()[6]);
+        record.priority = fieldSetFlags()[7] ? this.priority : (java.lang.String) defaultValue(fields()[7]);
+        record.timestamp = fieldSetFlags()[8] ? this.timestamp : (java.lang.String) defaultValue(fields()[8]);
+        record.processingTimestamp = fieldSetFlags()[9] ? this.processingTimestamp : (java.lang.String) defaultValue(fields()[9]);
+        record.processingNodeId = fieldSetFlags()[10] ? this.processingNodeId : (java.lang.String) defaultValue(fields()[10]);
+        record.status = fieldSetFlags()[11] ? this.status : (java.lang.String) defaultValue(fields()[11]);
+        record.validationPassed = fieldSetFlags()[12] ? this.validationPassed : (java.lang.Boolean) defaultValue(fields()[12]);
+        record.businessRulesPassed = fieldSetFlags()[13] ? this.businessRulesPassed : (java.lang.Boolean) defaultValue(fields()[13]);
+        record.errorMessage = fieldSetFlags()[14] ? this.errorMessage : (java.lang.String) defaultValue(fields()[14]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -1314,26 +1392,58 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
   @Override public void customEncode(org.apache.avro.io.Encoder out)
     throws java.io.IOException
   {
+    if (this.transactionId == null) {
+      throw new IllegalStateException("transactionId cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.transactionId);
 
     out.writeDouble(this.amount);
 
+    out.writeLong(this.amountMinor);
+
+    if (this.currency == null) {
+      throw new IllegalStateException("currency cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.currency);
 
+    if (this.senderAccount == null) {
+      throw new IllegalStateException("senderAccount cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.senderAccount);
 
+    if (this.receiverAccount == null) {
+      throw new IllegalStateException("receiverAccount cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.receiverAccount);
 
+    if (this.transactionType == null) {
+      throw new IllegalStateException("transactionType cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.transactionType);
 
+    if (this.priority == null) {
+      throw new IllegalStateException("priority cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.priority);
 
+    if (this.timestamp == null) {
+      throw new IllegalStateException("timestamp cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.timestamp);
 
+    if (this.processingTimestamp == null) {
+      throw new IllegalStateException("processingTimestamp cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.processingTimestamp);
 
+    if (this.processingNodeId == null) {
+      throw new IllegalStateException("processingNodeId cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.processingNodeId);
 
+    if (this.status == null) {
+      throw new IllegalStateException("status cannot be null for ProcessedTransactionMessage encoding");
+    }
     out.writeString(this.status);
 
     out.writeBoolean(this.validationPassed);
@@ -1358,6 +1468,8 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       this.transactionId = in.readString();
 
       this.amount = in.readDouble();
+
+      this.amountMinor = in.readLong();
 
       this.currency = in.readString();
 
@@ -1389,7 +1501,7 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
       }
 
     } else {
-      for (int i = 0; i < 14; i++) {
+      for (int i = 0; i < 15; i++) {
         switch (fieldOrder[i].pos()) {
         case 0:
           this.transactionId = in.readString();
@@ -1400,50 +1512,54 @@ public class ProcessedTransactionMessage extends org.apache.avro.specific.Specif
           break;
 
         case 2:
-          this.currency = in.readString();
+          this.amountMinor = in.readLong();
           break;
 
         case 3:
-          this.senderAccount = in.readString();
+          this.currency = in.readString();
           break;
 
         case 4:
-          this.receiverAccount = in.readString();
+          this.senderAccount = in.readString();
           break;
 
         case 5:
-          this.transactionType = in.readString();
+          this.receiverAccount = in.readString();
           break;
 
         case 6:
-          this.priority = in.readString();
+          this.transactionType = in.readString();
           break;
 
         case 7:
-          this.timestamp = in.readString();
+          this.priority = in.readString();
           break;
 
         case 8:
-          this.processingTimestamp = in.readString();
+          this.timestamp = in.readString();
           break;
 
         case 9:
-          this.processingNodeId = in.readString();
+          this.processingTimestamp = in.readString();
           break;
 
         case 10:
-          this.status = in.readString();
+          this.processingNodeId = in.readString();
           break;
 
         case 11:
-          this.validationPassed = in.readBoolean();
+          this.status = in.readString();
           break;
 
         case 12:
-          this.businessRulesPassed = in.readBoolean();
+          this.validationPassed = in.readBoolean();
           break;
 
         case 13:
+          this.businessRulesPassed = in.readBoolean();
+          break;
+
+        case 14:
           if (in.readIndex() != 1) {
             in.readNull();
             this.errorMessage = null;
