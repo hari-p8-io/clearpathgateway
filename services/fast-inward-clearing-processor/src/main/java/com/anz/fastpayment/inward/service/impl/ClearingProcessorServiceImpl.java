@@ -139,7 +139,7 @@ public class ClearingProcessorServiceImpl implements ClearingProcessorService {
             
             // Set basic fields
             pojoMessage.setTransactionId(avroMessage.getTransactionId());
-            pojoMessage.setAmount(avroMessage.getAmount() != null ? new BigDecimal(avroMessage.getAmount()) : BigDecimal.ZERO);
+            pojoMessage.setAmount(new BigDecimal(avroMessage.getAmount()));
             pojoMessage.setCurrency(avroMessage.getCurrency());
             pojoMessage.setSenderAccount(avroMessage.getSenderAccount());
             pojoMessage.setReceiverAccount(avroMessage.getReceiverAccount());

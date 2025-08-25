@@ -53,10 +53,8 @@ public class AvroConverter {
                 // Extract amount and currency from FromAcct
                 if (firstPaymentRequest.getFromAcct() != null) {
                     var fromAcct = firstPaymentRequest.getFromAcct();
-                    // Amount is now string, so convert to BigDecimal safely
-                    if (fromAcct.getAmount() != null) {
-                        transactionMessage.setAmount(new BigDecimal(fromAcct.getAmount()));
-                    }
+                    // Amount is double, so convert to BigDecimal directly
+                    transactionMessage.setAmount(new BigDecimal(fromAcct.getAmount()));
                     if (fromAcct.getCurCode() != null) {
                         transactionMessage.setCurrency(fromAcct.getCurCode().toString());
                     }
@@ -178,22 +176,16 @@ public class AvroConverter {
                 var firstPaymentRequest = message.getBody().getPmtAddRq().get(0);
                 if (firstPaymentRequest.getFromAcct() != null) {
                     
-                    String amountStr = firstPaymentRequest.getFromAcct().getAmount();
-                    if (amountStr != null) {
-                        try {
-                            BigDecimal amount = new BigDecimal(amountStr);
-                            
-                            // Simple priority logic based on amount
-                            if (amount.compareTo(new BigDecimal("100000")) >= 0) {
-                                return "HIGH";
-                            } else if (amount.compareTo(new BigDecimal("10000")) >= 0) {
-                                return "NORMAL";
-                            } else {
-                                return "LOW";
-                            }
-                        } catch (NumberFormatException e) {
-                            logger.warn("Could not parse amount string: {}", amountStr, e);
-                        }
+                    double amountDouble = firstPaymentRequest.getFromAcct().getAmount();
+                    BigDecimal amount = new BigDecimal(amountDouble);
+                    
+                    // Simple priority logic based on amount
+                    if (amount.compareTo(new BigDecimal("100000")) >= 0) {
+                        return "HIGH";
+                    } else if (amount.compareTo(new BigDecimal("10000")) >= 0) {
+                        return "NORMAL";
+                    } else {
+                        return "LOW";
                     }
                 }
             }
@@ -339,7 +331,8 @@ public class AvroConverter {
             
             // Set all fields from the POJO
             avroMessage.setTransactionId(processedMessage.getTransactionId());
-            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().toString() : "0.00");
+            // Handle amount field - convert BigDecimal to double for resources schema compatibility
+            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().doubleValue() : 0.0);
             avroMessage.setCurrency(processedMessage.getCurrency());
             avroMessage.setSenderAccount(processedMessage.getSenderAccount());
             avroMessage.setReceiverAccount(processedMessage.getReceiverAccount());
@@ -393,7 +386,8 @@ public class AvroConverter {
             
             // Set all fields from the POJO
             avroMessage.setTransactionId(processedMessage.getTransactionId());
-            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().toString() : "0.00");
+            // Handle amount field - convert BigDecimal to double for resources schema compatibility
+            avroMessage.setAmount(processedMessage.getAmount() != null ? processedMessage.getAmount().doubleValue() : 0.0);
             avroMessage.setCurrency(processedMessage.getCurrency());
             avroMessage.setSenderAccount(processedMessage.getSenderAccount());
             avroMessage.setReceiverAccount(processedMessage.getReceiverAccount());
